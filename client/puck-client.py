@@ -12,10 +12,17 @@ class VM(object):
         self.status = None
         self.environment = None
         self.interfaces = lib.interfaces.getInterfaces();
+        self._configured = False
+
     def persist(self):
         #TODO: pickle this into a file.
         pass
 
+    def isConfigured(self, state = None):
+        if state:
+            self._configured = state
+        return self._configured
+        
 class Puck(object):
     def __init__(self, vm):
         self._vm = vm
@@ -31,18 +38,33 @@ class Puck(object):
 
     def getKeys(self):
         pass
+    def getEnvironments(self):
+        return {
+            'dev': 'Development',
+            'testing': 'Testing',
+            'qa': 'Quality Assurance',
+            'staging': 'Staging',
+            'prod': 'Production'
+        }
 
-class Configuration(object):
+class ConfigurationWizard(object):
     def __init__(self, vm):
         self._vm = vm
 
     @cherrypy.expose
     def index(self):
-        return "index"
+        raise cherrypy.HTTPRedirect('/configure/environment', status=303)
 
     @cherrypy.expose
-    def environment(self):
-        return "Nope Nope Nope"
+    def environment(self, *args,**kwargs):
+        if cherrypy.request.method == "POST":
+            if kwargs.has_key("vm.environment"):
+                vm.environment = kwargs['vm.environment']
+
+        environments = puck.getEnvironments()
+
+        tmpl = lookup.get_template("configure/environment.html")
+        return tmpl.render(VM=vm, environments=environments)
 
     @cherrypy.expose
     def jails(self):
@@ -69,7 +91,7 @@ vm = VM()
 puck = Puck(vm)
 
 root = Root()
-root.configure = Configuration(vm)
+root.configure = ConfigurationWizard(vm)
 
 if __name__ == "__main__":
     conf =  {'/' : 
