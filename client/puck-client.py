@@ -1,84 +1,80 @@
-import cherrypy
-import uuid
+import cherrypy, os, sys, time, pickle
+import lib.interfaces
+
+from mako.template import Template
+from mako.lookup import TemplateLookup
 
 class VM(object):
-    def __init__(self):
-        self._id = uuid.uuid1()
-        self._config = {}
-        
+    def __init__(self, id = None):
+        self.id = id
+        self.jails = []
+        self.keys = {}
+        self.status = None
+        self.environment = None
+        self.interfaces = lib.interfaces.getInterfaces();
+    def persist(self):
+        #TODO: pickle this into a file.
+        pass
 
-    @property
-    def id(self):
-        return self._id
+class Puck(object):
+    def __init__(self, vm):
+        self._vm = vm
 
-class Registry(object):
-    def __init__(self, cls):
-        self._cls = cls
-        self._container = dict()
+    def register(self):
+        pass
 
-    def new(self):
-        obj = self._cls()
-        self._container[obj.id()] = obj
-        return obj.id()
+    def updateStatus(self):
+        pass
 
-        
-    
+    def updateConfig(self):
+        pass
+
+    def getKeys(self):
+        pass
+
+class Configuration(object):
+    def __init__(self, vm):
+        self._vm = vm
+
+    @cherrypy.expose
+    def index(self):
+        return "index"
+
+    @cherrypy.expose
+    def environment(self):
+        return "Nope Nope Nope"
+
+    @cherrypy.expose
+    def jails(self):
+        return "Nope Nope Nope"
+
+    @cherrypy.expose
+    def keys(self):
+        return "HAHAHA"
+
+    @cherrypy.expose
+    def save(self):
+        return "saved"
 
 class Root(object):
 
     @cherrypy.expose
     def index(self):
-        return "Hello World"
+        tmpl = lookup.get_template("index.html")
+        return tmpl.render(VM=vm)
 
-    @cherrypy.expose
-    def statuses(self, a=None):
-        return "Nope Nope Nope"
+lookup = TemplateLookup(directories=['html'])
 
-class APICall(object):
-    exposed = True
-
-    def __init__(self, registry):
-        self._registry = registry
-
-
-class APIRegister(APICall):
-
-    @cherrypy.tools.json_out()
-    def POST(self):
-        return self._registry.new()
-
-class APIStatus(APICall):
-
-    @cherry
-
-
-
-        
-
-class Api(object):
-    exposed = True
-
-vmRegistry = Registry(VM)
-api = Api()
-api.register = APIRegister(vmRegistry)
-api.status = APIStatus(vmRegistry)
-api.keys = APIKeys(vmRegistry)
-api.config = APIConfig(vmRegistry)
-
+vm = VM()
+puck = Puck(vm)
 
 root = Root()
-root.api = api
-
+root.configure = Configuration(vm)
 
 if __name__ == "__main__":
     conf =  {'/' : 
                 {
                     'request.dispatch' : cherrypy.dispatch.Dispatcher()
                 }
-            ,'/api' : 
-                {
-                    'request.dispatch' : cherrypy.dispatch.MethodDispatcher()
-                }
             }
-            
     cherrypy.quickstart(root, '/', conf)
