@@ -24,9 +24,10 @@ class VM(object):
         return self._configured
 
 class Puck(object):
-    def __init__(self, vm_id = None):
+    def __init__(self):
         self._registration = None
-        if not self.register(vm_id):
+
+        if not self.register():
             raise LookupError()
 
         self._vm = VM(self._registration)
@@ -34,11 +35,22 @@ class Puck(object):
     def getVM(self):
         return self._vm
 
-    def register(self, registration):
+    def register(self):
         '''
         TODO: USE API
         '''
-        self._registration = 'ABC-DEF'
+        registration_file = '/usr/local/etc/puck_registration'
+        if not os.path.exists(registration_file):
+            #@todo: add api call
+            self._registration = 'ABC-DEF'
+            with open(registration_file, 'w') as f:
+                f.write(self._registration)
+        else:
+            with open(registration_file, 'r') as f:
+                self._registration = f.readline().strip()
+                if len(self._registration) == 0:
+                    #@todo: API CALL
+                    self._registration= 'ABC-DEF'
         return True
 
     def getJails(self):
