@@ -1,0 +1,24 @@
+<%inherit file="/template.html"/>
+
+<%block name="header">
+    Puck Configuration Wizard
+</%block>
+
+<h2>Environment</h2>
+<ul>
+	% for key in VM.jails:
+		<li>${VM.jails[key]['name']}</li>
+	% endfor
+</ul>
+<form action="/configure/jails" method="post">
+	% for type in jails:
+		<h3>${type}</h3>
+		<div>
+			% for key in jails[type]:
+				<input id="jails.${type}.${key}" type="radio" name="jails.${type}" value="${key}" />
+				<label for="jails.${type}.${key}">${jails[type][key]['name']}</label>
+			% endfor
+		</div>
+	% endfor
+	<button type="submit">Save</button>
+</form>

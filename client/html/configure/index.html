@@ -3,42 +3,47 @@
 <%block name="header">
     Puck Configuration Wizard
 </%block>
-
-<h3>Network Interfaces</h3>
-<table>
-	% for key in VM.interfaces:
+<div>
+	<h3>Network Interfaces</h3>
+	<table>
+		% for key in VM.interfaces:
+			<tr>
+				<td>${VM.interfaces[key]}</td>
+				<td>${key}</td>
+			</tr>
+		% endfor
+	</table>
+	
+	<h3>Registration</h3>
+	${VM.id}
+	
+	<h3>Environment</h3>
+	% if VM.environment:
+		<p>${VM.environment}</p>
+	% endif
+	<a href="/configure/environment">Modify</a>
+	
+	<h3>Jails</h3>
+	<table>
+	% for jail in VM.jails:
 		<tr>
-			<td>${VM.interfaces[key]}</td>
-			<td>${key}</td>
+			<td>${jail['name']}</td>
+			<td>${jail['type']}</td>
 		</tr>
 	% endfor
-</table>
-
-<h3>Registration</h3>
-${VM.id}
-
-<h3>Environment</h3>
-% if VM.environment:
-	<p>${VM.environment}</p>
-% endif
-<a href="/configure/environment">Modify</a>
-
-<h3>Jails</h3>
-<table>
-% for jail in VM.jails:
-	<tr>
-		<td>${jail['name']}</td>
-		<td>${jail['type']}</td>
-	</tr>
-% endfor
-</table>
-
-<a href="/configure/jails">Modify</a>
-
-<h3>SSH Keys</h3>
-<ul>
-% for key in VM.keys:
-	<li>${VM.keys[key]['name']}</li>
-% endfor
-</ul>
-<a href="/configure/keys">Modify</a>
+	</table>
+	
+	<a href="/configure/jails">Modify</a>
+	
+	<h3>SSH Keys</h3>
+	<ul>
+	% for key in VM.keys:
+		<li>${VM.keys[key]['name']}</li>
+	% endfor
+	</ul>
+	<a href="/configure/keys">Modify</a>
+</div>
+<div>
+	<form action="/configure/commit">
+	</form>
+</div>

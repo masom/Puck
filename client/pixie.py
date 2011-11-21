@@ -45,10 +45,11 @@ class Puck(object):
         '''
         TODO: USE API
         '''
-        jails = []
-        jails.append({'type': 'content', 'url': 'http://localhost', 'name': 'Content'})
-        jails.append({'type': 'database', 'url': 'http://localhost', 'name': 'Database'})
-        jails.append({'type': 'support', 'url': 'http://localhost', 'name': 'Support'})
+        jails = {'content': {}, 'database': {}, 'support': {}}
+
+        jails['content']['derp'] = {'type': 'content', 'url': 'http://localhost', 'name': 'Content'}
+        jails['database']['derp'] = {'type': 'database', 'url': 'http://localhost', 'name': 'Database'}
+        jails['support']['derp'] = {'type': 'support', 'url': 'http://localhost', 'name': 'Support'}
         return jails
 
     def updateStatus(self):
@@ -108,8 +109,23 @@ class ConfigurationWizard(object):
         return tmpl.render(VM=vm, environments=environments)
 
     @cherrypy.expose
-    def jails(self):
-        return "Nope Nope Nope"
+    def jails(self, *args, **kwargs):
+        jails = puck.getJails()
+
+        if cherrypy.request.method == "POST":
+            #@todo: Move this somewhere else
+            keys = ['jails.content', 'jails.database', 'jails.support']
+            vm.jails = []
+            for key in kwargs:
+                if key in keys:
+                    jail_id = kwargs[key]
+                    type = key.lstrip('jails.')
+                    if jails[type].has_key(jail_id):
+                        vm.jails.append(jails[type][jail_id])
+            raise cherrypy.HTTPRedirect('/configure/')
+
+        tmpl = lookup.get_template("/configure/jails.html")
+        return tmpl.render(VM=vm, jails=jails)
 
     @cherrypy.expose
     def keys(self):
