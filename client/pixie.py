@@ -47,9 +47,9 @@ class Puck(object):
         '''
         jails = {'content': {}, 'database': {}, 'support': {}}
 
-        jails['content']['derp'] = {'type': 'content', 'url': 'http://localhost', 'name': 'Content'}
-        jails['database']['derp'] = {'type': 'database', 'url': 'http://localhost', 'name': 'Database'}
-        jails['support']['derp'] = {'type': 'support', 'url': 'http://localhost', 'name': 'Support'}
+        jails['content']['1'] = {'id': '1', 'type': 'content', 'url': 'http://localhost', 'name': 'Content'}
+        jails['database']['2'] = {'id':'2', 'type': 'database', 'url': 'http://localhost', 'name': 'Database'}
+        jails['support']['3'] = {'id': '3', 'type': 'support', 'url': 'http://localhost', 'name': 'Support'}
         return jails
 
     def updateStatus(self):
@@ -119,7 +119,7 @@ class ConfigurationWizard(object):
             for key in kwargs:
                 if key in keys:
                     jail_id = kwargs[key]
-                    type = key.lstrip('jails.')
+                    domain, type = key.split('.', 1)
                     if jails[type].has_key(jail_id):
                         vm.jails.append(jails[type][jail_id])
             raise cherrypy.HTTPRedirect('/configure/')

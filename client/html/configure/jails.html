@@ -4,18 +4,33 @@
     Puck Configuration Wizard
 </%block>
 
+<%
+	selected_jails = []
+%>
+
 <h2>Environment</h2>
 <ul>
-	% for key in VM.jails:
-		<li>${VM.jails[key]['name']}</li>
+	% for jail in VM.jails:
+		<li>${jail['name']}</li>
+		<%
+			selected_jails.append(jail['id']) 
+		%>
 	% endfor
 </ul>
+
 <form action="/configure/jails" method="post">
 	% for type in jails:
 		<h3>${type}</h3>
 		<div>
 			% for key in jails[type]:
-				<input id="jails.${type}.${key}" type="radio" name="jails.${type}" value="${key}" />
+				<% 
+					if key in selected_jails:
+						checked = 'checked="checked"'
+					else:
+						checked = ''
+					endif
+				%>
+				<input id="jails.${type}.${key}" type="radio" name="jails.${type}" value="${key}" ${checked}/>
 				<label for="jails.${type}.${key}">${jails[type][key]['name']}</label>
 			% endfor
 		</div>
