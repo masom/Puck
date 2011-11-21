@@ -129,7 +129,16 @@ class ConfigurationWizard(object):
 
     @cherrypy.expose
     def keys(self):
-        return "HAHAHA"
+        keys = puck.getKeys()
+
+        if cherrypy.request.method == "POST":
+            print
+            print
+            print kwargs
+            print
+
+        tmpl = lookup.get_template("/configure/keys.html")
+        return tmpl.render(VM=vm, keys=keys)
 
     @cherrypy.expose
     def save(self):

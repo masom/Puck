@@ -1,0 +1,37 @@
+<%inherit file="/template.html"/>
+
+<%block name="header">
+    Puck Configuration Wizard
+</%block>
+
+<%
+	selected_keys = []
+%>
+
+<h2>Environment</h2>
+<ul>
+	% for key in VM.keys:
+		<li>${key['name']}</li>
+		<%
+			selected_keys.append(key['id']) 
+		%>
+	% endfor
+</ul>
+
+<form action="/configure/jails" method="post">
+		<ul>
+			% for key in keys:
+				<%
+					if key in selected_jails:
+						checked = 'checked="checked"'
+					else:
+						checked = ''
+					endif
+				%>
+				<input id="jails.${type}.${key}" type="radio" name="jails.${type}" value="${key}" ${checked}/>
+				<label for="jails.${type}.${key}">${jails[type][key]['name']}</label>
+			% endfor
+		</div>
+	% endfor
+	<button type="submit">Save</button>
+</form>
