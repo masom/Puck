@@ -43,7 +43,10 @@
 	</ul>
 	<a href="/configure/keys">Modify</a>
 </div>
+% if VM.configurationValid():
 <div>
 	<form action="/configure/commit">
+		<button type="submit">Apply Configuration</button>
 	</form>
 </div>
+% endif

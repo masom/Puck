@@ -18,6 +18,20 @@ class VM(object):
         #TODO: pickle this into a file.
         pass
 
+    def configurationValid(self):
+        listItems = [self.jails, self.keys]
+        boolItems = [self.status, self.environment]
+
+        for item in listItems:
+            if len(item) == 0:
+                return self.isConfigured(False)
+
+        for item in boolItems:
+            if not item:
+                return self.isConfigured(False)
+
+        return self.isConfigured(True)
+
     def isConfigured(self, state = None):
         if state:
             self._configured = state
