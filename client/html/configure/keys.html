@@ -4,34 +4,27 @@
     Puck Configuration Wizard
 </%block>
 
-<%
-	selected_keys = []
-%>
-
 <h2>Environment</h2>
 <ul>
 	% for key in VM.keys:
-		<li>${key['name']}</li>
-		<%
-			selected_keys.append(key['id']) 
-		%>
+		<li>${VM.keys[key]['name']}</li>
 	% endfor
 </ul>
 
-<form action="/configure/jails" method="post">
+<form action="/configure/keys" method="post">
 		<ul>
 			% for key in keys:
 				<%
-					if key in selected_jails:
+					if key in VM.keys:
 						checked = 'checked="checked"'
 					else:
 						checked = ''
 					endif
+					key = keys[key]
 				%>
-				<input id="jails.${type}.${key}" type="radio" name="jails.${type}" value="${key}" ${checked}/>
-				<label for="jails.${type}.${key}">${jails[type][key]['name']}</label>
+				<input id="keys.${key['id']}" type="checkbox" name="keys[]" value="${key['id']}" ${checked}/>
+				<label for="keys.${key['id']}">${key['name']}</label>
 			% endfor
-		</div>
-	% endfor
+		</ul>
 	<button type="submit">Save</button>
 </form>

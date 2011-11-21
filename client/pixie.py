@@ -62,13 +62,18 @@ class Puck(object):
         '''
         TODO: Use API
         '''
-        keys = [
-            {
+        keys = {
+            'derp': {
                 'id': 'derp',
                 'name': 'Martin Samson',
                 'key': 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArsIuqG9Wictam3s6cwQdW0eedJYuoMbvF7kJ9oFprfo1UEsep30G67SPSUNwuIOIqvUwErFkiNAGjTqdnL8g7PHUInLojM3KQSGSvPgYYAZz9u9wYTy5vv2f/EphBx+FytISjoW1gL8CoiP/kX0vDLpDJnFeRQ/RbvRbiws49r/yqqf/KqXM/fwl1nhQeqwNS6K8kv3H8aaaq7cHqky0xbiDf7astFQq++jRjLIx6xX0NdU8P36IwdMFoQXdnh1B8OvMuyCxHj9y5B2wN2H/1kA0tk0dEQa1BtKNqpJF8HD2AbcTGzYczcvaCMbMV1qJe5/YTQMxjullp2cz/83Hjw=='
+            },
+            'derpy': {
+                'id': 'derpy',
+                'name': 'Derpy Samson',
+                'key': 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArsIuqG9Wictam3sDERPedJYuoMbvF7kJ9oFprfo1UEsep30G67SPSUNwuIOIqvUwErFkiNAGjTqdnL8g7PHUInLojM3KQSGSvPgYYAZz9u9wYTy5vv2f/EphBx+FytISjoW1gL8CoiP/kX0vDLpDJnFeRQ/RbvRbiws49r/yqqf/KqXM/fwl1nhQeqwNS6K8kv3H8aaaq7cHqky0xbiDf7astFQq++jRjLIx6xX0NdU8P36IwdMFoQXdnh1B8OvMuyCxHj9y5B2wN2H/1kA0tk0dEQa1BtKNqpJF8HD2AbcTGzYczcvaCMbMV1qJe5/YTQMxjullp2cz/83Hjw=='
             }
-        ]
+        }
         return keys
 
     def getEnvironments(self):
@@ -98,7 +103,7 @@ class ConfigurationWizard(object):
         environments = puck.getEnvironments()
 
         if cherrypy.request.method == "POST":
-            if kwargs.has_key("vm.environment"):
+            if kwargs.has_key("vm.environment"): 
                 env_id = kwargs['vm.environment']
                 if environments.has_key(env_id):
                     vm.environment = environments[env_id]
@@ -117,25 +122,38 @@ class ConfigurationWizard(object):
             keys = ['jails.content', 'jails.database', 'jails.support']
             vm.jails = []
             for key in kwargs:
-                if key in keys:
-                    jail_id = kwargs[key]
-                    domain, type = key.split('.', 1)
-                    if jails[type].has_key(jail_id):
-                        vm.jails.append(jails[type][jail_id])
+                if not key in keys:
+                    continue
+                jail_id = kwargs[key]
+                domain, type = key.split('.', 1)
+                if jails[type].has_key(jail_id):
+                    vm.jails.append(jails[type][jail_id])
             raise cherrypy.HTTPRedirect('/configure/')
 
         tmpl = lookup.get_template("/configure/jails.html")
         return tmpl.render(VM=vm, jails=jails)
 
     @cherrypy.expose
-    def keys(self):
+    def keys(self, *args, **kwargs):
         keys = puck.getKeys()
 
         if cherrypy.request.method == "POST":
-            print
-            print
-            print kwargs
-            print
+            if not "keys[]" in kwargs:
+                raise cherrypy.HTTPRedirect('/configure/keys.html')
+            
+            #@todo: This should be refactored...
+            #CherryPy sends a string instead of an array when there is only 1 value.
+            if isinstance(kwargs['keys[]'], basestring):
+                data = [kwargs['keys[]']]
+            else:
+                data = kwargs['keys[]']
+
+            vm.keys = {}
+            for key in data:
+                if not key in keys:
+                    continue
+                vm.keys[key] = keys[key]
+            raise cherrypy.HTTPRedirect('/configure/')
 
         tmpl = lookup.get_template("/configure/keys.html")
         return tmpl.render(VM=vm, keys=keys)
