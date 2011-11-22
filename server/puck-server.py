@@ -1,11 +1,14 @@
 import cherrypy
 import uuid
+from collections import namedtuple, defaultdict
 
 from mako.template import Template
 from mako.lookup   import TemplateLookup
 
 JAIL_ENVS = ["Dev", "Staging", "QA"]
 JAIL_TYPES = ["content", "whatever", "essential"]
+
+
 
 class VM(object):
     def __init__(self, ip):
@@ -36,6 +39,7 @@ class Controller(object):
     @classmethod
     def render(cls, template, **variables):
         tmpl = cls.lookup.get_template(template)
+        variables['flash'] = cherrypy.session.pop('flash', None)
         return tmpl.render(**variables)
     
 
@@ -49,19 +53,67 @@ class Root(Controller):
     def statuses(self, a=None):
         return "Nope Nope Nope"
 
+
+class JailStore(object):
+    Jail = namedtuple("Jail", ["name", "url", "type"])
+
+    def __init__(self):
+        self._refs = {}
+        self._env = defaultdict(lambda: defaultdict(set))
+
+    def new(self, data):
+        jail = self.Jail(*tuple(data[key] for key in self.Jail._fields))
+        ref = uuid.uuid1()
+        self._refs[ref] = jail
+        self._env[data['environment']][jail.type].add(ref)
+
+    def jails(self):
+        def sort(jails):
+            return sorted(((ref, self._refs[ref]) for ref in jails),
+                            key=lambda (jailId, jail) : jail.name)
+
+        def qmap(f):
+            return lambda d: dict((key, f(val)) for key, val in d.iteritems())
+
+        return qmap(qmap(sort))(self._env)
+
+class KeyStore(object):
+    Key = namedtuple("Key", ["name", "key"])
+
+    def __init__(self):
+        self._refs = {}
+
+    def new(self, data):
+        key = self.Key(*tuple(data[key] for key in self.Key._fields))
+        ref = uuid.uuid1()
+        self._refs[ref] = key
+
+    def keys(self):
+        return dict(sorted(self._refs.iteritems(),
+                            key=lambda (keyId, key): key.name))
+
+
+
 class Jails(Controller):
+
+    def __init__(self):
+        Controller.__init__(self)
+
+        self._store = JailStore()
+
+    def hash(self):
+        return self._store.jails()
+        
+
     @cherrypy.expose
     def index(self):
-        jails = []
-        env = dict(   
-            jails=[],
-            flash = cherrypy.session.pop('flash', None),
-        )
+        env = dict(jails=self._store.jails())
         return self.render("jails/index.html", **env)
 
     @cherrypy.expose
     def add(self, **post):
         if post:
+            self._store.new(post)
             cherrypy.session['flash'] = "Jail successfully added"
             raise cherrypy.HTTPRedirect("/jails")
 
@@ -70,6 +122,31 @@ class Jails(Controller):
                 jailTypes=JAIL_TYPES
         )
         return self.render("jails/add.html", **env)
+
+class Keys(Controller):
+    def __init__(self):
+        Controller.__init__(self)
+
+        self._store = KeyStore()
+
+    def hash(self):
+        return self._store.keys()
+
+    @cherrypy.expose
+    def index(self):
+        env = dict(keys=self._store.keys())
+        return self.render("keys/index.html", **env)
+
+    @cherrypy.expose
+    def add(self, **post):
+        if post:
+            self._store.new(post)
+            cherrypy.session['flash'] = "Key successfully added"
+            raise cherrypy.HTTPRedirect("/keys")
+        return self.render("keys/add.html")
+
+
+
 
 
 class ApiCall(object):
@@ -87,22 +164,29 @@ class ApiVmCall(object):
 
 
 class ApiRegistration(ApiCall):
+    def __init__(self, api, jails):
+        ApiCall.__init__(self, api)
+        self._jails = jails
 
     @cherrypy.tools.json_out()
     def POST(self):
         ip = cherrypy.request.remote()
         name = self._api.new(ip)
-        jails = []
+        jails = self._jails.hash()
         return {
             'id' : name,
             'jails' : jails
         }
 
 class ApiKeys(ApiCall):
+    def __init__(self, api, keys):
+        ApiCall.__init__(self, api)
+        self._keys = keys
+        
     
     @cherrypy.tools.json_out()
     def GET(self):
-        return {}
+        return self._keys.hash()
 
 class ApiStatus(ApiVmCall):
 
@@ -142,14 +226,17 @@ class Api(object):
 class Stub(object):
     pass
 
+root = Root()
+root.jails = Jails()
+root.keys = Keys()
 
 vmRegistry = Registry(VM)
 api = Api(vmRegistry)
-api.registration = ApiRegistration(api)
+api.registration = ApiRegistration(api, root.jails)
+api.keys = ApiKeys(api, root.keys)
 
-root = Root()
 root.api = api
-root.jails = Jails()
+
 
 
 if __name__ == "__main__":

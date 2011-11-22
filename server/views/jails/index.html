@@ -9,14 +9,31 @@
     </a>
 </div>
 <h2>Jails</h2>
+% if not len(jails):
+    <div>No jails are currently set</div>
+% else:
+    % for env, types in jails.iteritems():
+        <h3>${env}</h3>
+        % if not len(types):
+            <div>No jails are set for this environment</div>
+        % else:
+            % for type_, jailList in types.iteritems():
+                <h4>${type_}</h4>
+                % if not len(jailList):
+                    <div>No jails are set for this type</div>
+                % else:
+                    <ul>
+                        % for jailId, jail in jailList:
+                            <li>
+                                <a href="/jails/view/${jailId}">
+                                    ${jail.name}
+                                </a>
+                            </li>
+                        % endfor
+                    </ul>
+                % endif
+            % endfor
+        % endif
+    % endfor
+% endif
 
-<div>
-    % if not len(jails):
-        No jails are currently set 
-    % else:
-        % for i, jail in enumerate(jails):
-            ${i}: jail
-        % endfor
-    % endif
-</div>
-        
