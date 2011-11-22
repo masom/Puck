@@ -1,123 +1,20 @@
 import cherrypy, os, sys, time, pickle
-import lib.interfaces
 
 from mako.template import Template
 from mako.lookup import TemplateLookup
 
-class VM(object):
-    def __init__(self, id = None):
-        self.id = id
-        self.jails = []
-        self.keys = {}
-        self.status = None
-        self.environment = None
-        self.interfaces = lib.interfaces.getInterfaces()
-        self._configured = False
-
-    def persist(self):
-        #TODO: pickle this into a file.
-        pass
-
-    def configurationValid(self):
-        listItems = [self.jails, self.keys]
-        boolItems = [self.status, self.environment]
-
-        for item in listItems:
-            if len(item) == 0:
-                return self.isConfigured(False)
-
-        for item in boolItems:
-            if not item:
-                return self.isConfigured(False)
-
-        return self.isConfigured(True)
-
-    def isConfigured(self, state = None):
-        if state:
-            self._configured = state
-        return self._configured
-
-class Puck(object):
-    def __init__(self):
-        self._registration = None
-
-        if not self.register():
-            raise LookupError()
-
-        self._vm = VM(self._registration)
-
-    def getVM(self):
-        return self._vm
-
-    def register(self):
-        '''
-        TODO: USE API
-        '''
-        registration_file = '/usr/local/etc/puck_registration'
-        if not os.path.exists(registration_file):
-            #@todo: add api call
-            self._registration = 'ABC-DEF'
-            with open(registration_file, 'w') as f:
-                f.write(self._registration)
-        else:
-            with open(registration_file, 'r') as f:
-                self._registration = f.readline().strip()
-                if len(self._registration) == 0:
-                    #@todo: API CALL
-                    self._registration= 'ABC-DEF'
-        return True
-
-    def getJails(self):
-        '''
-        TODO: USE API
-        '''
-        jails = {'content': {}, 'database': {}, 'support': {}}
-
-        jails['content']['1'] = {'id': '1', 'type': 'content', 'url': 'http://localhost', 'name': 'Content'}
-        jails['database']['2'] = {'id':'2', 'type': 'database', 'url': 'http://localhost', 'name': 'Database'}
-        jails['support']['3'] = {'id': '3', 'type': 'support', 'url': 'http://localhost', 'name': 'Support'}
-        return jails
-
-    def updateStatus(self):
-        pass
-
-    def updateConfig(self):
-        pass
-
-    def getKeys(self):
-        '''
-        TODO: Use API
-        '''
-        keys = {
-            'derp': {
-                'id': 'derp',
-                'name': 'Martin Samson',
-                'key': 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArsIuqG9Wictam3s6cwQdW0eedJYuoMbvF7kJ9oFprfo1UEsep30G67SPSUNwuIOIqvUwErFkiNAGjTqdnL8g7PHUInLojM3KQSGSvPgYYAZz9u9wYTy5vv2f/EphBx+FytISjoW1gL8CoiP/kX0vDLpDJnFeRQ/RbvRbiws49r/yqqf/KqXM/fwl1nhQeqwNS6K8kv3H8aaaq7cHqky0xbiDf7astFQq++jRjLIx6xX0NdU8P36IwdMFoQXdnh1B8OvMuyCxHj9y5B2wN2H/1kA0tk0dEQa1BtKNqpJF8HD2AbcTGzYczcvaCMbMV1qJe5/YTQMxjullp2cz/83Hjw=='
-            },
-            'derpy': {
-                'id': 'derpy',
-                'name': 'Derpy Samson',
-                'key': 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArsIuqG9Wictam3sDERPedJYuoMbvF7kJ9oFprfo1UEsep30G67SPSUNwuIOIqvUwErFkiNAGjTqdnL8g7PHUInLojM3KQSGSvPgYYAZz9u9wYTy5vv2f/EphBx+FytISjoW1gL8CoiP/kX0vDLpDJnFeRQ/RbvRbiws49r/yqqf/KqXM/fwl1nhQeqwNS6K8kv3H8aaaq7cHqky0xbiDf7astFQq++jRjLIx6xX0NdU8P36IwdMFoQXdnh1B8OvMuyCxHj9y5B2wN2H/1kA0tk0dEQa1BtKNqpJF8HD2AbcTGzYczcvaCMbMV1qJe5/YTQMxjullp2cz/83Hjw=='
-            }
-        }
-        return keys
-
-    def getEnvironments(self):
-        '''
-        TODO: Use API
-        '''
-        environments = {
-            'dev': 'Development',
-            'testing': 'Testing',
-            'qa': 'Quality Assurance',
-            'staging': 'Staging',
-            'prod': 'Production'
-        }
-        return environments
+from lib.vm import VM
+from lib.puck import Puck
+from lib.jails import *
 
 class ConfigurationWizard(object):
+
     def __init__(self, vm):
         self._vm = vm
+
+    def _cp_on_error(self):
+        cherrypy.response.body = ("We apologise for the fault in the website. "
+                                  "Those responsible have been sacked.")
 
     @cherrypy.expose
     def index(self):
@@ -132,8 +29,7 @@ class ConfigurationWizard(object):
             if kwargs.has_key("vm.environment"): 
                 env_id = kwargs['vm.environment']
                 if environments.has_key(env_id):
-                    vm.environment = environments[env_id]
-                    print vm.environment
+                    vm.update(environment=environments[env_id])
                     raise cherrypy.HTTPRedirect('/configure/')
 
         tmpl = lookup.get_template("/configure/environment.html")
@@ -146,14 +42,19 @@ class ConfigurationWizard(object):
         if cherrypy.request.method == "POST":
             #@todo: Move this somewhere else
             keys = ['jails.content', 'jails.database', 'jails.support']
-            vm.jails = []
+
+            new_jails = []
+
             for key in kwargs:
                 if not key in keys:
                     continue
+
                 jail_id = kwargs[key]
                 domain, type = key.split('.', 1)
                 if jails[type].has_key(jail_id):
-                    vm.jails.append(jails[type][jail_id])
+                    new_jails.append(jails[type][jail_id])
+
+            vm.update(jails=new_jails)
             raise cherrypy.HTTPRedirect('/configure/')
 
         tmpl = lookup.get_template("/configure/jails.html")
@@ -165,7 +66,7 @@ class ConfigurationWizard(object):
 
         if cherrypy.request.method == "POST":
             if not "keys[]" in kwargs:
-                raise cherrypy.HTTPRedirect('/configure/keys.html')
+                raise cherrypy.HTTPRedirect('/configure/keys')
             
             #@todo: This should be refactored...
             #CherryPy sends a string instead of an array when there is only 1 value.
@@ -174,20 +75,29 @@ class ConfigurationWizard(object):
             else:
                 data = kwargs['keys[]']
 
-            vm.keys = {}
+            new_keys = {}
             for key in data:
                 if not key in keys:
                     continue
-                vm.keys[key] = keys[key]
+                new_keys[key]= keys[key]
+
+            vm.update(keys=new_keys)
             raise cherrypy.HTTPRedirect('/configure/')
 
         tmpl = lookup.get_template("/configure/keys.html")
         return tmpl.render(VM=vm, keys=keys)
 
     @cherrypy.expose
-    def save(self):
-        return "saved"
+    def commit(self):
+        if not cherrypy.request.method == "POST":
+            raise cherrypy.HTTPRedirect('/configure/')
 
+        if not vm.isConfigured():
+            raise cherrypy.HTTPRedirect('/configure/')
+
+        vm.persist()
+        raise cherrypy.HTTPRedirect('/configure/')
+        
 class Root(object):
 
     @cherrypy.expose
