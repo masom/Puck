@@ -1,4 +1,4 @@
-import interfaces
+from interfaces import NetInterfaces
 import os, sys, json
 
 class VM(object):
@@ -12,7 +12,7 @@ class VM(object):
         self.keys = {}
         self.status = None
         self.environment = None
-        self.interfaces = interfaces.getInterfaces()
+        self.interfaces = NetInterfaces.getInterfaces()
         self._configured = False
 
         self._persist_file = '/usr/local/etc/puck_vm'
@@ -30,11 +30,19 @@ class VM(object):
         if not os.path.exists(self._persist_file):
             return
 
+        keys = ['id', 'jails', 'keys', 'status', 'environment', 'configured']
+        data = {}
         with open(self._persist_file, 'r') as f:
             data = json.load(f)
-            print
-            print data
-            print
+
+        for key in keys:
+            if not key in data:
+                #discard loaded data.
+                raise KeyError("Key: %s is missing" % key)
+
+        for key in keys:
+            setattr(self, key, data[key])
+
     def persist(self):
         data = {}
         data['id'] = self.id
