@@ -1,0 +1,22 @@
+% if flash is not None:
+    <div style="color: green;">
+        ${flash}
+    </div>
+% endif
+<div>
+    <a href="/jails/add">
+        Add a new jail
+    </a>
+</div>
+<h2>Jails</h2>
+
+<div>
+    % if not len(jails):
+        No jails are currently set 
+    % else:
+        % for i, jail in enumerate(jails):
+            ${i}: jail
+        % endfor
+    % endif
+</div>
+        

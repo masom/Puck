@@ -1,0 +1,29 @@
+<form name="jails" method="post" action="/jails/add">
+    <div>
+        <label for="environment">Environment: </label>
+        <select id="environment" name="environment">
+        % for env in environments:
+            <option value="${env}">${env}</option>
+        % endfor
+        </select>
+    </div>
+    <div>
+        <label for="name">Name: </label>
+        <input id="name" name="name" type="text" required />
+    </div>
+    <div>
+        <label for="url">Url: <label>
+        <input id="url" name="url" type="url" required />
+    </div>
+    <div>
+        <label for="jail">Type: </label>
+        <select id="jail" name="jail" >
+        % for typ in jailTypes:
+            <option value="${typ}">${typ}</option>
+        % endfor
+        </select>
+    </div>
+    <div>
+        <input type="submit" value="Add" />
+    </div>
+</form>
