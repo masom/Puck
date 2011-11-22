@@ -11,6 +11,12 @@
 	<div id="header">
 		<h1><%block name="header"/></h1>
 	</div>
+	% if flash is not None:
+	    <div style="color: green;">
+	        ${flash}
+	    </div>
+	% endif
+
 	<div id="content">
 		${self.body()}
 	</div>

@@ -39,6 +39,7 @@ class Jail(object):
         self.url = config['url']
         self.type = config['type']
         self.name = config['name']
+        self.ip = config['ip']
         self._manager = manager
 
     def start(self):
