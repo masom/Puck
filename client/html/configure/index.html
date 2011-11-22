@@ -3,6 +3,13 @@
 <%block name="header">
     Puck Configuration Wizard
 </%block>
+
+<div>
+	<form action="/configure/save" method="post">
+		<button type="submit">Save Configuration</button>
+	</form>
+</div>
+
 <div>
 	<h3>Network Interfaces</h3>
 	<table>
@@ -25,10 +32,14 @@
 	
 	<h3>Jails</h3>
 	<table>
+		<tr>
+			<th>Type</th>
+			<th>Name</th>
+		</tr>
 	% for jail in VM.jails:
 		<tr>
-			<td>${jail['name']}</td>
 			<td>${jail['type']}</td>
+			<td>${jail['name']}</td>
 		</tr>
 	% endfor
 	</table>
@@ -43,10 +54,11 @@
 	</ul>
 	<a href="/configure/keys">Modify</a>
 </div>
+
 % if VM.configurationValid():
 <div>
-	<form action="/configure/commit" method="post">
-		<button type="submit">Apply Configuration</button>
+	<form action="/vm/setup" method="post">
+		<button type="submit">Launch Virtual Machine</button>
 	</form>
 </div>
 % endif

@@ -21,7 +21,7 @@
 <form action="/configure/jails" method="post">
 	% for type in jails:
 		<h3>${type}</h3>
-		<div>
+		<ul style="list-style: none;">
 			% for key in jails[type]:
 				<% 
 					if key in selected_jails:
@@ -30,10 +30,12 @@
 						checked = ''
 					endif
 				%>
-				<input id="jails.${type}.${key}" type="radio" name="jails.${type}" value="${key}" ${checked}/>
-				<label for="jails.${type}.${key}">${jails[type][key]['name']}</label>
+				<li>
+					<input id="jails.${type}.${key}" type="radio" name="jails.${type}" value="${key}" ${checked}/>
+					<label for="jails.${type}.${key}">${jails[type][key]['name']}</label>
+				</li>
 			% endfor
-		</div>
+		</ul>
 	% endfor
 	<button type="submit">Save</button>
 </form>

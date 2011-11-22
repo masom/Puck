@@ -87,7 +87,7 @@ class ConfigurationWizard(Controller):
         if cherrypy.request.method == "POST":
             if not "keys[]" in kwargs:
                 raise cherrypy.HTTPRedirect('/configure/keys')
-            
+
             #@todo: This should be refactored...
             #CherryPy sends a string instead of an array when there is only 1 value.
             if isinstance(kwargs['keys[]'], basestring):
@@ -104,7 +104,7 @@ class ConfigurationWizard(Controller):
             vm.update(keys=new_keys)
             cherrypy.session['flash'] = "Authentication keys updated."
             raise cherrypy.HTTPRedirect('/configure/')
-        
+
         env = dict(
             VM=vm,
             keys=keys,
@@ -112,18 +112,16 @@ class ConfigurationWizard(Controller):
         return self.render("/configure/keys.html", **env)
 
     @cherrypy.expose
-    def commit(self):
+    def save(self):
         if not cherrypy.request.method == "POST":
             raise cherrypy.HTTPRedirect('/configure/')
-
-        if not vm.isConfigured():
-            cherrypy.session['flash'] = "The virtual machine is not fully configured."
-            raise cherrypy.HTTPRedirect('/configure/')
-
-        vm.persist()
-        cherrypy.session['flash'] = "Virtual machine configuration commited."
+        try:
+            vm.persist()
+            cherrypy.session['flash'] = "Virtual machine configuration commited."
+        except IOError as e:
+            cherrypy.session['flash'] = e
         raise cherrypy.HTTPRedirect('/configure/')
-        
+
 class Root(Controller):
 
     @cherrypy.expose

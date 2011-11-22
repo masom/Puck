@@ -12,7 +12,7 @@
 </ul>
 
 <form action="/configure/keys" method="post">
-		<ul>
+		<ul style="list-style: none;">
 			% for key in keys:
 				<%
 					if key in VM.keys:
@@ -22,8 +22,10 @@
 					endif
 					key = keys[key]
 				%>
-				<input id="keys.${key['id']}" type="checkbox" name="keys[]" value="${key['id']}" ${checked}/>
-				<label for="keys.${key['id']}">${key['name']}</label>
+				<li>
+					<input id="keys.${key['id']}" type="checkbox" name="keys[]" value="${key['id']}" ${checked}/>
+					<label for="keys.${key['id']}">${key['name']}</label>
+				</li>
 			% endfor
 		</ul>
 	<button type="submit">Save</button>
