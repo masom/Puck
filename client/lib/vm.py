@@ -31,7 +31,7 @@ class VM(object):
             return
 
         with open(self._persist_file, 'r') as f:
-            data = json_loads(f)
+            data = json.load(f)
             print
             print data
             print
