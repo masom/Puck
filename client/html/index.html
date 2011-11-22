@@ -1,0 +1,35 @@
+<%inherit file="/template.html"/>
+
+<%block name="header">
+    Puck Virtual Machine Client
+</%block>
+
+<table>
+	<tr>
+		<th colspan="2">Node</th>
+	</tr>
+	<tr>
+		<td>Identification:</td>
+		<td>${VM.id}</td>
+	</tr>
+	<tr>
+		<td>Environment:</td>
+		<td>${VM.environment}</td>
+	</tr>
+</table>
+<table>
+	<tr>
+		<th colspan="2">Network Interfaces</th>
+	</tr>
+	% for key in VM.interfaces:
+		<tr>
+			<td>${VM.interfaces[key]}</td>
+			<td>${key}</td>
+		</tr>
+	% endfor
+</table>
+% if VM.isConfigured():
+	<p>This virtual machine has already been configured.
+% else:
+	<p><a href="/configure">Configure this virtual machine.</a></p>
+% endif

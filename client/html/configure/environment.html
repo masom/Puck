@@ -1,0 +1,20 @@
+<%inherit file="/template.html"/>
+
+<%block name="header">
+    Puck Configuration Wizard
+</%block>
+<h2>Environment</h2>
+${VM.environment}
+<form action="/configure/environment" method="post">
+	<select name="vm.environment">
+		% for id in environments:
+			% if VM.environment == id:
+				<% selected = 'selected="selected""' %>
+			% else:
+				<% selected = '' %>
+			% endif
+			<option value="${id}" ${selected}>${environments[id]}</option>
+		% endfor
+	</select>
+	<button type="submit">Save</button>
+</form>

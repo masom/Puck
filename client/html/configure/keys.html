@@ -1,0 +1,30 @@
+<%inherit file="/template.html"/>
+
+<%block name="header">
+    Puck Configuration Wizard
+</%block>
+
+<h2>Environment</h2>
+<ul>
+	% for key in VM.keys:
+		<li>${VM.keys[key]['name']}</li>
+	% endfor
+</ul>
+
+<form action="/configure/keys" method="post">
+		<ul>
+			% for key in keys:
+				<%
+					if key in VM.keys:
+						checked = 'checked="checked"'
+					else:
+						checked = ''
+					endif
+					key = keys[key]
+				%>
+				<input id="keys.${key['id']}" type="checkbox" name="keys[]" value="${key['id']}" ${checked}/>
+				<label for="keys.${key['id']}">${key['name']}</label>
+			% endfor
+		</ul>
+	<button type="submit">Save</button>
+</form>
