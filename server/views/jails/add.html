@@ -2,8 +2,8 @@
     <div>
         <label for="environment">Environment: </label>
         <select id="environment" name="environment" >
-        % for env in environments:
-            <option value="${env}">${env}</option>
+        % for env, name in environments:
+            <option value="${env}">${name}</option>
         % endfor
         </select>
     </div>

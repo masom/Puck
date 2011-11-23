@@ -5,9 +5,14 @@ from collections import namedtuple, defaultdict
 from mako.template import Template
 from mako.lookup   import TemplateLookup
 
-JAIL_ENVS = ["Dev", "Staging", "QA"]
-JAIL_TYPES = ["content", "whatever", "essential"]
-
+JAIL_ENVS = {
+        'dev': 'Development',
+        'testing': 'Testing',
+        'qa': 'Quality Assurance',
+        'staging': 'Staging',
+        'prod': 'Production'
+    }
+JAIL_TYPES = ["content", "database", "support"]
 
 
 class VM(object):
@@ -17,7 +22,6 @@ class VM(object):
         self.config = {}
         self.status = ''
         
-
     @property
     def id(self):
         return str(self._id).replace('-', '')
@@ -92,6 +96,9 @@ class KeyStore(object):
         return dict(sorted(self._refs.iteritems(),
                             key=lambda (keyId, key): key.name))
 
+    def get(self, ref):
+        return self._refs[uuid.UUID(ref)]
+
 
 
 class Jails(Controller):
@@ -118,7 +125,7 @@ class Jails(Controller):
             raise cherrypy.HTTPRedirect("/jails")
 
         env = dict(
-                environments=JAIL_ENVS,
+                environments=JAIL_ENVS.items(),
                 jailTypes=JAIL_TYPES
         )
         return self.render("jails/add.html", **env)
@@ -144,6 +151,12 @@ class Keys(Controller):
             cherrypy.session['flash'] = "Key successfully added"
             raise cherrypy.HTTPRedirect("/keys")
         return self.render("keys/add.html")
+
+    @cherrypy.expose
+    def view(self, keyId):
+        key = self._store.get(keyId)
+        env = dict(key=key)
+        return self.render("keys/view.html", **env)
 
 
 
