@@ -66,7 +66,7 @@ class Model(object):
 
     def new(self, data):
         key = self.Table(*tuple(data[key] for key in self.Table._fields))
-        self._insert(jail)
+        self._insert(key)
 
     def get(self, ref):
         query = "SELECT * FROM {table} WHERE id=?".format(table=self.Table._name)
