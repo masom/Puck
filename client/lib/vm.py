@@ -10,10 +10,10 @@ class VM(object):
         self.id = id
         self.jails = []
         self.keys = {}
-        self.status = None
+        self.status = 'new'
         self.environment = None
         self.interfaces = NetInterfaces.getInterfaces()
-        self._configured = False
+        self.configured = False
 
         self._persist_file = '/usr/local/etc/puck_vm'
         self._load()
@@ -50,11 +50,11 @@ class VM(object):
         data['keys'] = self.keys
         data['status'] = self.status
         data['environment'] = self.environment
-        data['configured'] = self._configured
+        data['configured'] = self.configured
+
         with open(self._persist_file, 'w') as f:
             f.write(json.dumps(data, sort_keys=True, indent=4))
-        
-        
+
     def configurationValid(self):
         listItems = [self.jails, self.keys]
         boolItems = [self.environment]
@@ -71,5 +71,9 @@ class VM(object):
 
     def isConfigured(self, state = None):
         if state:
-            self._configured = state
-        return self._configured
+            self.configured = state
+            self.status = 'configured'
+        elif state == False:
+            self.status = 'new'
+
+        return self.configured
