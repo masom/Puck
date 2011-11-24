@@ -1,18 +1,20 @@
 import cherrypy
 import uuid
-from collections import namedtuple, defaultdict
+from collections import namedtuple, defaultdict, OrderedDict
 
 from mako.template import Template
 from mako.lookup   import TemplateLookup
 
-JAIL_ENVS = {
-        'dev': 'Development',
-        'testing': 'Testing',
-        'qa': 'Quality Assurance',
-        'staging': 'Staging',
-        'prod': 'Production'
-    }
+JAIL_ENVS = OrderedDict([
+        ('dev','Development'),
+        ('testing', 'Testing'),
+        ('qa', 'Quality Assurance'),
+        ('staging', 'Staging'),
+        ('prod', 'Production')
+        ])
+
 JAIL_TYPES = ["content", "database", "support"]
+Crumb = namedtuple("Crumb", ["url", "name"])
 
 
 class VM(object):
@@ -41,9 +43,10 @@ class Controller(object):
     lookup = TemplateLookup(directories=['views'])
 
     @classmethod
-    def render(cls, template, **variables):
+    def render(cls, template, crumbs=[], **variables):
         tmpl = cls.lookup.get_template(template)
         variables['flash'] = cherrypy.session.pop('flash', None)
+        variables['breadcrumbs'] = crumbs
         return tmpl.render(**variables)
     
 
@@ -81,6 +84,9 @@ class JailStore(object):
 
         return qmap(qmap(sort))(self._env)
 
+    def get(self, ref):
+        return self._refs[uuid.UUID(ref)]
+
 class KeyStore(object):
     Key = namedtuple("Key", ["name", "key"])
 
@@ -102,6 +108,7 @@ class KeyStore(object):
 
 
 class Jails(Controller):
+    crumbs = [Crumb("/", "Home"), Crumb("/jails", "Jails")]
 
     def __init__(self):
         Controller.__init__(self)
@@ -115,7 +122,7 @@ class Jails(Controller):
     @cherrypy.expose
     def index(self):
         env = dict(jails=self._store.jails())
-        return self.render("jails/index.html", **env)
+        return self.render("jails/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
     def add(self, **post):
@@ -128,7 +135,13 @@ class Jails(Controller):
                 environments=JAIL_ENVS.items(),
                 jailTypes=JAIL_TYPES
         )
-        return self.render("jails/add.html", **env)
+        return self.render("jails/add.html", crumbs=self.crumbs, **env)
+
+    @cherrypy.expose
+    def view(self, jailId):
+        jail = self._store.get(jailId)
+        env = dict(jail=jail)
+        return self.render("jails/view.html", crumbs=self.crumbs, **env)
 
 class Keys(Controller):
     def __init__(self):
@@ -239,6 +252,7 @@ class Api(object):
 class Stub(object):
     pass
 
+
 root = Root()
 root.jails = Jails()
 root.keys = Keys()
@@ -253,12 +267,19 @@ root.api = api
 
 
 if __name__ == "__main__":
+    import os
     conf =  {'/' : 
                 { 'request.dispatch' : cherrypy.dispatch.Dispatcher()
                 , 'tools.sessions.on' : True
                 }
             ,'/api' : 
                 { 'request.dispatch' : cherrypy.dispatch.MethodDispatcher()
+                }
+            , '/static' :
+                { 'tools.staticdir.on': True
+                , 'tools.staticdir.dir': 'static'
+                , 'tools.staticdir.root': os.getcwd()
+                , 'tools.staticdir.index': 'index.html'
                 }
             }
             

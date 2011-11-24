@@ -1,29 +1,38 @@
-<form name="jails" method="post" action="/jails/add">
-    <div>
-        <label for="environment">Environment: </label>
-        <select id="environment" name="environment" >
-        % for env, name in environments:
-            <option value="${env}">${name}</option>
-        % endfor
-        </select>
-    </div>
-    <div>
-        <label for="type">Type: </label>
-        <select id="type" name="type" >
-        % for typ in jailTypes:
-            <option value="${typ}">${typ}</option>
-        % endfor
-        </select>
-    </div>
-    <div>
-        <label for="name">Name: </label>
-        <input id="name" name="name" type="text" required />
-    </div>
-    <div>
-        <label for="url">Url: <label>
-        <input id="url" name="url" type="url" required />
-    </div>
-    <div>
-        <input type="submit" value="Add" />
-    </div>
+<%inherit file="/layouts/default.html" />
+
+
+<%block name="css"> 
+    <link type="text/css" rel="stylesheet" href="/static/css/form.css">
+</%block>
+<form class="basic" name="jails" method="post" action="/jails/add">
+    <fieldset>
+        <legend>Jail</legend>
+        <ol>
+            <li>
+                <label for="environment">Environment:</label>
+                <select id="environment" name="environment" >
+                % for env, name in environments:
+                    <option value="${env}">${name}</option>
+                % endfor
+                </select>
+            </li>
+            <li>
+                <label for="type">Type:</label>
+                <select id="type" name="type" >
+                % for typ in jailTypes:
+                    <option value="${typ}">${typ}</option>
+                % endfor
+                </select>
+            </li>
+            <li>
+                <label for="name">Name:</label>
+                <input id="name" name="name" type="text" required />
+            </li>
+            <li>
+                <label for="url">Url:</label>
+                <input id="url" name="url" type="url" required />
+            </li>
+        </ol>
+    </fieldset>
+    <input type="submit" value="Add" />
 </form>
