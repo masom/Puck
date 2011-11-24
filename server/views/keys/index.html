@@ -1,0 +1,20 @@
+<%inherit file="/layouts/default.html" />
+<div>
+    <a href="/keys/add">
+        Add a new key
+    </a>
+</div>
+<h2>Keys</h2>
+% if not len(keys):
+    <div>No keys are set</div>
+% else:
+    <ul>
+        % for keyId, key in keys.iteritems():
+            <li>
+                <a href="/keys/view/${keyId}">
+                    ${key.name}
+                </a>
+            </li>
+        % endfor
+    </ul>
+% endif

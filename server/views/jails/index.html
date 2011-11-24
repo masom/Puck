@@ -1,35 +1,48 @@
 <%inherit file="/layouts/default.html" />
-<div>
-    <a href="/jails/add">
-        Add a new jail
-    </a>
-</div>
-<h2>Jails</h2>
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/index.css">
+</%block>
+
+<h2>Jails <a href="/jails/add">Add a new jail</a></h2>
 % if not len(jails):
     <div>No jails are currently set</div>
 % else:
-    % for env, types in jails.iteritems():
-        <h3>${env}</h3>
-        % if not len(types):
-            <div>No jails are set for this environment</div>
-        % else:
-            % for type_, jailList in types.iteritems():
-                <h4>${type_}</h4>
-                % if not len(jailList):
-                    <div>No jails are set for this type</div>
+    <div class="index">
+        % for env, types in jails.iteritems():
+            <div class="section">
+                <h3>${env}</h3>
+                % if not len(types):
+                    <div>No jails are set for this environment</div>
                 % else:
-                    <ul>
-                        % for jailId, jail in jailList:
-                            <li>
-                                <a href="/jails/view/${jailId}">
-                                    ${jail.name}
-                                </a>
-                            </li>
-                        % endfor
-                    </ul>
+                    % for type_, jailList in types.iteritems():
+                        <h4>${type_}</h4>
+                        % if not len(jailList):
+                            <div>No jails are set for this type</div>
+                        % else:
+                                <ol>
+                                    % for jailId, jail in jailList:
+                                        <li>
+                                            <a href="/jails/view/${jailId}">
+                                                ${jail.name}
+                                            </a>
+                                        </li>
+                                    % endfor
+                                </ol>
+                                <ol>
+                                    % for jailId, jail in jailList:
+                                        <li>
+                                            <a href="/jails/delete/${jailId}">
+                                                Delete
+                                            </a>
+                                        </li>
+                                    % endfor
+                                </ol>
+                        % endif
+                    % endfor
                 % endif
-            % endfor
-        % endif
-    % endfor
+            </div>
+        % endfor
+    </div>
 % endif
 

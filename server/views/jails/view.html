@@ -1,0 +1,15 @@
+<%inherit file="/layouts/default.html" />
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/view.css">
+</%block>
+
+<h3>Jail</h3>
+<div class="basic">
+    <ol>
+        <li><div>Name</div><div>${jail.name}</div></li>
+        <li><div>Url</div><div>${jail.url}</div></li>
+        <li><div>Type</div><div>${jail.type}</div></li>
+    </ol>
+</div>
+    

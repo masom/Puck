@@ -1,0 +1,14 @@
+<%inherit file="/layouts/default.html" />
+<form name="keys" method="post" action="/keys/add">
+    <div>
+        <label for="name">Name: </label>
+        <input id="name" name="name" type="text" />
+    </div>
+    <div>
+        <label for="key">Key: </label>
+        <textarea id="key" name="key"></textarea>
+    </div>
+    <div>
+        <input type="submit" value="Add" />
+    </div>
+</form>

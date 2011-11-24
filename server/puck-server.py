@@ -1,9 +1,11 @@
-import cherrypy
-import uuid
-from collections import namedtuple, defaultdict, OrderedDict
+from collections import namedtuple, OrderedDict
+import sqlite3
 
+import cherrypy
 from mako.template import Template
 from mako.lookup   import TemplateLookup
+
+import models
 
 JAIL_ENVS = OrderedDict([
         ('dev','Development'),
@@ -17,16 +19,6 @@ JAIL_TYPES = ["content", "database", "support"]
 Crumb = namedtuple("Crumb", ["url", "name"])
 
 
-class VM(object):
-    def __init__(self, ip):
-        self._ip = ip
-        self._id = uuid.uuid1()
-        self.config = {}
-        self.status = ''
-        
-    @property
-    def id(self):
-        return str(self._id).replace('-', '')
 
 class Registry(object):
     def __init__(self, cls):
@@ -42,6 +34,9 @@ class Registry(object):
 class Controller(object):
     lookup = TemplateLookup(directories=['views'])
 
+    def __init__(self, store):
+        self._store = store
+
     @classmethod
     def render(cls, template, crumbs=[], **variables):
         tmpl = cls.lookup.get_template(template)
@@ -52,6 +47,9 @@ class Controller(object):
 
 class Root(Controller):
 
+    def __init__(self, db):
+        self._db = db
+        
     @cherrypy.expose
     def index(self):
         return self.render("index.html")
@@ -60,65 +58,20 @@ class Root(Controller):
     def statuses(self, a=None):
         return "Nope Nope Nope"
 
+    def add(self, route, cls):
 
-class JailStore(object):
-    Jail = namedtuple("Jail", ["name", "url", "type"])
-
-    def __init__(self):
-        self._refs = {}
-        self._env = defaultdict(lambda: defaultdict(set))
-
-    def new(self, data):
-        jail = self.Jail(*tuple(data[key] for key in self.Jail._fields))
-        ref = uuid.uuid1()
-        self._refs[ref] = jail
-        self._env[data['environment']][jail.type].add(ref)
-
-    def jails(self):
-        def sort(jails):
-            return sorted(((ref, self._refs[ref]) for ref in jails),
-                            key=lambda (jailId, jail) : jail.name)
-
-        def qmap(f):
-            return lambda d: dict((key, f(val)) for key, val in d.iteritems())
-
-        return qmap(qmap(sort))(self._env)
-
-    def get(self, ref):
-        return self._refs[uuid.UUID(ref)]
-
-class KeyStore(object):
-    Key = namedtuple("Key", ["name", "key"])
-
-    def __init__(self):
-        self._refs = {}
-
-    def new(self, data):
-        key = self.Key(*tuple(data[key] for key in self.Key._fields))
-        ref = uuid.uuid1()
-        self._refs[ref] = key
-
-    def keys(self):
-        return dict(sorted(self._refs.iteritems(),
-                            key=lambda (keyId, key): key.name))
-
-    def get(self, ref):
-        return self._refs[uuid.UUID(ref)]
-
+        store = cls.Store()
+        setattr(self, route, cls(store))
 
 
 class Jails(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/jails", "Jails")]
 
-    def __init__(self):
-        Controller.__init__(self)
-
-        self._store = JailStore()
+    Store = models.Jail
 
     def hash(self):
         return self._store.jails()
         
-
     @cherrypy.expose
     def index(self):
         env = dict(jails=self._store.jails())
@@ -143,11 +96,15 @@ class Jails(Controller):
         env = dict(jail=jail)
         return self.render("jails/view.html", crumbs=self.crumbs, **env)
 
-class Keys(Controller):
-    def __init__(self):
-        Controller.__init__(self)
+    @cherrypy.expose
+    def delete(self, jailId):
+        self._store.delete(jailId)
 
-        self._store = KeyStore()
+        cherrypy.session['flash'] = "Jail successfully deleted"
+        raise cherrypy.HTTPRedirect("/jails")
+
+class Keys(Controller):
+    Store = models.Key
 
     def hash(self):
         return self._store.keys()
@@ -164,6 +121,7 @@ class Keys(Controller):
             cherrypy.session['flash'] = "Key successfully added"
             raise cherrypy.HTTPRedirect("/keys")
         return self.render("keys/add.html")
+
 
     @cherrypy.expose
     def view(self, keyId):
@@ -235,7 +193,6 @@ class ApiConfig(ApiVmCall):
 
 
 
-
 class Api(object):
     def __init__(self, registry):
         self._registry = registry
@@ -253,16 +210,20 @@ class Stub(object):
     pass
 
 
-root = Root()
-root.jails = Jails()
-root.keys = Keys()
+root = Root('db.sqlite3')
+root.add('jails', Jails)
+root.add('keys', Keys)
 
-vmRegistry = Registry(VM)
+vmRegistry = Registry(models.VM)
 api = Api(vmRegistry)
 api.registration = ApiRegistration(api, root.jails)
 api.keys = ApiKeys(api, root.keys)
 
 root.api = api
+
+def connect(thread_index):
+    cherrypy.thread_data.db = sqlite3.connect(root._db)
+
 
 
 
@@ -282,5 +243,11 @@ if __name__ == "__main__":
                 , 'tools.staticdir.index': 'index.html'
                 }
             }
+
+    conn = sqlite3.connect(root._db)
+    models.migrate(conn, [models.Key, models.Jail])
+    conn.commit()
+    conn.close()
             
+    cherrypy.engine.subscribe('start_thread', connect)
     cherrypy.quickstart(root, '/', conf)

@@ -1,0 +1,31 @@
+
+
+h3 {
+    margin-top: 0px;
+    margin-bottom: 5px;
+}
+
+.basic ol {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 20px;
+    list-style-type: none;
+    padding: 0px;
+}
+
+.basic div {
+    display: inline;
+}
+
+.basic li div:first-child {
+    display: inline-block;
+    font-weight:bold;
+    width: 75px;
+}
+.basic li div:first-child:after {
+    content: ':';
+
+}
+
+
+
