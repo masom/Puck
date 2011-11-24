@@ -20,39 +20,68 @@ class Controller(object):
         tmpl = cls.lookup.get_template(template)
         return tmpl.render(**variables)
 
+class VMWizard(Controller):
+    def __init__(self, vm):
+        self._vm = vm
+
+    def __canSetup(self):
+        if not self._vm.status in ['configured', 'setup'] or not self._vm.isConfigured():
+            cherrypy.session['flash'] = "The virtual machine may not be setup at this time."
+            raise cherrypy.HTTPRedirect('/')
+        
+        if self._vm.status == 'configured':
+            self._vm.status = 'setup'
+            self._vm.persist()
+
+    @cherrypy.expose
+    def setup(self):
+        self.__canSetup()
+
+        
+    
 class ConfigurationWizard(Controller):
 
     def __init__(self, vm):
         self._vm = vm
 
+    def __canVMBeModified(self):
+        if not self._vm.status in ['new', 'configured']:
+            cherrypy.session['flash'] = "The virtual machine may not be modified at this time."
+            raise cherrypy.HTTPRedirect('/')
+
     @cherrypy.expose
     def index(self):
+        self.__canVMBeModified()
 
         env = dict(   
-            VM=vm,
+            VM=self._vm,
         )
 
         return self.render("/configure/index.html", **env)
     @cherrypy.expose
     def environment(self, *args, **kwargs):
+        self.__canVMBeModified()
+
         environments = puck.getEnvironments()
 
         if cherrypy.request.method == "POST":
             if kwargs.has_key("vm.environment"): 
                 env_id = kwargs['vm.environment']
                 if environments.has_key(env_id):
-                    vm.update(environment=environments[env_id])
+                    self._vm.update(environment=environments[env_id])
                     cherrypy.session['flash'] = "Environment updated."
                     raise cherrypy.HTTPRedirect('/configure/')
 
         env = dict(
-            VM=vm,
+            VM=self._vm,
             environments=environments
         )
         return self.render("/configure/environment.html", **env)
 
     @cherrypy.expose
     def jails(self, *args, **kwargs):
+        self.__canVMBeModified()
+
         jails = puck.getJails()
 
         if cherrypy.request.method == "POST":
@@ -71,22 +100,24 @@ class ConfigurationWizard(Controller):
                     new_jails.append(jails[type][jail_id])
 
             cherrypy.session['flash'] = "Jails configuration updated."
-            vm.update(jails=new_jails)
+            self._vm.update(jails=new_jails)
             raise cherrypy.HTTPRedirect('/configure/')
 
         env = dict(
-            VM=vm,
+            VM=self._vm,
             jails=jails,
         )
         return self.render("/configure/jails.html", **env)
 
     @cherrypy.expose
     def keys(self, *args, **kwargs):
+        self.__canVMBeModified()
+
         keys = puck.getKeys()
 
         if cherrypy.request.method == "POST":
             if not "keys[]" in kwargs:
-                raise cherrypy.HTTPRedirect('/configure/keys')
+                raise cherrypy.HTTPRedirect('/conself.__canVMBeModified()figure/keys')
 
             #@todo: This should be refactored...
             #CherryPy sends a string instead of an array when there is only 1 value.
@@ -101,22 +132,24 @@ class ConfigurationWizard(Controller):
                     continue
                 new_keys[key]= keys[key]
 
-            vm.update(keys=new_keys)
+            self._vm.update(keys=new_keys)
             cherrypy.session['flash'] = "Authentication keys updated."
             raise cherrypy.HTTPRedirect('/configure/')
 
         env = dict(
-            VM=vm,
+            VM=self._vm,
             keys=keys,
         )
         return self.render("/configure/keys.html", **env)
 
     @cherrypy.expose
     def save(self):
+        self.__canVMBeModified()
+
         if not cherrypy.request.method == "POST":
             raise cherrypy.HTTPRedirect('/configure/')
         try:
-            vm.persist()
+            self._vm.persist()
             cherrypy.session['flash'] = "Virtual machine configuration commited."
         except IOError as e:
             cherrypy.session['flash'] = e
@@ -124,18 +157,22 @@ class ConfigurationWizard(Controller):
 
 class Root(Controller):
 
+    def __init__(self, vm):
+        self._vm = vm
+
     @cherrypy.expose
     def index(self):
         env = dict(
-            VM=vm
+            VM=self._vm
         )
         return self.render('/index.html', **env)
 
 puck = Puck()
 vm = puck.getVM()
 
-root = Root()
+root = Root(vm)
 root.configure = ConfigurationWizard(vm)
+root.vm = VMWizard(vm)
 
 if __name__ == "__main__":
     conf =  {'/' : 
