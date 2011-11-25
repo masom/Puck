@@ -134,11 +134,7 @@ class ConfigurationController(Controller):
             else:
                 data = kwargs['keys[]']
 
-            new_keys = {}
-            for key in data:
-                if not key in keys:
-                    continue
-                new_keys[key]= keys[key]
+            new_keys = dict((key, keys[key]) for key in data if key in keys)
 
             self._vm.update(keys=new_keys)
             cherrypy.session['flash'] = "Authentication keys updated."

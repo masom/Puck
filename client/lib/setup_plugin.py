@@ -12,8 +12,10 @@ class SetupTask(object):
 
     def setOutQueue(self, queue):
         self.queue = queue
+
     def run(self):
-        raise RuntimeError("`run` must be defined.")
+        raise NotImplementedError("`run` must be defined.")
+
     def log(self, msg):
         now = datetime.datetime.now()
         self.queue.put("%s\t%s\t%s" % (now.strftime("%Y-%m-%d %H:%M:%S"), self.__class__.__name__, msg))
@@ -40,6 +42,7 @@ class EZJailTask(SetupTask):
             print
             print
         self.log('Completed')
+        return True
 
 class JailSetupTask(SetupTask):
     '''
@@ -52,7 +55,7 @@ class JailSetupTask(SetupTask):
         dst_dir = '/usr/local/jails/flavours'
 
         tmpfiles = []
-        for jail in vm.jails:
+        for jail in self.vm.jails:
             try:
                 (filename, headers) = urllib.urlretrieve(jail['url'])
             except urllib.ContentTooShortError as e:
@@ -77,6 +80,7 @@ class JailSetupTask(SetupTask):
             except OSerror as e:
                 self.log("error while removing file `%s`: %s" %(file['tmp_file'], e))
         self.log('Completed')
+        return True
 
 class SetupWorkerThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
@@ -95,27 +99,27 @@ class SetupWorkerThread(threading.Thread):
     def stopped(self):
         return self._stop.isSet()
 
-    def _getTask(self, blocking = True, timeout = 10):
-        try:
-            task = self._queue.get(blocking, timeout)
-        except queue.Empty as e:
-            return None
-        return task
+    def _step(self):
+        task = self._queue.get(True, 10)
+        task.setOutQueue(self._outqueue)
+
+        loginfo = (self.__class__.__name__, task.__class__.__name__)
+        self._bus.log("%s received task: %s" % loginfo)
+        self._outqueue.put("%s starting task: %s" % loginfo)
+
+        if not task.run():
+            raise RuntimeError("%s error while running task `%s`" % loginfo)
 
     def run(self):
         self._bus.log("%s started." % self.__class__.__name__)
-        task = self._getTask()
-        while task:
-            task.setOutQueue(self._outqueue)
-            self._bus.log("%s received task: %s" % (self.__class__.__name__, task.__class__.__name__))
-            self._outqueue.put("%s starting task: %s" % (self.__class__.__name__, task.__class__.__name__))
-
-            if not task.run():
-                self._bus.log("%s error while running task `%s`" % (self.__class__.__name__, task.__class__.__name__))
-                break
-
-            time.sleep(1) 
-            task = self._getTask()
+        try:
+            while True:
+                self._step()
+                time.sleep(1) 
+        except RuntimeError as err:
+            self._bus.log(str(err))
+        except queue.Empty:
+            self._bus.log("Shutting down.  no task.")
 
 class SetupPlugin(plugins.SimplePlugin):
 
