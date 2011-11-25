@@ -22,7 +22,7 @@ class Controller(object):
         tmpl = cls.lookup.get_template(template)
         return tmpl.render(**variables)
 
-class VMController(Controller):
+class SetupController(Controller):
     def __init__(self, vm):
         self._vm = vm
 
@@ -34,15 +34,18 @@ class VMController(Controller):
         if self._vm.status == 'configured':
             self._vm.status = 'setup'
             self._vm.persist()
+        
 
     @cherrypy.expose
-    def setup(self):
+    def start(self):
         self.__canSetup()
 
-        cherrypy.bus.publish('setup-start')
+        cherrypy.engine.publish("setup", action="start")
+        raise cherrypy.HTTPRedirect('/setup/status')
 
-        raise cherrypy.HTTPRedirect('/status')
-        
+    @cherrypy.expose
+    def status(self):
+        return "derp"
     
 class ConfigurationController(Controller):
 
@@ -122,7 +125,7 @@ class ConfigurationController(Controller):
 
         if cherrypy.request.method == "POST":
             if not "keys[]" in kwargs:
-                raise cherrypy.HTTPRedirect('/conself.__canVMBeModified()figure/keys')
+                raise cherrypy.HTTPRedirect('/configure/keys')
 
             #@todo: This should be refactored...
             #CherryPy sends a string instead of an array when there is only 1 value.
@@ -173,19 +176,47 @@ class Root(Controller):
         return self.render('/index.html', **env)
 
 class SetupPlugin(plugins.SimplePlugin):
+    class SetupTask(object):
+        _types = ['control', 'status', 'thread']
+        _nameCounter = 0
+
+        def __init__(self, type = 'status', name = 'DefaultTask'):
+            self.name = "%s-%s" % (name, self.__class__._nameCounter)
+            self.command = None
+            if not type in self._types:
+                self.type = 'status'
+
+            self.__class__._nameCounter += 1
+
     class SetupWorkerThread(threading.Thread):
         """Thread class with a stop() method. The thread itself has to check
         regularly for the stopped() condition."""
     
         def __init__(self, bus=None, queue=None):
-            super(SetupWorkerThread, self).__init__()
+            super(self.__class__, self).__init__()
             self._stop = threading.Event()
-    
+            self._queue = queue
+
         def stop(self):
             self._stop.set()
     
         def stopped(self):
             return self._stop.isSet()
+
+        def _getTask(self, blocking = True, timeout = 10):
+            try:
+                task = self._queue.get(blocking, timeout)
+            except queue.Empty as e:
+                return None
+            return task
+ 
+        def run(self):
+            self.bus.log("%s started." % self.__class__)
+            task = self._getTask()
+            while task:
+                self.bus.log("SetupWorkerThread received task: %s" % task)
+                time.sleep(1) 
+                task = self._getTask()
 
     def __init__(self, bus, freq=30.0):
         plugins.SimplePlugin.__init__(self, bus)
@@ -195,9 +226,8 @@ class SetupPlugin(plugins.SimplePlugin):
 
     def start(self):
         self.bus.log('Starting up setup tasks')
-        self.bus.subscribe('setup-start', self.switch)
-        self.bus.subscribe('setup-status', self.switch)
-        self.bus.subscribe('setup-stop', self.switch)
+        self.bus.subscribe('setup', self.switch)
+
     start.priority = 70
 
     def stop(self):
@@ -224,9 +254,23 @@ class SetupPlugin(plugins.SimplePlugin):
             self.worker.stop()
 
     def _setup_start(self, **kwargs):
-        self.bus.log("Start called. Starting time.")
+        
         if not self.worker.isAlive():
+            self.bus.log("Start called. Starting worker.")
             self.worker.start()
+
+        self.bus.log("Building task list")
+        tasks = [
+            SetupPlugin.SetupTask('fetch'),
+            SetupPlugin.SetupTask('install'),
+            SetupPlugin.SetupTask('configure'),
+            SetupPlugin.SetupTask('start'),
+            SetupPlugin.SetupTask('status')
+        ]
+        self.bus.log("Publishing tasks")
+        for task in tasks:
+            self.bus.log("\t Publishing: %s" % task.name)
+            self._queue.put(task)
 
     def _setup_status(self, **kwargs):
         self.bus.log('Status called. Wants its time back.')
@@ -236,7 +280,7 @@ vm = puck.getVM()
 
 root = Root(vm)
 root.configure = ConfigurationController(vm)
-root.vm = VMController(vm)
+root.setup = SetupController(vm)
 
 if __name__ == "__main__":
     conf =  {'/' : 
