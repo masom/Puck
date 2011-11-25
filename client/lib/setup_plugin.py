@@ -4,10 +4,10 @@ from cherrypy.process import wspbus, plugins
 class SetupTask(object):
     _nameCounter = 0
 
-    def __init__(self, config, id = 'SetupTask'):
+    def __init__(self, vm, id = 'SetupTask'):
         self.id = "%s-%s" % (id, self.__class__._nameCounter)
         self.__class__._nameCounter += 1
-        self.config = config
+        self.vm = vm
         self.name = self.__class__.__name__
 
     def setOutQueue(self, queue):
@@ -33,7 +33,11 @@ class EZJailTask(SetupTask):
                 return False
     
             print
+            print
             print stdoutdata
+            print "---------"
+            print stderrdata
+            print
             print
         self.log('Completed')
 
@@ -43,6 +47,9 @@ class JailSetupTask(SetupTask):
     '''
     def run(self):
         self.log('Started')
+        print
+        print self.vm.jails
+        print
         self.log('Completed')
 
 class SetupWorkerThread(threading.Thread):
@@ -74,8 +81,8 @@ class SetupWorkerThread(threading.Thread):
         task = self._getTask()
         while task:
             task.setOutQueue(self._outqueue)
-            self._bus.log("%s received task: %s" % (self.__class__.__name__, task))
-            self._outqueue.put("%s starting task: %s" % (self.__class__.__name__, task))
+            self._bus.log("%s received task: %s" % (self.__class__.__name__, task.__class__.__name__))
+            self._outqueue.put("%s starting task: %s" % (self.__class__.__name__, task.__class__.__name__))
 
             if not task.run():
                 self._bus.log("%s error while running task `%s`" % (self.__class__.__name__, task.__class__.__name__))
@@ -133,7 +140,8 @@ class SetupPlugin(plugins.SimplePlugin):
 
         self.bus.log("Building task list")
         tasks = [
-            EZJailTask(self.vm)
+            #EZJailTask(self.vm),
+            JailSetupTask(self.vm)
         ]
         self.bus.log("Publishing tasks")
         for task in tasks:
