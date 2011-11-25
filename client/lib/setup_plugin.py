@@ -1,4 +1,4 @@
-import threading, Queue as queue, time, subprocess, shlex
+import threading, Queue as queue, time, subprocess, shlex, datetime
 from cherrypy.process import wspbus, plugins
 
 class SetupTask(object):
@@ -15,7 +15,8 @@ class SetupTask(object):
     def run(self):
         raise RuntimeError("`run` must be defined.")
     def log(self, msg):
-        self.queue.put("%s\t%s\t%s" % ('2011-02-03 00:00:23', self.__class__.__name__, msg))
+        now = datetime.datetime.now()
+        self.queue.put("%s\t%s\t%s" % (now.strftime("%Y-%m-%d %H:%M:%S"), self.__class__.__name__, msg))
 
 class EZJailTask(SetupTask):
     '''
