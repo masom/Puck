@@ -4,11 +4,14 @@ from cherrypy.process import wspbus, plugins
 class SetupTask(object):
     _nameCounter = 0
 
-    def __init__(self, queue, name = 'DefaultTask'):
-        self.name = "%s-%s" % (name, self.__class__._nameCounter)
+    def __init__(self, id = 'SetupTask'):
+        self.id = "%s-%s" % (id, self.__class__._nameCounter)
         self.__class__._nameCounter += 1
-        self.queue = queue
 
+        self.name = self.__class__
+
+    def setOutQueue(self, queue):
+        self.queue = queue
     def run(self):
         raise RuntimeError("`run` must be defined.")
 
@@ -53,7 +56,10 @@ class SetupWorkerThread(threading.Thread):
         self._bus.log("%s started." % self.__class__)
         task = self._getTask()
         while task:
+            task.setOutQueue(self._outqueue)
             self._bus.log("SetupWorkerThread received task: %s" % task)
+            self._outqueue.put("Starting task: %s" % task.name)
+            task.run()
             time.sleep(1) 
             task = self._getTask()
 
@@ -64,7 +70,7 @@ class SetupPlugin(plugins.SimplePlugin):
         self.freq = freq
         self._queue = queue.Queue()
         self._workerQueue = queue.Queue()
-        self.worker = SetupWorkerThread( bus=bus, queue = self._queue, self._workerQueue)
+        self.worker = SetupWorkerThread( bus=bus, queue = self._queue, outqueue = self._workerQueue)
 
     def start(self):
         self.bus.log('Starting up setup tasks')
