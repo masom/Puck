@@ -8,25 +8,33 @@ class SetupTask(object):
         self.id = "%s-%s" % (id, self.__class__._nameCounter)
         self.__class__._nameCounter += 1
 
-        self.name = self.__class__
+        self.name = self.__class__.__name__
 
     def setOutQueue(self, queue):
         self.queue = queue
     def run(self):
         raise RuntimeError("`run` must be defined.")
+    def log(self, msg):
+        self.queue.put("%s\t%s\t%s" % ('2011-02-03 00:00:23', self.__class__.__name__, msg))
 
 class EZJailTask(SetupTask):
     '''
     Setups ezjail in the virtual machine
     '''
     def run(self):
-        self.queue.put("Installing: ezjail")
-        command = shlex.split("ezjail-admin update -p -i")
-        (stdoutdata, stderrdata) = subprocess.Popen(command).communicate()
-        print
-        print stdoutdata
-        print
-        self.queue.put("Completed: ezjail")
+        self.log('Started')
+        commands = ['ezjail-admin install', 'ezjail-admin update -p -i']
+        for command in commands:
+            try:
+                (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+            except OSError as e:
+                self.log("Error while installing ezjail: %s" % e)
+                return False
+    
+            print
+            print stdoutdata
+            print
+        self.log('Completed')
 
 class SetupWorkerThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
@@ -53,13 +61,17 @@ class SetupWorkerThread(threading.Thread):
         return task
 
     def run(self):
-        self._bus.log("%s started." % self.__class__)
+        self._bus.log("%s started." % self.__class__.__name__)
         task = self._getTask()
         while task:
             task.setOutQueue(self._outqueue)
-            self._bus.log("SetupWorkerThread received task: %s" % task)
-            self._outqueue.put("Starting task: %s" % task.name)
-            task.run()
+            self._bus.log("%s received task: %s" % (self.__class__.__name__, task))
+            self._outqueue.put("%s starting task: %s" % (self.__class__.__name__, task))
+
+            if not task.run():
+                self._bus.log("%s error while running task `%s`" % (self.__class__.__name__, task.__class__.__name__))
+                break
+
             time.sleep(1) 
             task = self._getTask()
 
@@ -71,6 +83,7 @@ class SetupPlugin(plugins.SimplePlugin):
         self._queue = queue.Queue()
         self._workerQueue = queue.Queue()
         self.worker = None
+        self.statuses = []
 
     def start(self):
         self.bus.log('Starting up setup tasks')
@@ -103,7 +116,7 @@ class SetupPlugin(plugins.SimplePlugin):
 
     def _setup_start(self, **kwargs):
         
-        if not self.worker or self.worker.isAlive():
+        if not self.worker or not self.worker.isAlive():
             self.bus.log("Start called. Starting worker.")
             self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue)
             self.worker.start()
@@ -119,14 +132,13 @@ class SetupPlugin(plugins.SimplePlugin):
 
     def _setup_status(self, **kwargs):
         self.bus.log("_setup_status called.")
-        statuses = []
 
         status = self._readQueue(self._workerQueue)
         while status:
-            statuses.append(status)
+            self.statuses.append(status)
             self.bus.log("\t%s" % status)
             status = self._readQueue(self._workerQueue)
-        return statuses
+        return self.statuses
 
     def _readQueue(self, q, blocking = True, timeout = 1):
         try:
