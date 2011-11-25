@@ -1,12 +1,14 @@
-import threading, Queue as queue, time
+import threading, Queue as queue, time, subprocess, shlex
 from cherrypy.process import wspbus, plugins
 
 class SetupTask(object):
     _nameCounter = 0
 
-    def __init__(self, name = 'DefaultTask'):
+    def __init__(self, queue, name = 'DefaultTask'):
         self.name = "%s-%s" % (name, self.__class__._nameCounter)
         self.__class__._nameCounter += 1
+        self.queue = queue
+
     def run(self):
         raise RuntimeError("`run` must be defined.")
 
@@ -15,17 +17,24 @@ class EZJailTask(SetupTask):
     Setups ezjail in the virtual machine
     '''
     def run(self):
-        pass
+        self.queue.put("Installing: ezjail")
+        command = shlex.split("ezjail-admin update -p -i")
+        (stdoutdata, stderrdata) = subprocess.Popen(command).communicate()
+        print
+        print stdoutdata
+        print
+        self.queue.put("Completed: ezjail")
 
 class SetupWorkerThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
     regularly for the stopped() condition."""
 
-    def __init__(self, bus=None, queue=None):
+    def __init__(self, bus=None, queue=None, outqueue=None):
         super(self.__class__, self).__init__()
         self._stop = threading.Event()
         self._queue = queue
         self._bus = bus
+        self._outqueue = outqueue
 
     def stop(self):
         self._stop.set()
@@ -54,7 +63,8 @@ class SetupPlugin(plugins.SimplePlugin):
         plugins.SimplePlugin.__init__(self, bus)
         self.freq = freq
         self._queue = queue.Queue()
-        self.worker = SetupWorkerThread( bus=bus, queue = self._queue)
+        self._workerQueue = queue.Queue()
+        self.worker = SetupWorkerThread( bus=bus, queue = self._queue, self._workerQueue)
 
     def start(self):
         self.bus.log('Starting up setup tasks')
