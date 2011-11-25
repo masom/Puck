@@ -4,10 +4,10 @@ from cherrypy.process import wspbus, plugins
 class SetupTask(object):
     _nameCounter = 0
 
-    def __init__(self, id = 'SetupTask'):
+    def __init__(self, config, id = 'SetupTask'):
         self.id = "%s-%s" % (id, self.__class__._nameCounter)
         self.__class__._nameCounter += 1
-
+        self.config = config
         self.name = self.__class__.__name__
 
     def setOutQueue(self, queue):
@@ -24,7 +24,7 @@ class EZJailTask(SetupTask):
     '''
     def run(self):
         self.log('Started')
-        commands = ['ezjail-admin install', 'ezjail-admin update -p -i']
+        commands = ['ezjail-admin install -m -p']
         for command in commands:
             try:
                 (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
@@ -37,11 +37,19 @@ class EZJailTask(SetupTask):
             print
         self.log('Completed')
 
+class JailSetupTask(SetupTask):
+    '''
+    Setups ezjail in the virtual machine
+    '''
+    def run(self):
+        self.log('Started')
+        self.log('Completed')
+
 class SetupWorkerThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
     regularly for the stopped() condition."""
 
-    def __init__(self, bus=None, queue=None, outqueue=None):
+    def __init__(self, bus, queue, outqueue):
         super(self.__class__, self).__init__()
         self._stop = threading.Event()
         self._queue = queue
@@ -78,9 +86,10 @@ class SetupWorkerThread(threading.Thread):
 
 class SetupPlugin(plugins.SimplePlugin):
 
-    def __init__(self, bus, freq=30.0):
+    def __init__(self, vm, bus, freq=30.0):
         plugins.SimplePlugin.__init__(self, bus)
         self.freq = freq
+        self.vm = vm
         self._queue = queue.Queue()
         self._workerQueue = queue.Queue()
         self.worker = None
@@ -124,7 +133,7 @@ class SetupPlugin(plugins.SimplePlugin):
 
         self.bus.log("Building task list")
         tasks = [
-            EZJailTask()
+            EZJailTask(self.vm)
         ]
         self.bus.log("Publishing tasks")
         for task in tasks:

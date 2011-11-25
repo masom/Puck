@@ -190,7 +190,7 @@ if __name__ == "__main__":
                 }
             }
 
-    cherrypy.engine.vmsetup = SetupPlugin(cherrypy.engine)
+    cherrypy.engine.vmsetup = SetupPlugin(vm, cherrypy.engine)
     cherrypy.engine.vmsetup.subscribe()
 
     cherrypy.quickstart(root, '/', conf)
