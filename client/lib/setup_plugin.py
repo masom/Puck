@@ -44,13 +44,12 @@ class EZJailTask(SetupTask):
         self.log('Completed')
         return True
 
-class JailSetupTask(SetupTask):
+class EZJailSetupTask(SetupTask):
     '''
     Setups ezjail in the virtual machine
     '''
     def run(self):
         self.log('Started')
-
         #TODO: Move this to a cherrypy configuration value
         dst_dir = '/usr/local/jails/flavours'
 
@@ -81,6 +80,32 @@ class JailSetupTask(SetupTask):
                 self.log("error while removing file `%s`: %s" %(file['tmp_file'], e))
         self.log('Completed')
         return True
+
+class JailConfigTask(SetupTask):
+    def run(self):
+        self.log('Started')
+        '''
+        TODO:
+            for each jail:
+                - Add public key to hcn user. the EZJAIL first boot script should read them to include in user created.
+                - Get JAIL ip. Make sure the VM network interface is configured with them
+                - Make sure resolv.conf is copied from HOST
+                - Configure the YUM repositories in the jails flavours
+                - The EZJAIL firs boot script should have YUM install the files.
+                - Install the jail
+        '''
+        self.log('Completed')
+
+class JailStartupTask(SetupTask):
+    def run(self):
+        self.log('Started')
+        '''
+        TODO:
+            for each jail:
+                - Start
+                - Verify it is running
+        '''
+        self.log('Completed')
 
 class SetupWorkerThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
@@ -171,7 +196,9 @@ class SetupPlugin(plugins.SimplePlugin):
         self.bus.log("Building task list")
         tasks = [
             #EZJailTask(self.vm),
-            JailSetupTask(self.vm)
+            EZJailSetupTask(self.vm),
+            JailConfigTask(self.vm),
+            JailStartupTask(self.vm)
         ]
         self.bus.log("Publishing tasks")
         for task in tasks:
