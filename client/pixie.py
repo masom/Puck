@@ -196,6 +196,7 @@ class SetupPlugin(plugins.SimplePlugin):
             super(self.__class__, self).__init__()
             self._stop = threading.Event()
             self._queue = queue
+            self._bus = bus
 
         def stop(self):
             self._stop.set()
@@ -211,10 +212,10 @@ class SetupPlugin(plugins.SimplePlugin):
             return task
  
         def run(self):
-            self.bus.log("%s started." % self.__class__)
+            self._bus.log("%s started." % self.__class__)
             task = self._getTask()
             while task:
-                self.bus.log("SetupWorkerThread received task: %s" % task)
+                self._bus.log("SetupWorkerThread received task: %s" % task)
                 time.sleep(1) 
                 task = self._getTask()
 
@@ -222,7 +223,7 @@ class SetupPlugin(plugins.SimplePlugin):
         plugins.SimplePlugin.__init__(self, bus)
         self.freq = freq
         self._queue = queue.Queue()
-        self.worker = threading.Thread(name="SetupWorkerThread", target=self.SetupWorkerThread, kwargs={'bus': bus, 'queue': self._queue})
+        self.worker = self.__class__.SetupWorkerThread( bus=bus, queue = self._queue)
 
     def start(self):
         self.bus.log('Starting up setup tasks')
