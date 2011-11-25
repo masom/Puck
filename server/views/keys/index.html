@@ -9,7 +9,7 @@
     <div>No keys are set</div>
 % else:
     <ul>
-        % for keyId, key in keys.iteritems():
+        % for keyId, key in keys:
             <li>
                 <a href="/keys/view/${keyId}">
                     ${key.name}

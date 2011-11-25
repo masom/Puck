@@ -2,7 +2,7 @@ import uuid
 import sqlite3
 import cherrypy
 
-from collections import namedtuple, defaultdict
+from collections import namedtuple, defaultdict, deque
 from itertools import groupby
 from operator import attrgetter
 
@@ -25,8 +25,10 @@ class SQLType(object):
 Text = SQLType("TEXT")
 
 
-def sqltable(tablename, *cols):
+def sqltable(tablename, *cols, **config):
     from operator import itemgetter
+
+    primaryKey = config.get("primaryKey", "id")
 
     field_names = tuple(col.name for col in cols)
     argtxt = repr(field_names).replace("'", "")[1:-1]
@@ -47,44 +49,45 @@ def sqltable(tablename, *cols):
     newcls = namespace[tablename]
     newcls._types = tuple(col.type for col in cols)
     newcls._columns = cols
+    newcls._primaryKey = primaryKey
     return newcls
 
     
-class VM(object):
-    def __init__(self, ip):
-        self._ip = ip
-        self._id = uuid.uuid1()
-        self.config = {}
-        self.status = ''
-        
-    @property
-    def id(self):
-        return str(self._id).replace('-', '')
 
 class Model(object):
     Table = None
+
+    def __init__(self, config):
+        pass
 
     def new(self, data):
         key = self.Table(*tuple(data[key] for key in self.Table._fields))
         self._insert(key)
 
     def get(self, ref):
-        query = "SELECT * FROM {table} WHERE id=?".format(table=self.Table._name)
+        query = "SELECT {fields} FROM {table} WHERE id=?".format(
+            fields=','.join(self.Table._fields),
+            table=self.Table._name
+        )
         crs = cherrypy.thread_data.db.cursor()
+        print(query)
         crs.execute(query, (ref,))
-        return self.Table(*crs.fetchone()[1:])
+        return self.Table(*crs.fetchone())
 
     def delete(self, ref):
         return self._delete(ids=[ref])
 
     @staticmethod
     def _newId():
-        return uuid.uuid1()
+        return str(uuid.uuid1())
 
     def _insert(self, row):
-        rowId = self._newId()
+        add = 0
+        if self.Table._primaryKey not in self.Table._fields:
+            row = (self._newId(),) + row
+            add = 1
 
-        ncols = len(self.Table._columns) + 1 # add 1 for id 
+        ncols = len(self.Table._columns) + add
         query = """
         INSERT INTO {table}
         VALUES ({stubs})
@@ -93,16 +96,22 @@ class Model(object):
                    )
 
         crs = cherrypy.thread_data.db.cursor()
-        crs.execute(query, (str(rowId),) + row)
+        crs.execute(query, row)
         cherrypy.thread_data.db.commit()
 
 
-    def _select(self, orderBy=[]):
-        query = "SELECT * FROM {table}\n"
+    def _select(self, fields=None, orderBy=[]):
+        query = "SELECT {fields} FROM {table}\n"
+
+        fields = fields if fields is not None else self.Table._fields
+        fields = (self.Table._primaryKey,) + fields
+
         if orderBy:
             query += "ORDER BY {orderCols}\n"
 
+
         query = query.format(table=self.Table._name, 
+                             fields=','.join(fields),
                              orderCols=' ,'.join(orderBy))
         crs = cherrypy.thread_data.db.cursor()
         crs.execute(query)
@@ -115,12 +124,27 @@ class Model(object):
         if ids:
             params += tuple(ids)
 
-            query += "WHERE id in ({idStubs})"
+            query += "WHERE {primaryKey} in ({idStubs})"
         query = query.format(table=self.Table._name,
+                             primaryKey=self.Table._primaryKey,
                              idStubs=','.join('?' for i in xrange(len(ids)))
                             )
         crs = cherrypy.thread_data.db.cursor()
         crs.execute(query, params)
+        crs = cherrypy.thread_data.db.commit()
+
+    def _update(self, key, column, value):
+        query = """
+            UPDATE {table}
+            SET {column} = ?
+            WHERE {primaryKey} = ?
+        """.format(table=self.Table._name, 
+                   column=column,
+                   primaryKey=self.Table._primaryKey
+        )
+
+        crs = cherrypy.thread_data.db.cursor()
+        crs.execute(query, (value, key))
         crs = cherrypy.thread_data.db.commit()
 
 
@@ -132,7 +156,7 @@ class Model(object):
 
 
 class Jail(Model):
-    Table = sqltable("jail", 
+    Table = sqltable("jails", 
                         "name" & Text, 
                         "url" & Text,
                         "type" & Text,
@@ -156,15 +180,49 @@ class Jail(Model):
 
 
 class Key(Model):
-    Table = sqltable("key", 
+    Table = sqltable("keys", 
                         "name" & Text,
                         "key" & Text
                     )
 
     def keys(self):
-        return self._select(orderBy=["name"])
+        return list(self._select(orderBy=["name"]))
+
+class VM(Model):
+    Table = sqltable("vms",
+                        "name" & (Text | "PRIMARY KEY"),
+                        "ip" & Text,
+                        "status" & Text,
+                        "config" & Text
+                    , primaryKey="name"
+                    )
+
+    def __init__(self, config):
+        Model.__init__(self, config)
+
+        wordlist = ["apple", "banana", "carrot", "pepper", "orange", "eggplant"]
+        self._wordlist = deque(wordlist)
 
 
+    def _newId(self):
+        word = self._wordlist.pop(used)
+        self._wordlist.appendLeft(word)
+        return word
+        
+
+    def register(self, ip):
+        name = self._newId()
+        vm = self.Table(name, ip, None, None)
+        return name
+
+    def setStatus(self, vmId, status):
+        self._update(vmId, 'status', status)
+        
+
+    def statuses(self):
+        return list(self._select(fields=["status"]))
+
+        
 def migrate(conn, models):
     crs = conn.cursor()
 
@@ -176,7 +234,8 @@ def migrate(conn, models):
         )
         exists = crs.fetchone() is not None
         if not exists:
-            cols = ("id" & (Text | "PRIMARY KEY"),) + table._columns
+            if table._primaryKey not in table._fields:
+                cols = (table._primaryKey & (Text | "PRIMARY KEY"),) + table._columns
             query = "CREATE TABLE {name} {fields}".format(
                 name=table._name,
                 fields="(%s)" % ','.join("%s %s" % (col.name, col.type.toVal())

@@ -19,23 +19,16 @@ JAIL_TYPES = ["content", "database", "support"]
 Crumb = namedtuple("Crumb", ["url", "name"])
 
 
-
-class Registry(object):
-    def __init__(self, cls):
-        self._cls = cls
-        self._container = dict()
-
-    def new(self, *args):
-        obj = self._cls(*args)
-        self._container[obj.id] = obj
-        return obj
-
         
 class Controller(object):
     lookup = TemplateLookup(directories=['views'])
+    models = []
+    sub = []
 
-    def __init__(self, store):
-        self._store = store
+    def __init__(self, models):
+        for model in self.models:
+            setattr(self, model.__name__, models[model])
+            
 
     @classmethod
     def render(cls, template, crumbs=[], **variables):
@@ -49,6 +42,7 @@ class Root(Controller):
 
     def __init__(self, db):
         self._db = db
+        self._routes = {}
         
     @cherrypy.expose
     def index(self):
@@ -59,28 +53,41 @@ class Root(Controller):
         return "Nope Nope Nope"
 
     def add(self, route, cls):
+        self._routes[route] = cls
 
-        store = cls.Store()
-        setattr(self, route, cls(store))
+    def load(self):
+        models = set()
+        for cls in self._routes.itervalues():
+            models.update(cls.models)
+            models.update(*(scls.models for scls in cls.sub))
+
+        models = dict((cls, cls({})) for cls in models)
+
+        for route, cls in self._routes.iteritems():
+            need = set(cls.models).union(*[scls.models for scls in cls.sub])
+            clsModels = dict((mcls, models[mcls]) for mcls in need)
+            setattr(self, route, cls(clsModels))
+            
+
 
 
 class Jails(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/jails", "Jails")]
 
-    Store = models.Jail
+    models = [models.Jail]
 
     def hash(self):
-        return self._store.jails()
+        return self.Jail.jails()
         
     @cherrypy.expose
     def index(self):
-        env = dict(jails=self._store.jails())
+        env = dict(jails=self.Jail.jails())
         return self.render("jails/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
     def add(self, **post):
         if post:
-            self._store.new(post)
+            self.Jail.new(post)
             cherrypy.session['flash'] = "Jail successfully added"
             raise cherrypy.HTTPRedirect("/jails")
 
@@ -92,42 +99,43 @@ class Jails(Controller):
 
     @cherrypy.expose
     def view(self, jailId):
-        jail = self._store.get(jailId)
+        jail = self.Jail.get(jailId)
         env = dict(jail=jail)
         return self.render("jails/view.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
     def delete(self, jailId):
-        self._store.delete(jailId)
+        self.Jail.delete(jailId)
 
         cherrypy.session['flash'] = "Jail successfully deleted"
         raise cherrypy.HTTPRedirect("/jails")
 
 class Keys(Controller):
-    Store = models.Key
+    crumbs = [Crumb("/", "Home"), Crumb("/keys", "Keys")]
+    models = [models.Key]
 
     def hash(self):
-        return self._store.keys()
+        return self.Key.keys()
 
     @cherrypy.expose
     def index(self):
-        env = dict(keys=self._store.keys())
-        return self.render("keys/index.html", **env)
+        env = dict(keys=self.Key.keys())
+        return self.render("keys/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
     def add(self, **post):
         if post:
-            self._store.new(post)
+            self.Key.new(post)
             cherrypy.session['flash'] = "Key successfully added"
             raise cherrypy.HTTPRedirect("/keys")
-        return self.render("keys/add.html")
+        return self.render("keys/add.html", crumbs=self.crumbs)
 
 
     @cherrypy.expose
     def view(self, keyId):
-        key = self._store.get(keyId)
+        key = self.Key.get(keyId)
         env = dict(key=key)
-        return self.render("keys/view.html", **env)
+        return self.render("keys/view.html", crumbs=self.crumbs, **env)
 
 
 
@@ -135,27 +143,19 @@ class Keys(Controller):
 
 class ApiCall(object):
     exposed = True
+    models = [models.VM]
 
-    def __init__(self, api):
-        self._api = api
-
-class ApiVmCall(object):
-    exposed = True
-
-    def __init__(self, api, vm):
-        self._vm = vm
-        self._api = api
-
+    def __init__(self, models={}):
+        for model in self.models:
+            setattr(self, model.__name__, models[model])
 
 class ApiRegistration(ApiCall):
-    def __init__(self, api, jails):
-        ApiCall.__init__(self, api)
-        self._jails = jails
+    models = ApiCall.models + [models.Jail]
 
     @cherrypy.tools.json_out()
     def POST(self):
         ip = cherrypy.request.remote()
-        name = self._api.new(ip)
+        name = self._model.register(ip)
         jails = self._jails.hash()
         return {
             'id' : name,
@@ -163,16 +163,13 @@ class ApiRegistration(ApiCall):
         }
 
 class ApiKeys(ApiCall):
-    def __init__(self, api, keys):
-        ApiCall.__init__(self, api)
-        self._keys = keys
-        
+    models = ApiCall.models + [models.Key]
     
     @cherrypy.tools.json_out()
     def GET(self):
         return self._keys.hash()
 
-class ApiStatus(ApiVmCall):
+class ApiStatus(ApiCall):
 
     def PUT(self):
         self._vm.status = cherrypy.request.body.read()
@@ -180,7 +177,7 @@ class ApiStatus(ApiVmCall):
     def GET(self):
         return self._vm.status
 
-class ApiConfig(ApiVmCall):
+class ApiConfig(ApiCall):
 
     @cherrypy.tools.json_in()
     def POST(self):
@@ -193,33 +190,24 @@ class ApiConfig(ApiVmCall):
 
 
 
-class Api(object):
-    def __init__(self, registry):
-        self._registry = registry
+class Api(Controller):
+    models = []
+    sub = [ApiRegistration, ApiKeys, ApiStatus, ApiConfig]
 
-        self.status = Stub()
-        self.config = Stub()
+    def __init__(self, models):
+        Controller.__init__(self, models)
 
-    def new(self):
-        vm = self._registry.new()
-        setattr(self.status, vm.id, ApiStatus(self, vm))
-        setattr(self.config, vm.id, ApiConfig(self, vm))
-        return vm.id
-
-class Stub(object):
-    pass
+        self.registration = ApiRegistration(models)
+        self.keys = ApiKeys(models)
+        self.status = ApiStatus(models)
+        self.config = ApiConfig(models)
 
 
 root = Root('db.sqlite3')
 root.add('jails', Jails)
 root.add('keys', Keys)
-
-vmRegistry = Registry(models.VM)
-api = Api(vmRegistry)
-api.registration = ApiRegistration(api, root.jails)
-api.keys = ApiKeys(api, root.keys)
-
-root.api = api
+root.add('api', Api)
+root.load()
 
 def connect(thread_index):
     cherrypy.thread_data.db = sqlite3.connect(root._db)
