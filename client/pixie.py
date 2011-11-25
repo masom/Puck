@@ -177,16 +177,17 @@ class Root(Controller):
 
 class SetupPlugin(plugins.SimplePlugin):
     class SetupTask(object):
-        _types = ['control', 'status', 'thread']
         _nameCounter = 0
 
-        def __init__(self, type = 'status', name = 'DefaultTask'):
+        def __init__(self, name = 'DefaultTask'):
             self.name = "%s-%s" % (name, self.__class__._nameCounter)
-            self.command = None
-            if not type in self._types:
-                self.type = 'status'
-
             self.__class__._nameCounter += 1
+        def run(self):
+            raise RuntimeError("`run` must be defined.")
+
+    class EZJailTask(SetupPlugin.SetupTask):
+        def run(self):
+            pass
 
     class SetupWorkerThread(threading.Thread):
         """Thread class with a stop() method. The thread itself has to check
@@ -262,6 +263,7 @@ class SetupPlugin(plugins.SimplePlugin):
 
         self.bus.log("Building task list")
         tasks = [
+            SetupPlugin.SetupTask('ezjail-setup'),
             SetupPlugin.SetupTask('fetch'),
             SetupPlugin.SetupTask('install'),
             SetupPlugin.SetupTask('configure'),
