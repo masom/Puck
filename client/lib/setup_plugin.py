@@ -31,7 +31,7 @@ class EZJailTask(SetupTask):
             except OSError as e:
                 self.log("Error while installing ezjail: %s" % e)
                 return False
-    
+
             print
             print
             print stdoutdata
@@ -47,6 +47,10 @@ class JailSetupTask(SetupTask):
     '''
     def run(self):
         self.log('Started')
+
+        #TODO: Move this to a cherrypy configuration value
+        dst_dir = '/usr/local/jails/flavours'
+
         tmpfiles = []
         for jail in vm.jails:
             try:
@@ -55,17 +59,23 @@ class JailSetupTask(SetupTask):
                 self.log("Error while retrieving jail `%s`: %s" % (jail['name'], e))
                 return False
 
-            tmpfiles.append(filename)
+            tmpfiles.append({'type': jail['type'], 'tmp_file': filename})
 
             self.log("Jail `%s` downloaded at `%s`" % (jail['name'], filename))
 
-        #TODO: untar to ezjail jail loc
+        for file in tmpfiles:
+            if not tarfile.is_tarfile(file['tmp_file']):
+                self.log("Critical error! File `%s` is not a tarfile." % file)
+                return False
+
+            with tarfile.open(file['tmp_file'], mode='r:*') as t:
+                t.extractall("%s/%s" % (dst_dir, file['type']))
 
         for file in tmpfiles:
             try:
-                os.unlink(file)
+                os.unlink(file['tmp_file'])
             except OSerror as e:
-                self.log("error while removing file `%s`: %s" %(file, e))
+                self.log("error while removing file `%s`: %s" %(file['tmp_file'], e))
         self.log('Completed')
 
 class SetupWorkerThread(threading.Thread):
