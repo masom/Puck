@@ -1,4 +1,4 @@
-import threading, Queue as queue, time, subprocess, shlex, datetime, urllib, tarfile, os
+import threading, Queue as queue, time, subprocess, shlex, datetime, urllib, tarfile, os, shutil
 from cherrypy.process import wspbus, plugins
 
 class SetupTask(object):
@@ -94,7 +94,41 @@ class JailConfigTask(SetupTask):
                 - The EZJAIL firs boot script should have YUM install the files.
                 - Install the jail
         '''
+        jail_dir = '/usr/local/jails'
+        flavour_dir = "%s/flavours" % jail_dir
+
+        '''Check if all flavours dir exists.'''
+        for jail in self.vm.jails:
+            path = "%s/%s" % (flavour_dir, jail['type'])
+            authorized_key_file = "%s/authorized_keys" % path
+            resolv_file = "%s/etc/resolv.conf" % path
+
+            exists = os.path.exists(path)
+            is_dir = os.path.isdir(path)
+
+            if not exists or not is_dir:
+                self.log("Flavour `%s` directory is missing in `%s" % (jail['type'], flavour_dir))
+                return False
+            
+            '''Write authorized keys'''
+            try:
+                with open(authorized_key_file, 'w') as f:
+                    for key in self.vm.keys.values():
+                        f.write("%s\n" % key['key'])
+            except IOError as e:
+                self.log("Error while writing authorized keys to jail %s" % jail['type'])
+                return False
+
+            '''Copy resolv.conf'''
+            try:
+                shutil.copyfile('/etc/resolv.conf', resolv_file)
+            except IOError as e:
+                self.log("Error while copying host resolv file: %s" % e)
+                return False
+
+
         self.log('Completed')
+        return True
 
 class JailStartupTask(SetupTask):
     def run(self):
