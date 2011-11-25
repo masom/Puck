@@ -70,7 +70,7 @@ class SetupPlugin(plugins.SimplePlugin):
         self.freq = freq
         self._queue = queue.Queue()
         self._workerQueue = queue.Queue()
-        self.worker = SetupWorkerThread( bus=bus, queue = self._queue, outqueue = self._workerQueue)
+        self.worker = None
 
     def start(self):
         self.bus.log('Starting up setup tasks')
@@ -90,7 +90,7 @@ class SetupPlugin(plugins.SimplePlugin):
         def default(**kwargs):
             return
 
-        {
+        return {
          'start': self._setup_start,
          'stop': self._setup_stop,
          'status': self._setup_status
@@ -98,13 +98,14 @@ class SetupPlugin(plugins.SimplePlugin):
 
     def _setup_stop(self, **kwargs):
         self.bus.log("Stop called. Giving back time.")
-        if self.worker.isAlive():
+        if self.worker and self.worker.isAlive():
             self.worker.stop()
 
     def _setup_start(self, **kwargs):
         
-        if not self.worker.isAlive():
+        if not self.worker or self.worker.isAlive():
             self.bus.log("Start called. Starting worker.")
+            self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue)
             self.worker.start()
 
         self.bus.log("Building task list")
@@ -117,4 +118,19 @@ class SetupPlugin(plugins.SimplePlugin):
             self._queue.put(task)
 
     def _setup_status(self, **kwargs):
-        self.bus.log('Status called. Wants its time back.')
+        self.bus.log("_setup_status called.")
+        statuses = []
+
+        status = self._readQueue(self._workerQueue)
+        while status:
+            statuses.append(status)
+            self.bus.log("\t%s" % status)
+            status = self._readQueue(self._workerQueue)
+        return statuses
+
+    def _readQueue(self, q, blocking = True, timeout = 1):
+        try:
+            item = q.get(blocking, timeout)
+        except queue.Empty:
+            return None
+        return item

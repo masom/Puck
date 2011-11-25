@@ -44,8 +44,12 @@ class SetupController(Controller):
 
     @cherrypy.expose
     def status(self):
-        return "derp"
-    
+        statuses = cherrypy.engine.publish("setup", action="status")
+        print
+        print statuses
+        print
+        return "STATUS! %s" % statuses
+
 class ConfigurationController(Controller):
 
     def __init__(self, vm):
