@@ -1,4 +1,4 @@
-import threading, Queue as queue, time, subprocess, shlex, datetime
+import threading, Queue as queue, time, subprocess, shlex, datetime, urllib, tarfile, os
 from cherrypy.process import wspbus, plugins
 
 class SetupTask(object):
@@ -47,9 +47,25 @@ class JailSetupTask(SetupTask):
     '''
     def run(self):
         self.log('Started')
-        print
-        print self.vm.jails
-        print
+        tmpfiles = []
+        for jail in vm.jails:
+            try:
+                (filename, headers) = urllib.urlretrieve(jail['url'])
+            except urllib.ContentTooShortError as e:
+                self.log("Error while retrieving jail `%s`: %s" % (jail['name'], e))
+                return False
+
+            tmpfiles.append(filename)
+
+            self.log("Jail `%s` downloaded at `%s`" % (jail['name'], filename))
+
+        #TODO: untar to ezjail jail loc
+
+        for file in tmpfiles:
+            try:
+                os.unlink(file)
+            except OSerror as e:
+                self.log("error while removing file `%s`: %s" %(file, e))
         self.log('Completed')
 
 class SetupWorkerThread(threading.Thread):
