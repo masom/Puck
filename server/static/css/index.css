@@ -1,0 +1,32 @@
+h2 {
+    margin: 0px;
+
+}
+h2 a {
+    font-size: 60%;
+}
+
+div.section {
+    display: block;
+    float: none;
+}
+
+div.section > h3 {
+    margin: 5px;
+    line-height: 60%;
+}
+div.section > h4 {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 20px;
+}
+
+div.index ol {
+    display: inline-block;
+    margin-top: 5px;
+    list-style: none;
+    width: 80px;
+
+}
+
+

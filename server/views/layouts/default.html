@@ -1,0 +1,29 @@
+<html>
+<head>
+    <%block name="css" />
+</head>
+<body>
+    <div id="wrapper">
+        % if flash is not None:
+            <div style="color: green;">
+                ${flash}
+            </div>
+        % endif
+
+        % if len(breadcrumbs) > 0:
+            <div class="trail" style="margin-bottom: 10px; margin-left: 10px;">
+                % for crumb in breadcrumbs[:-1]:
+                    <a href="${crumb.url}">${crumb.name}</a> &gt;
+                % endfor
+                <a href="${breadcrumbs[-1].url}">${breadcrumbs[-1].name}</a>
+            </div>
+        % endif
+
+        <div id="content">
+            ${self.body()}
+        </div>
+        <div id="footer">
+        </div>
+    </div>
+</body>
+</html>
