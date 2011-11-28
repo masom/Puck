@@ -4,7 +4,7 @@ from subprocess import call, check_output
 
 import models
 
-ISO = "server.iso"
+ISO = "FreeBSD.iso"
 
 class Launcher(object):
     models = [models.VM]
