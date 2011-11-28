@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import sys, os
+import sys, os, shlex, subprocess
 
 class Jails(object):
     '''
@@ -71,15 +71,80 @@ class Jail(object):
         return self._manager.delete(self)
 
 class EzJail(object):
-    def __init__(self):
-        pass
-    def start(self, jail):
-        pass
-    def stop(self, jail):
-        pass
-    def status(self, jail):
-        pass
-    def create(self, jail):
-        pass
+
+    def install(self):
+        '''
+        Installs ezjail
+        @raise OSError when command not found.
+        '''
+        command = 'ezjail-admin install -m -p'
+        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+        print
+        print
+        print stdoutdata
+        print "---------"
+        print stderrdata
+        print
+        print
+        
+    def start(self, jail = None):
+        '''
+        Starts the jails or a specific jail
+        @raise OSError when command not found.
+        '''
+
+        command = "ezjail-admin start"
+        if jail:
+            command += " %s" % jail
+
+        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+
+    def stop(self, jail = None):
+        '''
+        Stops the jails or a specific jail
+        @raise OSError when command not found.
+        '''
+
+        command = "ezjail-admin stop"
+        if jail:
+            command += " %s" % jail
+
+        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+
+    def status(self, jail = None):
+        '''
+        Gives the status the installed jails.
+        @raise OSError when command not found.
+        @raise KeyError when jail not found.
+        @return list
+        '''
+
+        command = "ezjail-admin list"
+        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+        data = stdoutdata.splitlines(True)
+        if not jail:
+            return data
+
+        for line in data:
+            found = line.find(jail)
+            if found < 0:
+                #Line is not about this jail
+                continue
+
+            #TODO: Parse line
+            return line
+        
+    def create(self, flavour, name, ip):
+        '''
+        Creates a new jail based off a flavour, name and ip
+        @raise OSError when command not found.
+        '''
+
+        '''
+        ezjail-admin create -f [flavour] [name] [ip]
+        '''
+        cmd = "ezjail-admin create -f %s %s %s" % (flavour, name, ip)
+        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(cmd)).communicate()
+
     def delete(self, jail):
-        pass
+        raise NotImplementedError()

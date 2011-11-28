@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import threading, Queue as queue, time, subprocess, shlex, datetime, urllib, tarfile, os, shutil
 from cherrypy.process import wspbus, plugins
+from jails import EzJail
 
 class SetupTask(object):
     _nameCounter = 0
@@ -29,6 +30,8 @@ class SetupTask(object):
 
     def setOutQueue(self, queue):
         self.queue = queue
+    def setEzJail(self, ezjail):
+        self.ezjail = ezjail
 
     def run(self):
         raise NotImplementedError("`run` must be defined.")
@@ -43,21 +46,11 @@ class EZJailTask(SetupTask):
     '''
     def run(self):
         self.log('Started')
-        commands = ['ezjail-admin install -m -p']
-        for command in commands:
-            try:
-                (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
-            except OSError as e:
-                self.log("Error while installing ezjail: %s" % e)
-                return False
-
-            print
-            print
-            print stdoutdata
-            print "---------"
-            print stderrdata
-            print
-            print
+        try:
+            self.ezjail.install()
+        except OSError as e:
+            self.log("Error while installing ezjail: %s" % e)
+            return False
         self.log('Completed')
         return True
 
@@ -115,11 +108,6 @@ class JailConfigTask(SetupTask):
         jail_dir = '/usr/local/jails'
         flavour_dir = "%s/flavours" % jail_dir
 
-        '''
-        ezjail-admin create -f [flavour] [name] [ip]
-        '''
-        create_command = ["ezjail-admin create -f %s %s %s"]
-
         '''Check if all flavours dir exists.'''
         for jail in self.vm.jails:
             path = "%s/%s" % (flavour_dir, jail['type'])
@@ -161,11 +149,10 @@ class JailConfigTask(SetupTask):
             flavour = jail['type']
             name = jail['type']
             ip = jail['ip']
-            cmd = create_command % (flavour, name, ip)
             try:
-                (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(cmd)).communicate()
+                self.ezjail.create(flavour, name, ip)
             except OSError as e:
-                self.log("Error while installing ezjail: %s" % e)
+                self.log("Error while installing jail `%s`: %s" % (jail['type'], e))
                 return False
 
         self.log('Completed')
@@ -174,24 +161,32 @@ class JailConfigTask(SetupTask):
 class JailStartupTask(SetupTask):
     def run(self):
         self.log('Started')
-        '''
-        TODO:
-            for each jail:
-                - Start
-                - Verify it is running
-        '''
+
+        for jail in self.vm.jails:
+            self.log("Starting jail `%s`" % jail['type'])
+            try:
+                self.ezjail.start(jail['type'])
+            except OSError as e:
+                self.log("Could not start jail `%s`: %s" % (jail['type'], e))
+                return False
+            self.log("Jail `%s` started" % (jail['type']))
+            if not self.ezjail.status(jail['type']):
+                self.log("Jail `%s` is not running!" % jail['type'])
+                return False
+
         self.log('Completed')
 
 class SetupWorkerThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
     regularly for the stopped() condition."""
 
-    def __init__(self, bus, queue, outqueue):
+    def __init__(self, bus, queue, outqueue, ezjail):
         super(self.__class__, self).__init__()
         self._stop = threading.Event()
         self._queue = queue
         self._bus = bus
         self._outqueue = outqueue
+        self._ezjail = ezjail
 
     def stop(self):
         self._stop.set()
@@ -202,6 +197,7 @@ class SetupWorkerThread(threading.Thread):
     def _step(self):
         task = self._queue.get(True, 10)
         task.setOutQueue(self._outqueue)
+        task.setEzJail(self._ezjail)
 
         loginfo = (self.__class__.__name__, task.__class__.__name__)
         self._bus.log("%s received task: %s" % loginfo)
@@ -231,6 +227,7 @@ class SetupPlugin(plugins.SimplePlugin):
         self._workerQueue = queue.Queue()
         self.worker = None
         self.statuses = []
+        self._ezjail = EzJail()
 
     def start(self):
         self.bus.log('Starting up setup tasks')
@@ -265,7 +262,7 @@ class SetupPlugin(plugins.SimplePlugin):
         
         if not self.worker or not self.worker.isAlive():
             self.bus.log("Start called. Starting worker.")
-            self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue)
+            self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue, ezjail = self._ezjail)
             self.worker.start()
 
         self.bus.log("Building task list")
