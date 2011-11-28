@@ -5,6 +5,7 @@ It is not yet complete.
 
 # External Requirements
 CherryPy 3.2
+Mako 0.5
 
 # License
 LGPL v3
