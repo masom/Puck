@@ -1,3 +1,20 @@
+'''
+Pixie: FreeBSD virtualization guest configuration client
+Copyright (C) 2011  The Hotel Communication Network inc.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+'''
 import threading, Queue as queue, time, subprocess, shlex, datetime, urllib, tarfile, os, shutil
 from cherrypy.process import wspbus, plugins
 
@@ -96,12 +113,14 @@ class JailConfigTask(SetupTask):
         '''
         jail_dir = '/usr/local/jails'
         flavour_dir = "%s/flavours" % jail_dir
+        create_command = ["ezjail-admin create -f %s %s %s"]
 
         '''Check if all flavours dir exists.'''
         for jail in self.vm.jails:
             path = "%s/%s" % (flavour_dir, jail['type'])
-            authorized_key_file = "%s/authorized_keys" % path
+            authorized_key_file = "%s/data/authorized_keys" % path
             resolv_file = "%s/etc/resolv.conf" % path
+            yum_file = "%s/data/yum_repo" % path
 
             exists = os.path.exists(path)
             is_dir = os.path.isdir(path)
@@ -109,14 +128,14 @@ class JailConfigTask(SetupTask):
             if not exists or not is_dir:
                 self.log("Flavour `%s` directory is missing in `%s" % (jail['type'], flavour_dir))
                 return False
-            
+
             '''Write authorized keys'''
             try:
                 with open(authorized_key_file, 'w') as f:
                     for key in self.vm.keys.values():
                         f.write("%s\n" % key['key'])
             except IOError as e:
-                self.log("Error while writing authorized keys to jail %s" % jail['type'])
+                self.log("Error while writing authorized keys to jail `%s`: %s" % (jail['type'], e))
                 return False
 
             '''Copy resolv.conf'''
@@ -126,6 +145,19 @@ class JailConfigTask(SetupTask):
                 self.log("Error while copying host resolv file: %s" % e)
                 return False
 
+            '''Setup yum repo.d file ezjail will use.'''
+            try:
+                with open(yum_file, 'w') as f:
+                    f.write(self.vm.yumRepoData)
+            except IOError as e:
+                self.log("Error while writing YUM repo data: %s" % e)
+                return False
+
+            try:
+                (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(create_command)).communicate()
+            except OSError as e:
+                self.log("Error while installing ezjail: %s" % e)
+                return False
 
         self.log('Completed')
         return True
