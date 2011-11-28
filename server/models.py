@@ -87,7 +87,6 @@ class Model(object):
             table=self.Table._name
         )
         crs = cherrypy.thread_data.db.cursor()
-        print(query)
         crs.execute(query, (ref,))
         return self.Table(*crs.fetchone())
 
@@ -217,18 +216,20 @@ class VM(Model):
     def __init__(self, config):
         Model.__init__(self, config)
 
-        wordlist = ["apple", "banana", "carrot", "pepper", "orange", "eggplant"]
+        wordlist = ["apple", "banana", "carrot", "pepper", "orange",
+        "eggplant", "squash", ]
         self._wordlist = deque(wordlist)
 
 
     def _newId(self):
-        word = self._wordlist.pop(used)
-        self._wordlist.appendLeft(word)
+        word = self._wordlist.pop()
+        self._wordlist.appendleft(word)
         return word
         
 
-    def register(self, ip):
-        name = self._newId()
+    def register(self, ip, name=None):
+        if name is None:
+            name = self._newId()
         vm = self.Table(name, ip, None, None)
         return name
 
