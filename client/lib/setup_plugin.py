@@ -30,6 +30,7 @@ class SetupTask(object):
 
     def setOutQueue(self, queue):
         self.queue = queue
+
     def setEzJail(self, ezjail):
         self.ezjail = ezjail
 
@@ -81,8 +82,9 @@ class EZJailSetupTask(SetupTask):
         for file in tmpfiles:
             '''Verify'''
             if not tarfile.is_tarfile(file['tmp_file']):
-                self.log("Critical error! File `%s` is not a tarfile." % file)
+                self.log("Critical error! File `%s` is not a tarfile." % file['tmp_file'])
                 return False
+
             '''Extraction'''
             with tarfile.open(file['tmp_file'], mode='r:*') as t:
                 t.extractall("%s/%s" % (dst_dir, file['type']))
@@ -192,6 +194,10 @@ class SetupWorkerThread(threading.Thread):
         return self._stop.isSet()
 
     def _step(self):
+        '''
+        Run a task
+        @raise RuntimeError when the task failed to complete
+        '''
         task = self._queue.get(True, 10)
         task.setOutQueue(self._outqueue)
         task.setEzJail(self._ezjail)
@@ -215,6 +221,11 @@ class SetupWorkerThread(threading.Thread):
             self._bus.log("Shutting down.  no task.")
 
 class SetupPlugin(plugins.SimplePlugin):
+    '''
+    Handles tasks related to virtual machine setup.
+
+    The plugin launches a separate thread to asynchronously execute the tasks.
+    '''
 
     def __init__(self, vm, bus, freq=30.0):
         plugins.SimplePlugin.__init__(self, bus)
@@ -297,6 +308,10 @@ class SetupPlugin(plugins.SimplePlugin):
         return self.statuses
 
     def _readQueue(self, q, blocking = True, timeout = 1):
+        '''
+        Wraps code to read from a queue, including exception handling.
+        '''
+
         try:
             item = q.get(blocking, timeout)
         except queue.Empty:

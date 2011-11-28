@@ -1,0 +1,42 @@
+<%inherit file="/template.html"/>
+
+<%block name="header">
+    Puck Status
+</%block>
+
+<table>
+	<tr>
+		<th colspan="2">Node</th>
+	</tr>
+	<tr>
+		<td>Identification:</td>
+		<td>${VM.id}</td>
+	</tr>
+	<tr>
+		<td>Environment:</td>
+		<td>${VM.environment}</td>
+	</tr>
+</table>
+
+<table>
+	<tr>
+		<th colspan="2">Network Interfaces</th>
+	</tr>
+	% for key in VM.interfaces:
+		<tr>
+			<td>${VM.interfaces[key]}</td>
+			<td>${key}</td>
+		</tr>
+	% endfor
+</table>
+
+<h3>Setup Logs</h3>
+<ol>
+	% for status in statuses:
+		<li>${status}</li>
+	% endfor
+</ol>
+
+<script type="text/javascript">
+setTimeout("window.location.reload();", 2000);
+</script>
