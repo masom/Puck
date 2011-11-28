@@ -63,8 +63,11 @@ class EZJailSetupTask(SetupTask):
         #TODO: Move this to a cherrypy configuration value
         dst_dir = '/usr/local/jails/flavours'
 
+        '''Holds the temporary file list'''
         tmpfiles = []
+
         for jail in self.vm.jails:
+            '''Retrieve the tarball for each flavours'''
             try:
                 (filename, headers) = urllib.urlretrieve(jail['url'])
             except urllib.ContentTooShortError as e:
@@ -72,52 +75,44 @@ class EZJailSetupTask(SetupTask):
                 return False
 
             tmpfiles.append({'type': jail['type'], 'tmp_file': filename})
-
             self.log("Jail `%s` downloaded at `%s`" % (jail['name'], filename))
 
+        '''Verify and extract the flavour tarball'''
         for file in tmpfiles:
+            '''Verify'''
             if not tarfile.is_tarfile(file['tmp_file']):
                 self.log("Critical error! File `%s` is not a tarfile." % file)
                 return False
-
+            '''Extraction'''
             with tarfile.open(file['tmp_file'], mode='r:*') as t:
                 t.extractall("%s/%s" % (dst_dir, file['type']))
 
-        for file in tmpfiles:
+            '''Remove the temporary tarball'''
             try:
                 os.unlink(file['tmp_file'])
             except OSerror as e:
                 self.log("error while removing file `%s`: %s" %(file['tmp_file'], e))
+
         self.log('Completed')
         return True
 
 class JailConfigTask(SetupTask):
     def run(self):
         self.log('Started')
-        '''
-        TODO:
-            for each jail:
-                - Add public key to hcn user. the EZJAIL first boot script should read them to include in user created.
-                - Get JAIL ip. Make sure the VM network interface is configured with them
-                - Make sure resolv.conf is copied from HOST
-                - Configure the YUM repositories in the jails flavours
-                - The EZJAIL firs boot script should have YUM install the files.
-                - Install the jail
-        '''
+
         #TODO: Move this to a cherrypy configuration value
         jail_dir = '/usr/local/jails'
         flavour_dir = "%s/flavours" % jail_dir
 
-        '''Check if all flavours dir exists.'''
         for jail in self.vm.jails:
             path = "%s/%s" % (flavour_dir, jail['type'])
-            authorized_key_file = "%s/data/authorized_keys" % path
+            authorized_key_file = "%s/installdata/authorized_keys" % path
             resolv_file = "%s/etc/resolv.conf" % path
-            yum_file = "%s/data/yum_repo" % path
+            yum_file = "%s/installdata/yum_repo" % path
 
+            '''Verify the flavour exists.'''
             exists = os.path.exists(path)
             is_dir = os.path.isdir(path)
-
             if not exists or not is_dir:
                 self.log("Flavour `%s` directory is missing in `%s" % (jail['type'], flavour_dir))
                 return False
@@ -146,6 +141,7 @@ class JailConfigTask(SetupTask):
                 self.log("Error while writing YUM repo data: %s" % e)
                 return False
 
+            '''Create the jail'''
             flavour = jail['type']
             name = jail['type']
             ip = jail['ip']
@@ -162,6 +158,7 @@ class JailStartupTask(SetupTask):
     def run(self):
         self.log('Started')
 
+        '''Start each jail'''
         for jail in self.vm.jails:
             self.log("Starting jail `%s`" % jail['type'])
             try:
@@ -209,7 +206,7 @@ class SetupWorkerThread(threading.Thread):
     def run(self):
         self._bus.log("%s started." % self.__class__.__name__)
         try:
-            while True:
+            while not self.stopped():
                 self._step()
                 time.sleep(1) 
         except RuntimeError as err:
@@ -240,10 +237,16 @@ class SetupPlugin(plugins.SimplePlugin):
         self._setup_stop();
 
     def switch(self, *args, **kwargs):
-        self.bus.log("Switch called. Linking call.")
+        '''
+        This is the task switchboard. Depending on the parameters received,
+        it will execute the appropriate action.
+        '''
+
         if not 'action' in kwargs:
+            self.log("Parameter `action` is missing.")
             return
 
+        '''Default task'''
         def default(**kwargs):
             return
 
@@ -254,31 +257,37 @@ class SetupPlugin(plugins.SimplePlugin):
         }.get(kwargs['action'], default)()
 
     def _setup_stop(self, **kwargs):
-        self.bus.log("Stop called. Giving back time.")
+        self.bus.log("Received stop request.")
         if self.worker and self.worker.isAlive():
             self.worker.stop()
 
     def _setup_start(self, **kwargs):
-        
+        self.bus.log("Received start request.")
+
+        '''Start the worker if it is not running.'''
         if not self.worker or not self.worker.isAlive():
             self.bus.log("Start called. Starting worker.")
             self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue, ezjail = self._ezjail)
             self.worker.start()
 
-        self.bus.log("Building task list")
+        
         tasks = [
             #EZJailTask(self.vm),
             EZJailSetupTask(self.vm),
             JailConfigTask(self.vm),
             JailStartupTask(self.vm)
         ]
+
         self.bus.log("Publishing tasks")
+        #TODO: Persistence of the list when failure occurs.
         for task in tasks:
             self.bus.log("\t Publishing: %s" % task.name)
             self._queue.put(task)
 
     def _setup_status(self, **kwargs):
-        self.bus.log("_setup_status called.")
+        '''
+        Returns the current log queue
+        '''
 
         status = self._readQueue(self._workerQueue)
         while status:
