@@ -67,18 +67,9 @@ class EZJailSetupTask(SetupTask):
         dst_dir = '/usr/local/jails/flavours'
 
         '''Holds the temporary file list'''
-        tmpfiles = []
-
-        for jail in self.vm.jails:
-            '''Retrieve the tarball for each flavours'''
-            try:
-                (filename, headers) = urllib.urlretrieve(jail.url)
-            except urllib.ContentTooShortError as e:
-                self.log("Error while retrieving jail `%s`: %s" % (jail.name, e))
-                return False
-
-            tmpfiles.append({'type': jail.type, 'tmp_file': filename})
-            self.log("Jail `%s` downloaded at `%s`" % (jail.name, filename))
+        tmpfiles = self._retrieveFlavours()
+        if not tmpfiles:
+            return False
 
         '''Verify and extract the flavour tarball'''
         for file in tmpfiles:
@@ -100,11 +91,32 @@ class EZJailSetupTask(SetupTask):
         self.log('Completed')
         return True
 
+    def _retrieveFlavours(self):
+        '''Retrieve the tarball for each flavours'''
+
+        tmpfiles = []
+
+        for jail in self.vm.jails:
+            
+            try:
+                (filename, headers) = urllib.urlretrieve(jail.url)
+            except urllib.ContentTooShortError as e:
+                self.log("Error while retrieving jail `%s`: %s" % (jail.name, e))
+                return False
+
+            tmpfiles.append({'type': jail.type, 'tmp_file': filename})
+            self.log("Jail `%s` downloaded at `%s`" % (jail.name, filename))
+        return tmpfiles
+
 class JailConfigTask(SetupTask):
+    '''
+    Handles jails configuration
+    '''
+
     def run(self):
         self.log('Started')
 
-        #TODO: Move this to a cherrypy configuration value
+        #TODO: Move these to a cherrypy configuration value
         jail_dir = '/usr/local/jails'
         flavour_dir = "%s/flavours" % jail_dir
 
@@ -114,51 +126,78 @@ class JailConfigTask(SetupTask):
             resolv_file = "%s/etc/resolv.conf" % path
             yum_file = "%s/installdata/yum_repo" % path
 
-            '''Verify the flavour exists.'''
+            '''Verify the flavours exists.'''
             exists = os.path.exists(path)
             is_dir = os.path.isdir(path)
             if not exists or not is_dir:
                 self.log("Flavour `%s` directory is missing in `%s" % (jail.type, flavour_dir))
                 return False
 
-            '''Write authorized keys'''
-            try:
-                with open(authorized_key_file, 'w') as f:
-                    for key in self.vm.keys.values():
-                        f.write("%s\n" % key['key'])
-            except IOError as e:
-                self.log("Error while writing authorized keys to jail `%s`: %s" % (jail.type, e))
+            if not self._writeKeys(authorized_key_file):
                 return False
 
-            '''Copy resolv.conf'''
-            try:
-                shutil.copyfile('/etc/resolv.conf', resolv_file)
-            except IOError as e:
-                self.log("Error while copying host resolv file: %s" % e)
+            if not self._writeResolvConf(resolv_file):
                 return False
 
-            '''Setup yum repo.d file ezjail will use.'''
-            try:
-                with open(yum_file, 'w') as f:
-                    f.write(self.vm.yumRepoData)
-            except IOError as e:
-                self.log("Error while writing YUM repo data: %s" % e)
+            if not self._writeYumRepoConf(yum_file):
                 return False
 
-            '''Create the jail'''
-            flavour = jail.type
-            name = jail.type
-            ip = jail.ip
-            try:
-                self.ezjail.create(flavour, name, ip)
-            except OSError as e:
-                self.log("Error while installing jail `%s`: %s" % (jail.type, e))
+            if not self._createJail(jail):
                 return False
-
         self.log('Completed')
         return True
 
+    def _writeKeys(self, authorized_key_file):
+        '''Write authorized keys'''
+
+        try:
+            with open(authorized_key_file, 'w') as f:
+                for key in self.vm.keys.values():
+                    f.write("%s\n" % key['key'])
+        except IOError as e:
+            self.log("Error while writing authorized keys to jail `%s`: %s" % (jail.type, e))
+            return False
+        return True
+
+    def _writeResolvConf(self, resolv_file):
+        '''Copy resolv.conf'''
+
+        try:
+            shutil.copyfile('/etc/resolv.conf', resolv_file)
+        except IOError as e:
+            self.log("Error while copying host resolv file: %s" % e)
+            return False
+        return True
+
+    def _writeYumRepoConf(self, yum_file):
+        '''Setup yum repo.d file ezjail will use.'''
+
+        try:
+            with open(yum_file, 'w') as f:
+                f.write(self.vm.yumRepoData)
+        except IOError as e:
+            self.log("Error while writing YUM repo data: %s" % e)
+            return False
+        return True
+
+    def _createJail(self, jail):
+        '''Create the jail'''
+        flavour = jail.type
+        name = jail.type
+        ip = jail.ip
+        try:
+            #TODO: Use jail.create() instead of new ezjail instance.
+            self.ezjail.create(flavour, name, ip)
+        except OSError as e:
+            self.log("Error while installing jail `%s`: %s" % (jail.type, e))
+            return False
+        return True
+
 class JailStartupTask(SetupTask):
+    '''
+    Handles starting each jail.
+    '''
+
     def run(self):
         self.log('Started')
 
@@ -166,6 +205,7 @@ class JailStartupTask(SetupTask):
         for jail in self.vm.jails:
             self.log("Starting jail `%s`" % jail.type)
             try:
+                #TODO: Use jail.start() instead of new ezjail instance.
                 self.ezjail.start(jail.type)
             except OSError as e:
                 self.log("Could not start jail `%s`: %s" % (jail.type, e))
@@ -178,8 +218,10 @@ class JailStartupTask(SetupTask):
         self.log('Completed')
 
 class SetupWorkerThread(threading.Thread):
-    """Thread class with a stop() method. The thread itself has to check
-    regularly for the stopped() condition."""
+    """
+    Thread class with a stop() method. The thread itself has to check
+    regularly for the stopped() condition.
+    """
 
     def __init__(self, bus, queue, outqueue, ezjail):
         super(self.__class__, self).__init__()
@@ -210,6 +252,7 @@ class SetupWorkerThread(threading.Thread):
 
         if not task.run():
             raise RuntimeError("%s error while running task `%s`" % loginfo)
+        self._queue.task_done()
 
     def run(self):
         self._bus.log("%s started." % self.__class__.__name__)
@@ -219,6 +262,7 @@ class SetupWorkerThread(threading.Thread):
                 time.sleep(1) 
         except RuntimeError as err:
             self._bus.log(str(err))
+            self._queue.empty()
         except queue.Empty:
             self._bus.log("Shutting down.  no task.")
 
@@ -266,8 +310,13 @@ class SetupPlugin(plugins.SimplePlugin):
         return {
          'start': self._setup_start,
          'stop': self._setup_stop,
-         'status': self._setup_status
+         'status': self._setup_status,
+         'clear': self._clear_status
         }.get(kwargs['action'], default)()
+
+    def _clear_status(self, **kwargs):
+        '''Clear the status list'''
+        del(self.statuses[:])
 
     def _setup_stop(self, **kwargs):
         self.bus.log("Received stop request.")
@@ -307,9 +356,13 @@ class SetupPlugin(plugins.SimplePlugin):
             self.statuses.append(status)
             self.bus.log("\t%s" % status)
             status = self._readQueue(self._workerQueue)
+
+        if not self.worker or not self.worker.isAlive():
+            self.statuses.append("%s worker is not running." % self.__class__.__name__)
+
         return self.statuses
 
-    def _readQueue(self, q, blocking = True, timeout = 1):
+    def _readQueue(self, q, blocking = True, timeout = 0.2):
         '''
         Wraps code to read from a queue, including exception handling.
         '''

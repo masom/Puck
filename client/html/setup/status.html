@@ -8,12 +8,13 @@
 <%include file="/elements/network_info.html" />
 
 <h3>Setup Logs</h3>
+<a href="/setup/status_clear">Clear Logs</a>
 <ol>
 	% for status in statuses:
 		<li>${status}</li>
 	% endfor
 </ol>
-
+<a href="/setup/status_clear">Clear Logs</a>
 <script type="text/javascript">
 setTimeout("window.location.reload();", 4000);
 </script>

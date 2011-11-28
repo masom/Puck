@@ -9,3 +9,7 @@ Mako 0.5
 
 # License
 LGPL v3
+
+# See
+
+http://en.wikipedia.org/wiki/Puck_(mythology)

@@ -44,3 +44,7 @@ class SetupController(Controller):
             statuses = statuses
         )
         return self.render("/setup/status.html", **env)
+    @cherrypy.expose
+    def status_clear(self):
+        cherrypy.engine.publish("setup", action="clear")
+        raise cherrypy.HTTPRedirect('/setup/status')
