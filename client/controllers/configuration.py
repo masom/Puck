@@ -1,5 +1,5 @@
 import cherrypy
-from controller import Controller
+from lib.controller import Controller
 
 class ConfigurationController(Controller):
     '''

@@ -22,7 +22,7 @@ from lib.puck import Puck
 from lib.jails import *
 from lib.setup_plugin import SetupPlugin
 
-from controllers.controller import Controller
+from lib.controller import Controller
 from controllers.configuration import ConfigurationController
 from controllers.setup import SetupController
 
