@@ -11,23 +11,9 @@
 </div>
 
 <div>
-	<h3>Network Interfaces</h3>
-	<table>
-		% for key in VM.interfaces:
-			<tr>
-				<td>${VM.interfaces[key]}</td>
-				<td>${key}</td>
-			</tr>
-		% endfor
-	</table>
-	
-	<h3>Registration</h3>
-	${VM.id}
-	
-	<h3>Environment</h3>
-	% if VM.environment:
-		<p>${VM.environment}</p>
-	% endif
+
+	<%include file="/elements/network_info.html" />
+	<%include file="/elements/vm_info.html" />
 	<a href="/configure/environment">Modify</a>
 	
 	<h3>Jails</h3>

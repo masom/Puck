@@ -1,0 +1,11 @@
+<table>
+	<tr>
+		<th colspan="2">Network Interfaces</th>
+	</tr>
+	% for key in VM.interfaces:
+		<tr>
+			<td>${VM.interfaces[key]}</td>
+			<td>${key}</td>
+		</tr>
+	% endfor
+</table>
