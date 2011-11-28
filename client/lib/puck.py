@@ -24,6 +24,8 @@ class Puck(object):
     '''
     def __init__(self):
         self._registration = None
+
+        #TODO: Move this to a cherrypy configuration value
         self._registration_file = '/usr/local/etc/puck_registration'
         if not self.register():
             raise LookupError()
@@ -76,10 +78,10 @@ class Puck(object):
         '''
         jails = {'content': {}, 'database': {}, 'support': {}}
 
-        jails['content']['1'] = {'id': '1', 'type': 'content', 'url': 'http://localhost', 'name': 'Content'}
-        jails['content']['4'] = {'id': '4', 'type': 'content', 'url': 'http://localhost', 'name': 'Content w/ xdebug'}
+        jails['content']['1'] = {'id': '1', 'type': 'content', 'url': 'http://localhost', 'name': 'Content', 'ip': '10.0.0.10'}
+        jails['content']['4'] = {'id': '4', 'type': 'content', 'url': 'http://localhost', 'name': 'Content w/ xdebug', 'ip': '10.0.0.10'}
 
-        jails['database']['2'] = {'id':'2', 'type': 'database', 'url': 'http://localhost', 'name': 'Database', 'ip': '10.0.0.10'}
+        jails['database']['2'] = {'id':'2', 'type': 'database', 'url': 'http://localhost', 'name': 'Database', 'ip': '10.0.0.11'}
         jails['database']['5'] = {'id':'5', 'type': 'database', 'url': 'http://localhost', 'name': 'Database w/ new PMS', 'ip': '10.0.0.11'}
         jails['support']['3'] = {'id': '3', 'type': 'support', 'url': 'http://localhost', 'name': 'Support', 'ip': '10.0.0.12'}
         return jails

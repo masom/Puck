@@ -6,8 +6,9 @@ class ConfigurationController(Controller):
     Handles configuration related controls.
     '''
 
-    def __init__(self, vm):
-        self._vm = vm
+    def __init__(self, puck):
+        self._puck = puck
+        self._vm = puck.getVM()
 
     def __canVMBeModified(self):
         '''
@@ -31,7 +32,7 @@ class ConfigurationController(Controller):
     def environment(self, *args, **kwargs):
         self.__canVMBeModified()
 
-        environments = puck.getEnvironments()
+        environments = self._puck.getEnvironments()
 
         if cherrypy.request.method == "POST":
             if kwargs.has_key("vm.environment"): 
@@ -51,7 +52,7 @@ class ConfigurationController(Controller):
     def jails(self, *args, **kwargs):
         self.__canVMBeModified()
 
-        jails = puck.getJails()
+        jails = self._puck.getJails()
 
         if cherrypy.request.method == "POST":
             #@todo: Move this somewhere else
@@ -82,7 +83,7 @@ class ConfigurationController(Controller):
     def keys(self, *args, **kwargs):
         self.__canVMBeModified()
 
-        keys = puck.getKeys()
+        keys = self._puck.getKeys()
 
         if cherrypy.request.method == "POST":
             if not "keys[]" in kwargs:

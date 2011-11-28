@@ -26,6 +26,10 @@ class Jails(object):
         self._manager = EzJail()
         self._jail = Jail
 
+    def __iter__(self):
+        for i in self._jails:
+            yield self._jails[i]
+
     def create(self, config):
         return self._jail(self._manager, config)
 
@@ -41,6 +45,9 @@ class Jails(object):
         #@todo: Stop the jail / delete it
         del(self._jails[jail.id])
 
+    def contain(self, id):
+        return id in self._jails
+
     def get(self, id=None):
         if not id:
             return self._jails.values()
@@ -52,6 +59,9 @@ class Jails(object):
 
 class Jail(object):
     def __init__(self, manager, config):
+        print
+        print config
+        print
         self.id = config['id']
         self.url = config['url']
         self.type = config['type']

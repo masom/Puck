@@ -16,6 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from interfaces import NetInterfaces
+from jails import Jails
+
 import os, sys, json
 
 class VM(object):
@@ -25,7 +27,7 @@ class VM(object):
 
     def __init__(self, id = None):
         self.id = id
-        self.jails = []
+        self.jails = Jails()
         self.keys = {}
         self.status = 'new'
         self.environment = None
@@ -36,12 +38,23 @@ class VM(object):
         self._load()
 
     def update(self, **kwargs):
-        valid = ['jails', 'keys', 'environment']
+        valid = ['keys', 'environment']
         for key in kwargs:
             if not key in valid:
                 continue
             setattr(self, key, kwargs[key])
+
+        if 'jails' in kwargs:
+            self._set_jails(kwargs['jails'])
+
         self.configurationValid()
+
+    def _set_jails(self, jails):
+        for data in jails:
+            if self.jails.contain(data['id']):
+                continue
+            jail = self.jails.create(data)
+            self.jails.add(jail)
 
     def _load(self):
         if not os.path.exists(self._persist_file):
@@ -73,7 +86,7 @@ class VM(object):
             f.write(json.dumps(data, sort_keys=True, indent=4))
 
     def configurationValid(self):
-        listItems = [self.jails, self.keys]
+        listItems = [self.jails.get(), self.keys]
         boolItems = [self.environment]
 
         for item in listItems:
