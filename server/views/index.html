@@ -1,13 +1,21 @@
+<%inherit file="/layouts/default.html" />
+
+<%block name="css"> 
+    <link type="text/css" rel="stylesheet" href="/static/css/form.css">
+</%block>
+
 <h2>Actions</h2>
+    <form class="basic" name="start" method="post" action="/start">
+        <input type="submit" value="Spin-up" />
+    </form>
 <ul>
     <li>
-        <a href="/jails">
-            Jails
-        </a>
+        <a href="/statuses">Statuses</a>
     </li>
     <li>
-        <a href="/keys">
-            Keys
-        </a>
+        <a href="/jails">Jails</a>
+    </li>
+    <li>
+        <a href="/keys">Keys</a>
     </li>
 </ul>
