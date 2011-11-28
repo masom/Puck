@@ -6,8 +6,9 @@ class SetupController(Controller):
     Handles setup-related controls.
     '''
 
-    def __init__(self, vm):
-        self._vm = vm
+    def __init__(self, puck):
+        self._puck = puck
+        self._vm = puck.getVM()
 
     def __canSetup(self):
         '''

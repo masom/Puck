@@ -29,22 +29,21 @@ from controllers.setup import SetupController
 
 class Root(Controller):
 
-    def __init__(self, vm):
-        self._vm = vm
+    def __init__(self, puck):
+        self._puck = puck
 
     @cherrypy.expose
     def index(self):
         env = dict(
-            VM=self._vm
+            VM=self._puck.getVM()
         )
         return self.render('/index.html', **env)
 
 puck = Puck()
-vm = puck.getVM()
 
-root = Root(vm)
-root.configure = ConfigurationController(vm)
-root.setup = SetupController(vm)
+root = Root(puck)
+root.configure = ConfigurationController(puck)
+root.setup = SetupController(puck)
 
 if __name__ == "__main__":
     conf =  {'/' : 
@@ -54,7 +53,7 @@ if __name__ == "__main__":
                 }
             }
 
-    cherrypy.engine.vmsetup = SetupPlugin(vm, cherrypy.engine)
+    cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
     cherrypy.engine.vmsetup.subscribe()
 
     cherrypy.quickstart(root, '/', conf)

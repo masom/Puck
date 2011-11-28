@@ -22,11 +22,13 @@ from jails import EzJail
 class SetupTask(object):
     _nameCounter = 0
 
-    def __init__(self, vm, id = 'SetupTask'):
+    def __init__(self, puck, id = 'SetupTask'):
         self.id = "%s-%s" % (id, self.__class__._nameCounter)
         self.__class__._nameCounter += 1
-        self.vm = vm
         self.name = self.__class__.__name__
+
+        self.puck = puck
+        self.vm = puck.getVM()
 
     def setOutQueue(self, queue):
         self.queue = queue
