@@ -50,6 +50,8 @@ class VM(object):
         self.configurationValid()
 
     def _set_jails(self, jails):
+        self.jails.clear()
+
         for data in jails:
             if self.jails.contain(data['id']):
                 continue
@@ -60,23 +62,32 @@ class VM(object):
         if not os.path.exists(self._persist_file):
             return
 
-        keys = ['id', 'jails', 'keys', 'status', 'environment', 'configured']
+        keys = ['id', 'keys', 'status', 'environment', 'configured']
         data = {}
-        with open(self._persist_file, 'r') as f:
-            data = json.load(f)
+
+        try:
+            with open(self._persist_file, 'r') as f:
+                data = json.load(f)
+        except ValueError as e:
+            return
 
         for key in keys:
             if not key in data:
                 #discard loaded data.
-                raise KeyError("Key: %s is missing" % key)
+                raise KeyError("Key: `%s` is missing." % key)
+
+        if not 'jails' in data:
+            raise KeyError("Key: `jails` is missing.")
 
         for key in keys:
             setattr(self, key, data[key])
 
+        self.jails.load(data['jails'])
+
     def persist(self):
         data = {}
         data['id'] = self.id
-        data['jails'] = self.jails
+        data['jails'] = self.jails.export()
         data['keys'] = self.keys
         data['status'] = self.status
         data['environment'] = self.environment

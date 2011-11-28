@@ -30,6 +30,13 @@ class Jails(object):
         for i in self._jails:
             yield self._jails[i]
 
+    def load(self, jails):
+        '''
+        Load jails from a saved vm.
+        '''
+        for j in jails:
+            self.add(self.create(j))
+
     def create(self, config):
         return self._jail(self._manager, config)
 
@@ -48,6 +55,15 @@ class Jails(object):
     def contain(self, id):
         return id in self._jails
 
+    def clear(self):
+        self._jails.clear()
+
+    def export(self):
+        jails = []
+        for j in self._jails:
+            jails.append(self._jails[j].export())
+        return jails
+ 
     def get(self, id=None):
         if not id:
             return self._jails.values()
@@ -59,15 +75,30 @@ class Jails(object):
 
 class Jail(object):
     def __init__(self, manager, config):
-        print
-        print config
-        print
-        self.id = config['id']
-        self.url = config['url']
-        self.type = config['type']
-        self.name = config['name']
-        self.ip = config['ip']
+        self._data = {}
+
+        keys = ['id', 'url', 'type', 'name', 'ip']
+        for k in keys:
+            self._data[k] = config[k]
+
         self._manager = manager
+
+    def export(self):
+        return self._data
+
+    def __getattr__(self, name):
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            return object.__getattribute__(self, "_data")[name]
+
+    def __setattr__(self, name, value):
+        if hasattr(self, name) or name in ['_data','_manager']:
+            return object.__setattr__(self, name, value)
+        object.__getattribute__(self, "_data")[name] = value
+        return
+
+        
 
     def start(self):
         return self._manager.start(self)

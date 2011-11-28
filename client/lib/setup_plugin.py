@@ -72,13 +72,13 @@ class EZJailSetupTask(SetupTask):
         for jail in self.vm.jails:
             '''Retrieve the tarball for each flavours'''
             try:
-                (filename, headers) = urllib.urlretrieve(jail['url'])
+                (filename, headers) = urllib.urlretrieve(jail.url)
             except urllib.ContentTooShortError as e:
-                self.log("Error while retrieving jail `%s`: %s" % (jail['name'], e))
+                self.log("Error while retrieving jail `%s`: %s" % (jail.name, e))
                 return False
 
-            tmpfiles.append({'type': jail['type'], 'tmp_file': filename})
-            self.log("Jail `%s` downloaded at `%s`" % (jail['name'], filename))
+            tmpfiles.append({'type': jail.type, 'tmp_file': filename})
+            self.log("Jail `%s` downloaded at `%s`" % (jail.name, filename))
 
         '''Verify and extract the flavour tarball'''
         for file in tmpfiles:
@@ -109,7 +109,7 @@ class JailConfigTask(SetupTask):
         flavour_dir = "%s/flavours" % jail_dir
 
         for jail in self.vm.jails:
-            path = "%s/%s" % (flavour_dir, jail['type'])
+            path = "%s/%s" % (flavour_dir, jail.type)
             authorized_key_file = "%s/installdata/authorized_keys" % path
             resolv_file = "%s/etc/resolv.conf" % path
             yum_file = "%s/installdata/yum_repo" % path
@@ -118,7 +118,7 @@ class JailConfigTask(SetupTask):
             exists = os.path.exists(path)
             is_dir = os.path.isdir(path)
             if not exists or not is_dir:
-                self.log("Flavour `%s` directory is missing in `%s" % (jail['type'], flavour_dir))
+                self.log("Flavour `%s` directory is missing in `%s" % (jail.type, flavour_dir))
                 return False
 
             '''Write authorized keys'''
@@ -127,7 +127,7 @@ class JailConfigTask(SetupTask):
                     for key in self.vm.keys.values():
                         f.write("%s\n" % key['key'])
             except IOError as e:
-                self.log("Error while writing authorized keys to jail `%s`: %s" % (jail['type'], e))
+                self.log("Error while writing authorized keys to jail `%s`: %s" % (jail.type, e))
                 return False
 
             '''Copy resolv.conf'''
@@ -146,13 +146,13 @@ class JailConfigTask(SetupTask):
                 return False
 
             '''Create the jail'''
-            flavour = jail['type']
-            name = jail['type']
-            ip = jail['ip']
+            flavour = jail.type
+            name = jail.type
+            ip = jail.ip
             try:
                 self.ezjail.create(flavour, name, ip)
             except OSError as e:
-                self.log("Error while installing jail `%s`: %s" % (jail['type'], e))
+                self.log("Error while installing jail `%s`: %s" % (jail.type, e))
                 return False
 
         self.log('Completed')
@@ -164,15 +164,15 @@ class JailStartupTask(SetupTask):
 
         '''Start each jail'''
         for jail in self.vm.jails:
-            self.log("Starting jail `%s`" % jail['type'])
+            self.log("Starting jail `%s`" % jail.type)
             try:
-                self.ezjail.start(jail['type'])
+                self.ezjail.start(jail.type)
             except OSError as e:
-                self.log("Could not start jail `%s`: %s" % (jail['type'], e))
+                self.log("Could not start jail `%s`: %s" % (jail.type, e))
                 return False
-            self.log("Jail `%s` started" % (jail['type']))
-            if not self.ezjail.status(jail['type']):
-                self.log("Jail `%s` is not running!" % jail['type'])
+            self.log("Jail `%s` started" % (jail.type))
+            if not self.ezjail.status(jail.type):
+                self.log("Jail `%s` is not running!" % jail.type)
                 return False
 
         self.log('Completed')

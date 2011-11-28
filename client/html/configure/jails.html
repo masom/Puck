@@ -11,9 +11,9 @@
 <h2>Environment</h2>
 <ul>
 	% for jail in VM.jails:
-		<li>${jail['name']}</li>
+		<li>${jail.name}</li>
 		<%
-			selected_jails.append(jail['id']) 
+			selected_jails.append(jail.id) 
 		%>
 	% endfor
 </ul>
