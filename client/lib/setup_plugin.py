@@ -111,8 +111,13 @@ class JailConfigTask(SetupTask):
                 - The EZJAIL firs boot script should have YUM install the files.
                 - Install the jail
         '''
+        #TODO: Move this to a cherrypy configuration value
         jail_dir = '/usr/local/jails'
         flavour_dir = "%s/flavours" % jail_dir
+
+        '''
+        ezjail-admin create -f [flavour] [name] [ip]
+        '''
         create_command = ["ezjail-admin create -f %s %s %s"]
 
         '''Check if all flavours dir exists.'''
@@ -153,8 +158,12 @@ class JailConfigTask(SetupTask):
                 self.log("Error while writing YUM repo data: %s" % e)
                 return False
 
+            flavour = jail['type']
+            name = jail['type']
+            ip = jail['ip']
+            cmd = create_command % (flavour, name, ip)
             try:
-                (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(create_command)).communicate()
+                (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(cmd)).communicate()
             except OSError as e:
                 self.log("Error while installing ezjail: %s" % e)
                 return False
