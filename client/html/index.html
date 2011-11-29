@@ -1,18 +1,33 @@
 <%inherit file="/template.html"/>
 
 <%block name="header">
-    Puck Virtual Machine Client
+    Overview
 </%block>
 
-<%include file="/elements/vm_info.html" />
-<%include file="/elements/network_info.html" />
+<div>
+	<div style="float: left; width: 300px;">
+		<h2>Informations</h2>
+		<%include file="/elements/vm_info.html" />
+		<%include file="/elements/network_info.html" />
+	</div>
+	<div style="float: left; width: 300px; margin-left: 10px;">
+		<h2>Configuration</h2>
+		% if VM.isConfigured():
+			<p>The virtual machine has been configured.</p>
+		% else:
+			<p><a href="/configure">Configure this virtual machine.</a></p>
+		% endif
+	</div>
+	<div style="float: left; width: 300px; margin-left: 10px;">
+		<h2>Setup</h2>
+		% if VM.isConfigured() and VM.status in ['setup', 'configured']:
+			<p><a href="/setup/start">Setup this virtual machine.</a>
+		%else:
+			<p>The virtual machine has not yet been configured.</p>
+		% endif
+	</div>
+	<br style="clear: both;" />
+</div>
 
-% if VM.isConfigured():
-	<p>This virtual machine has already been configured.
-% else:
-	<p><a href="/configure">Configure this virtual machine.</a></p>
-% endif
 
-% if VM.isConfigured() and VM.status in ['setup', 'configured']:
-	<p><a href="/setup/start">Setup this virtual machine.</a>
-% endif
+

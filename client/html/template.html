@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset='utf-8'>
 	<title>Puck Virtual Machine Client</title>
-	<style type="text/css">
-
-	</style>
+	<link rel="stylesheet" type="text/css" href="/static/css/style.css" media="screen" />
+	<link href="http://fonts.googleapis.com/css?family=Inconsolata&subset=latin" rel="stylesheet" type="text/css">
 </head>
 <body>
 <div id="wrapper">
@@ -12,8 +12,8 @@
 		<h1><%block name="header"/></h1>
 	</div>
 	% if flash is not None:
-	    <div style="color: green;">
-	        ${flash}
+	    <div class="flash">
+	    	<p>${flash}</p>
 	    </div>
 	% endif
 
@@ -21,6 +21,7 @@
 		${self.body()}
 	</div>
 	<div id="footer">
+		<a href="https://github.com/masom/Puck">Github</a>
 	</div>
 </div>
 </body>

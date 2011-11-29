@@ -48,6 +48,18 @@ if not len(sys.argv) == 2:
     os._exit(1)
 
 cherrypy.config.update(sys.argv[1])
+conf = {
+    '/': {
+       'request.dispatch': cherrypy.dispatch.Dispatcher()
+    },
+    '/static': {
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': 'static',
+        'tools.staticdir.root': os.getcwd(),
+        'tools.staticdir.index': 'index.html'
+    }
+}
+cherrypy.config.update(conf)
 
 puck = Puck()
 
@@ -58,7 +70,7 @@ root.setup = SetupController(puck)
 cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
 cherrypy.engine.vmsetup.subscribe()
 
-app = cherrypy.tree.mount(root, '/', sys.argv[1])
+app = cherrypy.tree.mount(root, '/', conf)
 
 if hasattr(cherrypy.engine, "signal_handler"):
     cherrypy.engine.signal_handler.subscribe()

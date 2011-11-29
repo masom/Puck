@@ -5,16 +5,26 @@
 </%block>
 
 <div>
-	<form action="/configure/save" method="post">
-		<button type="submit">Save Configuration</button>
-	</form>
+	<div style="float: left;">
+		<form action="/configure/save" method="post">
+			<button type="submit">Save Configuration</button>
+		</form>
+	</div>
+	% if VM.configurationValid():
+		<div style="float: left; margin-left: 10px;">
+			<form action="/setup" method="post">
+				<button type="submit">Launch Virtual Machine</button>
+			</form>
+		</div>
+	% endif
+	<br style="clear: both;" />
 </div>
 
 <div>
 
-	<%include file="/elements/network_info.html" />
-	<%include file="/elements/vm_info.html" />
-	<a href="/configure/environment">Modify</a>
+	<%include file="/elements/information.html" />
+
+	<a href="/configure/environment"><button>Modify</button></a>
 	
 	<h3>Jails</h3>
 	<table>
@@ -30,7 +40,7 @@
 	% endfor
 	</table>
 	
-	<a href="/configure/jails">Modify</a>
+	<a href="/configure/jails"><button>Modify</button></a>
 	
 	<h3>SSH Keys</h3>
 	<ul>
@@ -38,13 +48,5 @@
 		<li>${VM.keys[key]['name']}</li>
 	% endfor
 	</ul>
-	<a href="/configure/keys">Modify</a>
+	<a href="/configure/keys"><button>Modify</button></a>
 </div>
-
-% if VM.configurationValid():
-<div>
-	<form action="/setup" method="post">
-		<button type="submit">Launch Virtual Machine</button>
-	</form>
-</div>
-% endif

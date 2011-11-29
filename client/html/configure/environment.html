@@ -4,7 +4,7 @@
     Puck Configuration Wizard
 </%block>
 <h2>Environment</h2>
-${VM.environment}
+<p>Currently Selected: ${VM.environment}</p>
 <form action="/configure/environment" method="post">
 	<select name="vm.environment">
 		% for id in environments:
