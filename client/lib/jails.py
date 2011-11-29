@@ -30,6 +30,9 @@ class Jails(object):
         for i in self._jails:
             yield self._jails[i]
 
+    def count(self):
+        return len(self._jails)
+
     def load(self, jails):
         '''
         Load jails from a saved vm.
@@ -79,6 +82,8 @@ class Jail(object):
 
         keys = ['id', 'url', 'type', 'name', 'ip']
         for k in keys:
+            if not k in config:
+                raise KeyError("Configuration value `%s` is not set." % k)
             self._data[k] = config[k]
 
         self._manager = manager
