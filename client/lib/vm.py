@@ -115,6 +115,7 @@ class VM(object):
             self.configured = state
             self.status = 'configured'
         elif state == False:
+            self.configured = state
             self.status = 'new'
 
         return self.configured

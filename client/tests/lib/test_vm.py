@@ -28,3 +28,18 @@ class VMTest(unittest.TestCase):
         expected = {'test': {}}
         vm.update(keys = expected)
         self.assertEqual(vm.keys, expected, "VM keys do not match expected value.")
+
+        '''This test makes sure __setattr__ will not assign data to invalid attributes.'''
+        vm.update(invalid = "derp")
+        with self.assertRaises(AttributeError):
+            vm.invalid
+
+    def testIsConfigured(self):
+        vm = VM()
+
+        self.assertFalse(vm.isConfigured())
+        self.assertTrue(vm.isConfigured(True))
+        self.assertEqual(vm.status, 'configured')
+
+        self.assertFalse(vm.isConfigured(False))
+        self.assertEqual(vm.status, 'new')
