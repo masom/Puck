@@ -144,7 +144,7 @@ class NetInterfaces(object):
 
                 # Skiping netmask because si.sin6_family is being set to 0 for
                 # localhost
-                if False ifa.ifa_netmask is not None:
+                if False and ifa.ifa_netmask is not None:
                     si = sockaddr_in6.from_address(ifa.ifa_netmask)
                     data['netmask'] = inet_ntop(si.sin6_family,si.sin6_addr)
      
