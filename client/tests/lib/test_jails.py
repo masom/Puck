@@ -59,6 +59,13 @@ class JailsTest(unittest.TestCase):
         jls.add(jail)
         self.assertTrue(jls.contain(jail.id), "Jails registry does not contain the jail!")
 
+    def testClear(self):
+        jls = Jails()
+        jls.add(jls.create(getJail()))
+
+        jls.clear()
+        jls.assertEqual(0, jls.count(), "Jails list not cleared.")
+
     def testIterate(self):
         jls = Jails()
         jails = []
