@@ -46,14 +46,13 @@ root.configure = ConfigurationController(puck)
 root.setup = SetupController(puck)
 
 if __name__ == "__main__":
-    conf =  {'/' : 
-                {
-                    'request.dispatch' : cherrypy.dispatch.Dispatcher(),
-                    'tools.sessions.on' : True
-                }
-            }
+    if not len(sys.argv) == 2:
+        print "Usage:"
+        print "\tpython pixie.py pixie.conf"
+        os._exit(1)
+    cherrypy.config.update(file=sys.argv[1])
 
     cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
     cherrypy.engine.vmsetup.subscribe()
 
-    cherrypy.quickstart(root, '/', conf)
+    cherrypy.quickstart(root, '/')
