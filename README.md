@@ -5,8 +5,8 @@ It is not yet complete.
 
 # Running Pixie Tests
 
-`cd pixie`
-`python -m unittest discover`
+    cd pixie
+    python -m unittest discover
 
 # External Requirements
 - CherryPy 3.2
