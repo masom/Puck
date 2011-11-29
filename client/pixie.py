@@ -39,28 +39,30 @@ class Root(Controller):
         )
         return self.render('/index.html', **env)
 
+if not __name__ == "__main__":
+    raise SystemError("Pixie cannot be imported.")
+
+if not len(sys.argv) == 2:
+    print "Usage:"
+    print "\tpython pixie.py pixie.conf"
+    os._exit(1)
+
+cherrypy.config.update(sys.argv[1])
+
 puck = Puck()
 
 root = Root(puck)
 root.configure = ConfigurationController(puck)
 root.setup = SetupController(puck)
 
-if __name__ == "__main__":
-    if not len(sys.argv) == 2:
-        print "Usage:"
-        print "\tpython pixie.py pixie.conf"
-        os._exit(1)
+cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
+cherrypy.engine.vmsetup.subscribe()
 
-    cherrypy.config.update(sys.argv[1])
+app = cherrypy.tree.mount(root, '/', sys.argv[1])
 
-    cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
-    cherrypy.engine.vmsetup.subscribe()
-
-    app = cherrypy.tree.mount(root, '/', sys.argv[1])
-
-    if hasattr(cherrypy.engine, "signal_handler"):
-        cherrypy.engine.signal_handler.subscribe()
-    if hasattr(cherrypy.engine, "console_control_handler"):
-        cherrypy.engine.console_control_handler.subscribe()
-    cherrypy.engine.start()
-    cherrypy.engine.block()
+if hasattr(cherrypy.engine, "signal_handler"):
+    cherrypy.engine.signal_handler.subscribe()
+if hasattr(cherrypy.engine, "console_control_handler"):
+    cherrypy.engine.console_control_handler.subscribe()
+cherrypy.engine.start()
+cherrypy.engine.block()

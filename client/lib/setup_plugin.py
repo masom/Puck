@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import threading, Queue as queue, time, subprocess, shlex, datetime, urllib, tarfile, os, shutil
+import cherrypy
 from cherrypy.process import wspbus, plugins
 from jails import EzJail
 
@@ -64,7 +65,7 @@ class EZJailSetupTask(SetupTask):
     def run(self):
         self.log('Started')
 
-        base_dir = cherrypy.request.app.config['SetupPlugin'].get('jail_dir')
+        base_dir = cherrypy.config.get('setup_plugin.jail_dir')
         dst_dir = '%s/flavours' % base_dir
 
         '''Holds the temporary file list'''

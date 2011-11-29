@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import os
+import os, cherrypy
 from vm import VM
 
 class Puck(object):
@@ -25,8 +25,7 @@ class Puck(object):
     def __init__(self):
         self._registration = None
 
-        #TODO: Move this to a cherrypy configuration value
-        self._registration_file = cherrypy.request.app.config['Puck'].get('registration_file')
+        self._registration_file = cherrypy.config.get('puck.registration_file')
         if not self.register():
             raise LookupError()
 

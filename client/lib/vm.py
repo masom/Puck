@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from interfaces import NetInterfaces
 from jails import Jails
 
-import os, sys, json
+import os, sys, json, cherrypy
 
 class VM(object):
     '''
@@ -34,7 +34,7 @@ class VM(object):
         self.interfaces = NetInterfaces.getInterfaces()
         self.configured = False
 
-        self._persist_file = cherrypy.request.app.config['VirtualMachine'].get('persistence')
+        self._persist_file = cherrypy.config.get('vm.persistence')
         self._load()
 
     def update(self, **kwargs):
