@@ -50,6 +50,7 @@ class JailsTest(unittest.TestCase):
 
         self.assertEqual(j, jls.get(jail['id']))
         self.assertRaises(KeyError, jls.get, 'derp')
+        self.assertEqual([j], jls.get(), "Exported values do not match expected ones.")
 
     def testContain(self):
         jls = Jails()
