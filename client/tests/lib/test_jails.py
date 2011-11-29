@@ -18,9 +18,20 @@ def getJail():
 
 class JailTest(unittest.TestCase):
     def testInit(self):
-        pass
-    def testCreate(self):
-        pass
+        data = getJail()
+
+        '''
+        If no config is given, we expect a KeyError
+        '''
+        self.assertRaises(KeyError, Jail, None, {})
+
+        j = Jail(None, data)
+        self.assertEqual(j._data, data, "Jails data is different than provided.")
+
+    def testExport(self):
+        data = getJail()
+        j = Jail(None, data)
+        self.assertEqual(j.export(), data, "Exported data is different than expected.")
 
 class JailsTest(unittest.TestCase):
     def testInit(self):
@@ -88,3 +99,19 @@ class JailsTest(unittest.TestCase):
         
         jls.load(jails)
         self.assertEqual(jls.count(), 10, "The number of imported jails does not match generated count")
+
+    def testExport(self):
+        jls = Jails()
+        
+        expected = []
+        self.assertEqual(jls.export(), expected, "The exported data does not match the expected value (empty list).")
+
+        j = getJail()
+        jls.add(jls.create(j))
+        expected = [j]
+        self.assertEqual(jls.export(), expected, "The exported data does not match the expected value (one jail).")
+
+        h = getJail()
+        jls.add(jls.create(h))
+        expected = [j, h]
+        self.assertEqual(len(jls.export()), 2, "The exported data does not match the expected value (one jail).")
