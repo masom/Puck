@@ -26,7 +26,7 @@ class Puck(object):
         self._registration = None
 
         #TODO: Move this to a cherrypy configuration value
-        self._registration_file = '/usr/local/etc/puck_registration'
+        self._registration_file = cherrypy.request.app.config['Puck'].get('registration_file')
         if not self.register():
             raise LookupError()
 

@@ -34,7 +34,7 @@ class VM(object):
         self.interfaces = NetInterfaces.getInterfaces()
         self.configured = False
 
-        self._persist_file = '/usr/local/etc/puck_vm'
+        self._persist_file = cherrypy.request.app.config['VirtualMachine'].get('persistence')
         self._load()
 
     def update(self, **kwargs):
