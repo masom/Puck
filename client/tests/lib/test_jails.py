@@ -88,3 +88,19 @@ class JailsTest(unittest.TestCase):
         
         jls.load(jails)
         self.assertEqual(jls.count(), 10, "The number of imported jails does not match generated count")
+
+    def testExport(self):
+        jls = Jails()
+        
+        expected = []
+        self.assertEqual(jls.export(), expected, "The exported data does not match the expected value (empty list).")
+
+        j = getJail()
+        jls.add(jls.create(j))
+        expected = [j]
+        self.assertEqual(jls.export(), expected, "The exported data does not match the expected value (one jail).")
+
+        h = getJail()
+        jls.add(jls.create(h))
+        expected = [j, h]
+        self.assertEqual(len(jls.export()), 2, "The exported data does not match the expected value (one jail).")
