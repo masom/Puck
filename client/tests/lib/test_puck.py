@@ -33,4 +33,16 @@ class PuckTest(unittest.TestCase):
             f.write('test')
 
         p._registration_file = '/tmp/reg-test'
-        self.assertEqual(4, p._loadRegistration(), "Registration data lenght does not match expected.")
+        self.assertEqual(4, p._loadRegistration(), "Registration data length does not match expected.")
+
+    def test_GetJails(self):
+        p = Puck()
+        jails = p.getJails()
+        self.assertTrue(isinstance(jails, dict), "getJails() did not return a dictionary.")
+        self.assertGreater(len(jails.keys()), 0)
+
+        for k in jails:
+            self.assertGreater(len(jails[k]), 0, "No jails under `%s`" % k)
+
+       
+    
