@@ -53,11 +53,11 @@ class JailsTest(unittest.TestCase):
 
     def testContain(self):
         jls = Jails()
-        jail = getJail()
-        self.assertFalse(jls.contain(jail['id']), "Jails registry already contains the jail o_O")
+        jail = jls.create(getJail())
+        self.assertFalse(jls.contain(jail.id), "Jails registry already contains the jail o_O")
 
         jls.add(jail)
-        self.assertTrue(jls.contain(jail['id']), "Jails registry does not contain the jail!")
+        self.assertTrue(jls.contain(jail.id), "Jails registry does not contain the jail!")
 
     def testIterate(self):
         jls = Jails()
