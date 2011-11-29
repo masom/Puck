@@ -36,16 +36,15 @@ class NetInterfaces(object):
      
         # AF_UNKNOWN / generic
         if platform.startswith( "darwin" ) or platform.startswith( "freebsd" ):
-            class sockaddr ( Structure ):
-                _fields_ = [ 
-                    ("sa_len",     c_uint8 ),
-                    ("sa_family",  c_uint8 ),
-                    ("sa_data",   (c_uint8 * 14) ) ]
+            def family(pre):
+                return [("%s_len" % pre, c_uint8), ("%s_family" % pre, c_uint8)]
         else:
-            class sockaddr(Structure):
-                _fields_ = [
-                    ( "sa_family", c_uint16 ),
-                    ( "sa_data",   (c_uint8 * 14) ) 
+            def family(pre):
+                return [("%s_family" % pre, c_uint16)]
+
+        class sockaddr(Structure):
+            _fields_ = family("sa") + [
+                    ("sa_data", c_uint8 * 14) 
                 ]
      
         # AF_INET / IPv4
@@ -55,8 +54,7 @@ class NetInterfaces(object):
             ]
      
         class sockaddr_in(Structure):
-            _fields_ = [
-                ("sin_family", c_short),
+            _fields_ = family("sin") + [
                 ("sin_port",   c_ushort),
                 ("sin_addr",   in_addr),
                 ("sin_zero",   (c_char * 8) ), # padding
@@ -76,8 +74,7 @@ class NetInterfaces(object):
             ]
      
         class sockaddr_in6(Structure):
-            _fields_ = [
-                ("sin6_family",      c_short),
+            _fields_ = family("sin6") + [
                 ("sin6_port",     c_ushort),
                 ("sin6_flowinfo", c_uint32),
                 ("sin6_addr",     in6_addr),
@@ -144,7 +141,10 @@ class NetInterfaces(object):
                     data['addr'] = inet_ntop(si.sin6_family,si.sin6_addr)
                     if data['addr'].startswith('fe80:'):
                         data['scope'] = si.sin6_scope_id
-                if ifa.ifa_netmask is not None:
+
+                # Skiping netmask because si.sin6_family is being set to 0 for
+                # localhost
+                if False and ifa.ifa_netmask is not None:
                     si = sockaddr_in6.from_address(ifa.ifa_netmask)
                     data['netmask'] = inet_ntop(si.sin6_family,si.sin6_addr)
      
