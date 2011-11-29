@@ -60,3 +60,15 @@ class JailsTest(unittest.TestCase):
 
         for j in jls:
             self.assertIn(j, jails, "Jail is not in expected list.")
+
+    def testLoad(self):
+        '''
+        Jails.load() will load a json-serialized jail list and add them to it's registry
+        '''
+        jls = Jails()
+        jails = []
+        for i in range(10):
+            jails.append(getJail())
+        
+        jls.load(jails)
+        self.assertEqual(jls.count(), 10, "The number of imported jails does not match generated count")
