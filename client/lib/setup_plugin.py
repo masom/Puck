@@ -63,8 +63,9 @@ class EZJailSetupTask(SetupTask):
     '''
     def run(self):
         self.log('Started')
-        #TODO: Move this to a cherrypy configuration value
-        dst_dir = '/usr/local/jails/flavours'
+
+        base_dir = cherrypy.request.app.config['SetupPlugin'].get('jail_dir')
+        dst_dir = '%s/flavours' % base_dir
 
         '''Holds the temporary file list'''
         tmpfiles = self._retrieveFlavours()
@@ -116,8 +117,7 @@ class JailConfigTask(SetupTask):
     def run(self):
         self.log('Started')
 
-        #TODO: Move these to a cherrypy configuration value
-        jail_dir = '/usr/local/jails'
+        jail_dir = cherrypy.request.app.config['SetupPlugin'].get('jail_dir')
         flavour_dir = "%s/flavours" % jail_dir
 
         for jail in self.vm.jails:
@@ -186,8 +186,7 @@ class JailConfigTask(SetupTask):
         name = jail.type
         ip = jail.ip
         try:
-            #TODO: Use jail.create() instead of new ezjail instance.
-            self.ezjail.create(flavour, name, ip)
+            jail.create()
         except OSError as e:
             self.log("Error while installing jail `%s`: %s" % (jail.type, e))
             return False
@@ -205,8 +204,7 @@ class JailStartupTask(SetupTask):
         for jail in self.vm.jails:
             self.log("Starting jail `%s`" % jail.type)
             try:
-                #TODO: Use jail.start() instead of new ezjail instance.
-                self.ezjail.start(jail.type)
+                jail.start()
             except OSError as e:
                 self.log("Could not start jail `%s`: %s" % (jail.type, e))
                 return False

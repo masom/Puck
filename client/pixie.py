@@ -50,9 +50,17 @@ if __name__ == "__main__":
         print "Usage:"
         print "\tpython pixie.py pixie.conf"
         os._exit(1)
-    cherrypy.config.update(file=sys.argv[1])
+
+    cherrypy.config.update(sys.argv[1])
 
     cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
     cherrypy.engine.vmsetup.subscribe()
 
-    cherrypy.quickstart(root, '/')
+    app = cherrypy.tree.mount(root, '/', sys.argv[1])
+
+    if hasattr(cherrypy.engine, "signal_handler"):
+        cherrypy.engine.signal_handler.subscribe()
+    if hasattr(cherrypy.engine, "console_control_handler"):
+        cherrypy.engine.console_control_handler.subscribe()
+    cherrypy.engine.start()
+    cherrypy.engine.block()

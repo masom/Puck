@@ -98,18 +98,16 @@ class Jail(object):
         object.__getattribute__(self, "_data")[name] = value
         return
 
-        
-
     def start(self):
-        return self._manager.start(self)
+        return self._manager.start(self._data['name'])
     def stop(self):
-        return self._manager.stop(self)
+        return self._manager.stop(self._data['name'])
     def status(self):
-        return self._manager.status(self)
+        return self._manager.status(self._data['name'])
     def create(self):
-        return self._manager.create(self)
+        return self._manager.create(self, self._data['flavour'], self._data['name'], self._data['ip'])
     def delete(self):
-        return self._manager.delete(self)
+        return self._manager.delete(self._data['name'])
 
 class EzJail(object):
 
