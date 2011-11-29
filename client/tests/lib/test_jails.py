@@ -1,4 +1,4 @@
-import sys, os, unittest
+import unittest
 from lib.jails import Jails, Jail, EzJail
 
 jailCount = 0
