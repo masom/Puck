@@ -64,7 +64,7 @@ class JailsTest(unittest.TestCase):
         jls.add(jls.create(getJail()))
 
         jls.clear()
-        jls.assertEqual(0, jls.count(), "Jails list not cleared.")
+        self.assertEqual(0, jls.count(), "Jails list not cleared.")
 
     def testIterate(self):
         jls = Jails()
