@@ -51,6 +51,14 @@ class JailsTest(unittest.TestCase):
         self.assertEqual(j, jls.get(jail['id']))
         self.assertRaises(KeyError, jls.get, 'derp')
 
+    def testContain(self):
+        jls = Jails()
+        jail = getJail()
+        self.assertFalse(jls.contain(jail['id']), "Jails registry already contains the jail o_O")
+
+        jls.add(jail)
+        self.assertTrue(jls.contain(jail['id']), "Jails registry does not contain the jail!")
+
     def testIterate(self):
         jls = Jails()
         jails = []
