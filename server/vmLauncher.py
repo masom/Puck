@@ -38,7 +38,7 @@ class Launcher(object):
         retcode = call([vm, "modifyvm", name, 
                             "--memory", "1024"])
         retcode = call([vm, "modifyvm", name, 
-                            "--nic1", "nat"])
+                            "--nic1", "bridged"])
         retcode = call([vm, "createhd", 
                             "--filename",  "%s.vdi" % name, 
                             "--size", "8096", 
