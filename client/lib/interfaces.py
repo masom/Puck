@@ -1,4 +1,10 @@
-#see http://carnivore.it/2010/07/22/python_-_getifaddrs
+'''
+This file was taken from http://carnivore.it/2010/07/22/python_-_getifaddrs
+and modified to work under FreeBSD and Linux by Martin Samson and Sean Mitchell.
+
+License is Attribution-NonCommercial-ShareAlike 2.0 Generic (CC BY-NC-SA 2.0)
+http://creativecommons.org/licenses/by-nc-sa/2.0/
+'''
 from ctypes import *
 from socket import AF_INET, AF_INET6, inet_ntop
 from sys import platform
