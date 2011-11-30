@@ -1,10 +1,10 @@
 <%inherit file="/template.html"/>
 
 <%block name="header">
-    Puck Configuration Wizard
+	Configuration
 </%block>
 
-<h2>Environment</h2>
+<h2>SSH Keys</h2>
 <ul>
 	% for key in VM.keys:
 		<li>${VM.keys[key]['name']}</li>

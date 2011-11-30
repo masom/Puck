@@ -102,7 +102,7 @@ class EZJailSetupTask(SetupTask):
             
             try:
                 (filename, headers) = urllib.urlretrieve(jail.url)
-            except urllib.ContentTooShortError as e:
+            except (urllib.ContentTooShortError, IOError) as e:
                 self.log("Error while retrieving jail `%s`: %s" % (jail.name, e))
                 return False
 

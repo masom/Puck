@@ -26,7 +26,6 @@ from lib.controller import Controller
 from controllers.configuration import ConfigurationController
 from controllers.setup import SetupController
 
-
 class Root(Controller):
 
     def __init__(self, puck):
@@ -59,7 +58,6 @@ conf = {
         'tools.staticdir.index': 'index.html'
     }
 }
-cherrypy.config.update(conf)
 
 puck = Puck()
 
