@@ -14,15 +14,13 @@ class ApiCall(object):
             setattr(self, model.__name__, models[model])
 
 class ApiRegistration(ApiCall):
-    models = [models.VM, models.Jail]
+    models = [models.VM]
 
     @cherrypy.tools.json_out()
     def POST(self):
         name = self.VM.register(cherrypy.request.remote.ip)
-        jails = self._jails.hash()
         return {
             'id' : name,
-            'jails' : jails
         }
 
 class ApiKeys(ApiCall):

@@ -67,9 +67,6 @@ class Puck(object):
         return self._vm
 
     def register(self):
-        '''
-        TODO: USE API
-        '''
         if not os.path.exists(self._registration_file):
             self._getRegistration()
             return self._saveRegistration()
@@ -80,11 +77,8 @@ class Puck(object):
         return self._saveRegistration()
 
     def _getRegistration(self):
-        '''
-        Get the registration code
-        @todo: Use API
-        '''
-        self._registration = 'ABC-DEF'
+        info = json.load(self._puck.post('registration'))
+        self._registration = info['id']
 
     def _loadRegistration(self):
         '''
@@ -112,7 +106,7 @@ class Puck(object):
         pass
 
     def getKeys(self):
-	return json.load(self._puck.get("keys"))
+	    return json.load(self._puck.get("keys"))
 
     def getEnvironments(self):
         return json.load(self._puck.get('environments'))
