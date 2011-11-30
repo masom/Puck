@@ -8,6 +8,6 @@
 	</tr>
 	<tr>
 		<td>Environment:</td>
-		<td>${VM.environment}</td>
+		<td>${VM.environments[VM.environment] if VM.environments else VM.environment}</td>
 	</tr>
 </table>

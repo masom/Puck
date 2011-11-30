@@ -31,6 +31,7 @@ class VM(object):
         self.keys = {}
         self.status = 'new'
         self.environment = None
+        self.environments = None
         self.interfaces = NetInterfaces.getInterfaces()
         self.configured = False
 
@@ -38,7 +39,7 @@ class VM(object):
         self._load()
 
     def update(self, **kwargs):
-        valid = ['keys', 'environment']
+        valid = ['keys', 'environment', 'environments']
         for key in kwargs:
             if not key in valid:
                 continue

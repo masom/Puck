@@ -15,8 +15,37 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import os, cherrypy
+import os, urllib2, urllib, json 
+import cherrypy
 from vm import VM
+
+class JSONRequest(object):
+    def __init__(self, base):
+        self._base = base
+
+        opener = urllib2.build_opener(urllib2.HTTPHandler)
+        self._open = opener.open
+
+
+    def post(self, resource, data=''):
+        return self._request('POST', resource, data=data)
+
+    def get(self, resource, **params):
+	if params:
+		resource += '?' + urllib.urlencode(params)
+        return self._request('GET', resource)
+
+    def put(self, resource, data=''):
+        return self._request('PUT', resource, data=data)
+
+    def _resource(self, *args):
+        return '/'.join((self._base,) + args)
+
+    def _request(self, method, resource, data=None):
+        request = urllib2.Request(self._resource(resource), data=data)
+        request.add_header('Content-Type', 'application/json')
+        request.get_method = lambda : method
+        return self._open(request)
 
 class Puck(object):
     '''
@@ -26,6 +55,8 @@ class Puck(object):
         self._registration = None
 
         self._registration_file = cherrypy.config.get('puck.registration_file')
+        self._puck = JSONRequest(cherrypy.config.get('puck.api_url'))
+
         if not self.register():
             raise LookupError()
 
@@ -71,19 +102,8 @@ class Puck(object):
             f.write(self._registration)
         return True
 
-    def getJails(self):
-        '''
-        @todo: USE API
-        '''
-        jails = {'content': {}, 'database': {}, 'support': {}}
-
-        jails['content']['1'] = {'id': '1', 'type': 'content', 'url': 'http://localhost', 'name': 'Content', 'ip': '10.0.0.10'}
-        jails['content']['4'] = {'id': '4', 'type': 'content', 'url': 'http://localhost', 'name': 'Content w/ xdebug', 'ip': '10.0.0.10'}
-
-        jails['database']['2'] = {'id':'2', 'type': 'database', 'url': 'http://localhost', 'name': 'Database', 'ip': '10.0.0.11'}
-        jails['database']['5'] = {'id':'5', 'type': 'database', 'url': 'http://localhost', 'name': 'Database w/ new PMS', 'ip': '10.0.0.11'}
-        jails['support']['3'] = {'id': '3', 'type': 'support', 'url': 'http://localhost', 'name': 'Support', 'ip': '10.0.0.12'}
-        return jails
+    def getJails(self, env):
+        return json.load(self._puck.get('jails', environment=env))
 
     def updateStatus(self):
         pass
@@ -92,32 +112,7 @@ class Puck(object):
         pass
 
     def getKeys(self):
-        '''
-        TODO: Use API
-        '''
-        keys = {
-            'derp': {
-                'id': 'derp',
-                'name': 'Martin Samson',
-                'key': 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArsIuqG9Wictam3s6cwQdW0eedJYuoMbvF7kJ9oFprfo1UEsep30G67SPSUNwuIOIqvUwErFkiNAGjTqdnL8g7PHUInLojM3KQSGSvPgYYAZz9u9wYTy5vv2f/EphBx+FytISjoW1gL8CoiP/kX0vDLpDJnFeRQ/RbvRbiws49r/yqqf/KqXM/fwl1nhQeqwNS6K8kv3H8aaaq7cHqky0xbiDf7astFQq++jRjLIx6xX0NdU8P36IwdMFoQXdnh1B8OvMuyCxHj9y5B2wN2H/1kA0tk0dEQa1BtKNqpJF8HD2AbcTGzYczcvaCMbMV1qJe5/YTQMxjullp2cz/83Hjw=='
-            },
-            'derpy': {
-                'id': 'derpy',
-                'name': 'Derpy Samson',
-                'key': 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArsIuqG9Wictam3sDERPedJYuoMbvF7kJ9oFprfo1UEsep30G67SPSUNwuIOIqvUwErFkiNAGjTqdnL8g7PHUInLojM3KQSGSvPgYYAZz9u9wYTy5vv2f/EphBx+FytISjoW1gL8CoiP/kX0vDLpDJnFeRQ/RbvRbiws49r/yqqf/KqXM/fwl1nhQeqwNS6K8kv3H8aaaq7cHqky0xbiDf7astFQq++jRjLIx6xX0NdU8P36IwdMFoQXdnh1B8OvMuyCxHj9y5B2wN2H/1kA0tk0dEQa1BtKNqpJF8HD2AbcTGzYczcvaCMbMV1qJe5/YTQMxjullp2cz/83Hjw=='
-            }
-        }
-        return keys
+	return json.load(self._puck.get("keys"))
 
     def getEnvironments(self):
-        '''
-        TODO: Use API
-        '''
-        environments = {
-            'dev': 'Development',
-            'testing': 'Testing',
-            'qa': 'Quality Assurance',
-            'staging': 'Staging',
-            'prod': 'Production'
-        }
-        return environments
+        return json.load(self._puck.get('environments'))

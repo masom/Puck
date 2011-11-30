@@ -2,6 +2,9 @@ import cherrypy
 from controllers.base import *
 import models
 
+def asdict(jailId, jail):
+    return dict(zip(jail._fields + ("id",), jail + (jailId,)))
+
 class ApiCall(object):
     exposed = True
     models = []
@@ -11,7 +14,7 @@ class ApiCall(object):
             setattr(self, model.__name__, models[model])
 
 class ApiRegistration(ApiCall):
-    models = ApiCall.models + [models.Jail]
+    models = [models.VM, models.Jail]
 
     @cherrypy.tools.json_out()
     def POST(self):
@@ -23,11 +26,14 @@ class ApiRegistration(ApiCall):
         }
 
 class ApiKeys(ApiCall):
-    models = [models.VM, models.Key]
+    models = [models.Key]
     
     @cherrypy.tools.json_out()
     def GET(self):
-        return self._keys.hash()
+        keys = self.Key.keys()
+
+        return dict((keyId, asdict(keyId, key)) for keyId, key in keys)
+
 
 class ApiStatus(ApiCall):
 
@@ -36,6 +42,7 @@ class ApiStatus(ApiCall):
 
     def GET(self):
         return self._vm.status
+
 
 class ApiConfig(ApiCall):
 
@@ -60,14 +67,11 @@ class ApiJails(ApiCall):
     models = [models.Jail]
 
     @cherrypy.tools.json_out()
-    def GET(self, env):
-        jails = self.Jail.jails()[env]
+    def GET(self, environment=None):
+        jails = self.Jail.jails()[environment]
 
-        def asdict(jailId, jail):
-            return dict(zip(jail._fields + ["id"], jail + (jailId,)))
-            
         result = dict()
-        for typ, typJails in jails:
+        for typ, typJails in jails.iteritems():
             result[typ] = dict((jailId, asdict(jailId, jail))
                                     for jailId, jail in typJails)
         return result

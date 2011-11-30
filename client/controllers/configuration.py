@@ -38,7 +38,7 @@ class ConfigurationController(Controller):
             if kwargs.has_key("vm.environment"): 
                 env_id = kwargs['vm.environment']
                 if environments.has_key(env_id):
-                    self._vm.update(environment=environments[env_id])
+                    self._vm.update(environment=env_id, environments=environments)
                     cherrypy.session['flash'] = "Environment updated."
                     raise cherrypy.HTTPRedirect('/configure/')
 
@@ -52,7 +52,7 @@ class ConfigurationController(Controller):
     def jails(self, *args, **kwargs):
         self.__canVMBeModified()
 
-        jails = self._puck.getJails()
+        jails = self._puck.getJails(self._vm.environment)
 
         if cherrypy.request.method == "POST":
             #@todo: Move this somewhere else
