@@ -1,4 +1,6 @@
-import cherrypy, controller
+import cherrypy
+import models
+from controllers.base import *
 
 class Keys(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/keys", "Keys")]

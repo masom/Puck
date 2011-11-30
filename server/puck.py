@@ -2,16 +2,6 @@ import cherrypy, sqlite3
 from collections import namedtuple, OrderedDict
 import models, controllers
 
-JAIL_ENVS = OrderedDict([
-        ('dev','Development'),
-        ('testing', 'Testing'),
-        ('qa', 'Quality Assurance'),
-        ('staging', 'Staging'),
-        ('prod', 'Production')
-        ])
-
-JAIL_TYPES = ["content", "database", "support"]
-Crumb = namedtuple("Crumb", ["url", "name"])
 
 root = controllers.Root('db.sqlite3')
 root.add('jails', controllers.Jails)
@@ -39,11 +29,15 @@ if __name__ == "__main__":
             'tools.staticdir.index': 'index.html'
         }
     }
+    cherrypy.config.update({
+        'server.socket_port' : 80,
+        'server.socket_host' : '0.0.0.0'
+    })
 
     conn = sqlite3.connect(root._db)
     models.migrate(conn, [models.Key, models.Jail])
     conn.commit()
     conn.close()
-
+            
     cherrypy.engine.subscribe('start_thread', connect)
     cherrypy.quickstart(root, '/', conf)

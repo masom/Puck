@@ -19,7 +19,7 @@ import uuid
 import sqlite3
 import cherrypy
 
-from collections import namedtuple, defaultdict, deque
+from collections import namedtuple, OrderedDict, defaultdict, deque
 from itertools import groupby
 from operator import attrgetter
 
@@ -70,12 +70,13 @@ def sqltable(tablename, *cols, **config):
     return newcls
 
     
-
 class Model(object):
-    Table = None
-
     def __init__(self, config):
         pass
+
+class SQLModel(Model):
+    Table = None
+
 
     def new(self, data):
         key = self.Table(*tuple(data[key] for key in self.Table._fields))
@@ -171,11 +172,12 @@ class Model(object):
         
 
 
-class Jail(Model):
+class Jail(SQLModel):
     Table = sqltable("jails", 
                         "name" & Text, 
                         "url" & Text,
                         "type" & Text,
+                        "ip" & Text,
                         "environment" & Text
                     )
 
@@ -193,9 +195,12 @@ class Jail(Model):
             
         return section
 
+    def types(self):
+        return ["content", "database", "support"]
 
 
-class Key(Model):
+
+class Key(SQLModel):
     Table = sqltable("keys", 
                         "name" & Text,
                         "key" & Text
@@ -204,7 +209,7 @@ class Key(Model):
     def keys(self):
         return list(self._select(orderBy=["name"]))
 
-class VM(Model):
+class VM(SQLModel):
     Table = sqltable("vms",
                         "name" & (Text | "PRIMARY KEY"),
                         "ip" & Text,
@@ -239,6 +244,22 @@ class VM(Model):
 
     def statuses(self):
         return list(self._select(fields=["status"]))
+
+class Environment(Model):
+    def __init__(self, config):
+        Model.__init__(self, config)
+        self._envs = OrderedDict([
+            ('dev','Development'),
+            ('testing', 'Testing'),
+            ('qa', 'Quality Assurance'),
+            ('staging', 'Staging'),
+            ('prod', 'Production')
+        ])
+
+    def get(self):
+        return self._envs
+
+        
 
         
 def migrate(conn, models):

@@ -1,8 +1,10 @@
-import cherrypy, controller
+import cherrypy
+from controllers.base import *
+import models
 
 class ApiCall(object):
     exposed = True
-    models = [models.VM]
+    models = []
 
     def __init__(self, models={}):
         for model in self.models:
@@ -13,8 +15,7 @@ class ApiRegistration(ApiCall):
 
     @cherrypy.tools.json_out()
     def POST(self):
-        ip = cherrypy.request.remote()
-        name = self._model.register(ip)
+        name = self.VM.register(cherrypy.request.remote.ip)
         jails = self._jails.hash()
         return {
             'id' : name,
@@ -22,7 +23,7 @@ class ApiRegistration(ApiCall):
         }
 
 class ApiKeys(ApiCall):
-    models = ApiCall.models + [models.Key]
+    models = [models.VM, models.Key]
     
     @cherrypy.tools.json_out()
     def GET(self):
@@ -47,10 +48,35 @@ class ApiConfig(ApiCall):
     def GET(self):
         return self._vm.config
 
+class ApiEnvironments(ApiCall):
+    models = [models.Environment]
+
+    @cherrypy.tools.json_out()
+    def GET(self):
+        return self.Environment.get()
+
+class ApiJails(ApiCall):
+    exposed = True
+    models = [models.Jail]
+
+    @cherrypy.tools.json_out()
+    def GET(self, env):
+        jails = self.Jail.jails()[env]
+
+        def asdict(jailId, jail):
+            return dict(zip(jail._fields + ["id"], jail + (jailId,)))
+            
+        result = dict()
+        for typ, typJails in jails:
+            result[typ] = dict((jailId, asdict(jailId, jail))
+                                    for jailId, jail in typJails)
+        return result
+
 
 class Api(Controller):
     models = []
-    sub = [ApiRegistration, ApiKeys, ApiStatus, ApiConfig]
+    sub = [ApiRegistration, ApiKeys, ApiStatus, ApiConfig,
+           ApiEnvironments, ApiJails]
 
     def __init__(self, models):
         Controller.__init__(self, models)
@@ -59,3 +85,5 @@ class Api(Controller):
         self.keys = ApiKeys(models)
         self.status = ApiStatus(models)
         self.config = ApiConfig(models)
+        self.environments = ApiEnvironments(models)
+        self.jails = ApiJails(models)

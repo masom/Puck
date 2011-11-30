@@ -1,4 +1,7 @@
-import cherrypy, controller, lib.vmLauncher as vmLauncher
+import cherrypy 
+from controllers.base import *
+
+import plugins.vmLauncher as vmLauncher
 
 class Root(Controller):
     plugins = [vmLauncher.Launcher]

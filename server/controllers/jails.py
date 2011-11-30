@@ -1,9 +1,12 @@
-import cherrypy, controller
+import cherrypy
+from controllers.base import *
+import models
+
 
 class Jails(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/jails", "Jails")]
 
-    models = [models.Jail]
+    models = [models.Jail, models.Environment]
 
     def hash(self):
         return self.Jail.jails()
@@ -21,8 +24,8 @@ class Jails(Controller):
             raise cherrypy.HTTPRedirect("/jails")
 
         env = dict(
-                environments=JAIL_ENVS.items(),
-                jailTypes=JAIL_TYPES
+                environments=self.Enviroment.get(),
+                jailTypes=self.Jail.types()
         )
         return self.render("jails/add.html", crumbs=self.crumbs, **env)
 

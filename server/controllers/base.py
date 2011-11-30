@@ -1,7 +1,12 @@
+from collections import namedtuple
+
 import cherrypy
 
 from mako.template import Template
 from mako.lookup   import TemplateLookup
+
+
+Crumb = namedtuple("Crumb", ["url", "name"])
 
 class Controller(object):
     lookup = TemplateLookup(directories=['views'])
