@@ -20,7 +20,9 @@
                 <label for="type">Type:</label>
                 <select id="type" name="type" >
                 % for typ in jailTypes:
-                    <option value="${typ}">${typ}</option>
+                    <option value="${typ.name}" data-ip="${typ.ip}">
+                        ${typ.name}
+                    </option>
                 % endfor
                 </select>
             </li>
@@ -32,7 +34,24 @@
                 <label for="url">Url:</label>
                 <input id="url" name="url" type="url" required />
             </li>
+            <li>
+                <label for="ip">Ip:</label>
+                <input id="ip" name="ip" type="text" required />
+            </li>
         </ol>
     </fieldset>
     <input type="submit" value="Add" />
 </form>
+<script type="text/javascript">
+    var select = document.getElementById("type")
+
+    var setIp = function(e) {
+        var idx = this.selectedIndex;
+        var ip = this.options[idx].dataset.ip;
+        document.getElementById("ip").value = ip;
+    }
+    select.addEventListener('change', setIp, false);
+    var evt = document.createEvent("HTMLEvents");
+    evt.initEvent("change", true, true);
+    select.dispatchEvent(evt);
+</script>

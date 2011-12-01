@@ -180,6 +180,7 @@ class Jail(SQLModel):
                         "ip" & Text,
                         "environment" & Text
                     )
+    Type = namedtuple("Type", ["name", "ip"])
 
     def jails(self):
         jails = self._select(orderBy=["environment", "type", "name"])
@@ -196,7 +197,11 @@ class Jail(SQLModel):
         return section
 
     def types(self):
-        return ["content", "database", "support"]
+        return [
+            self.Type("content", "10.0.0.10"), 
+            self.Type("database", "10.0.0.11"),
+            self.Type("support", "10.0.0.12")
+            ]
 
 
 

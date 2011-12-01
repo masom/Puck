@@ -9,40 +9,46 @@
     <div>No jails are currently set</div>
 % else:
     <div class="index">
-        % for env, types in jails.iteritems():
-            <div class="section">
-                <h3>${env}</h3>
-                % if not len(types):
-                    <div>No jails are set for this environment</div>
-                % else:
-                    % for type_, jailList in types.iteritems():
-                        <h4>${type_}</h4>
-                        % if not len(jailList):
-                            <div>No jails are set for this type</div>
+        <ol>
+            % for env, types in jails.iteritems():
+                <li class="section">
+                    <h3>${env}</h3>
+                    <ol>
+                        % if not len(types):
+                            <li>No jails are set for this environment</li>
                         % else:
-                                <ol>
-                                    % for jailId, jail in jailList:
-                                        <li>
-                                            <a href="/jails/view/${jailId}">
-                                                ${jail.name}
-                                            </a>
-                                        </li>
-                                    % endfor
-                                </ol>
-                                <ol>
-                                    % for jailId, jail in jailList:
-                                        <li>
-                                            <a href="/jails/delete/${jailId}">
-                                                Delete
-                                            </a>
-                                        </li>
-                                    % endfor
-                                </ol>
+                                % for type_, jailList in types.iteritems():
+                                    <li class="subsection"> 
+                                        <h4>${type_}</h4>
+                                        % if not len(jailList):
+                                            <div>No jails are set for this type</div>
+                                        % else:
+                                                <ol>
+                                                    % for jailId, jail in jailList:
+                                                        <li>
+                                                            <a href="/jails/view/${jailId}">
+                                                                ${jail.name}
+                                                            </a>
+                                                        </li>
+                                                    % endfor
+                                                </ol>
+                                                <ol>
+                                                    % for jailId, jail in jailList:
+                                                        <li>
+                                                            <a href="/jails/delete/${jailId}">
+                                                                Delete
+                                                            </a>
+                                                        </li>
+                                                    % endfor
+                                                </ol>
+                                        % endif
+                                    </li>
+                                % endfor
                         % endif
-                    % endfor
-                % endif
-            </div>
-        % endfor
+                    </ol>
+                </li>
+            % endfor
+        </ol>
     </div>
 % endif
 

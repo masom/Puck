@@ -6,26 +6,38 @@ h2 a {
     font-size: 60%;
 }
 
-div.section {
+li.section {
     display: block;
-    float: none;
+    margin-left: 0px;
 }
 
-div.section > h3 {
+div.index > ol {
+    margin-left: -30px;
+
+}
+li.section > h3 {
     margin: 5px;
     line-height: 60%;
 }
-div.section > h4 {
+li.section > ol {
+    margin-left: -25px;
+}
+li.subsection {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 10px;
+}
+li.subsection > h4 {
     margin-top: 0px;
     margin-bottom: 0px;
-    margin-left: 20px;
+    background-color: #EEE;
 }
 
-div.index ol {
+li.subsection ol {
     display: inline-block;
     margin-top: 5px;
+    margin-left: -20px;
     list-style: none;
-    width: 80px;
 
 }
 

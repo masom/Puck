@@ -24,7 +24,7 @@ class Jails(Controller):
             raise cherrypy.HTTPRedirect("/jails")
 
         env = dict(
-                environments=self.Enviroment.get(),
+                environments=self.Environment.get().items(),
                 jailTypes=self.Jail.types()
         )
         return self.render("jails/add.html", crumbs=self.crumbs, **env)
