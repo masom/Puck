@@ -19,7 +19,73 @@ import os, urllib2, urllib, json
 import cherrypy
 from vm import VM
 
-class JSONRequest(object):
+class MockRequester(object):
+    '''
+    This mimick a requester. Used by unit tests.
+    '''
+    def __init__(self, base):
+        pass
+
+    def post(self, resource, data=''):
+        return self._switch(resource)
+
+    def get(self, resource, **params):
+        return self._switch(resource)
+
+    def put(self, resource, data=''):
+        return self._switch(resource)
+
+    def _switch(self, resource):
+        method = {
+            'registration': self._getRegistration,
+            'jails': self._getJails,
+            'keys': self._getKeys,
+            'environments': self._getEnvironments
+        }.get(resource, None)
+        if not method:
+            raise NotImplementedError()
+        return method()
+
+    def _getRegistration(self):
+        return {'id': 'ABC-DEF'}
+
+    def _getJails(self):
+        jails = {'content': {}, 'database': {}, 'support': {}}
+
+        jails['content']['1'] = {'id': '1', 'type': 'content', 'url': 'http://localhost', 'name': 'Content', 'ip': '10.0.0.10'}
+        jails['content']['4'] = {'id': '4', 'type': 'content', 'url': 'http://localhost', 'name': 'Content w/ xdebug', 'ip': '10.0.0.10'}
+
+        jails['database']['2'] = {'id':'2', 'type': 'database', 'url': 'http://localhost', 'name': 'Database', 'ip': '10.0.0.11'}
+        jails['database']['5'] = {'id':'5', 'type': 'database', 'url': 'http://localhost', 'name': 'Database w/ new PMS', 'ip': '10.0.0.11'}
+        jails['support']['3'] = {'id': '3', 'type': 'support', 'url': 'http://localhost', 'name': 'Support', 'ip': '10.0.0.12'}
+        return jails
+
+    def _getKeys(self):
+        keys = {
+            'derp': {
+                'id': 'derp',
+                'name': 'Martin Samson',
+                'key': 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArsIuqG9Wictam3s6cwQdW0eedJYuoMbvF7kJ9oFprfo1UEsep30G67SPSUNwuIOIqvUwErFkiNAGjTqdnL8g7PHUInLojM3KQSGSvPgYYAZz9u9wYTy5vv2f/EphBx+FytISjoW1gL8CoiP/kX0vDLpDJnFeRQ/RbvRbiws49r/yqqf/KqXM/fwl1nhQeqwNS6K8kv3H8aaaq7cHqky0xbiDf7astFQq++jRjLIx6xX0NdU8P36IwdMFoQXdnh1B8OvMuyCxHj9y5B2wN2H/1kA0tk0dEQa1BtKNqpJF8HD2AbcTGzYczcvaCMbMV1qJe5/YTQMxjullp2cz/83Hjw=='
+            },
+            'derpy': {
+                'id': 'derpy',
+                'name': 'Derpy Samson',
+                'key': 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArsIuqG9Wictam3sDERPedJYuoMbvF7kJ9oFprfo1UEsep30G67SPSUNwuIOIqvUwErFkiNAGjTqdnL8g7PHUInLojM3KQSGSvPgYYAZz9u9wYTy5vv2f/EphBx+FytISjoW1gL8CoiP/kX0vDLpDJnFeRQ/RbvRbiws49r/yqqf/KqXM/fwl1nhQeqwNS6K8kv3H8aaaq7cHqky0xbiDf7astFQq++jRjLIx6xX0NdU8P36IwdMFoQXdnh1B8OvMuyCxHj9y5B2wN2H/1kA0tk0dEQa1BtKNqpJF8HD2AbcTGzYczcvaCMbMV1qJe5/YTQMxjullp2cz/83Hjw=='
+            }
+        }
+        return keys
+
+    def _getEnvironments(self):
+        environments = {
+            'dev': 'Development',
+            'testing': 'Testing',
+            'qa': 'Quality Assurance',
+            'staging': 'Staging',
+            'prod': 'Production'
+        }
+        return environments
+
+class JSONRequester(object):
     '''
     Handles commmunication with Puck using JSON for data encoding.
     '''
@@ -34,8 +100,8 @@ class JSONRequest(object):
         return self._request('POST', resource, data=data)
 
     def get(self, resource, **params):
-	if params:
-		resource += '?' + urllib.urlencode(params)
+        if params:
+            resource += '?' + urllib.urlencode(params)
         return json.load(self._request('GET', resource))
 
     def put(self, resource, data=''):
@@ -54,16 +120,16 @@ class Puck(object):
     '''
     Puck API Client
     '''
-    def __init__(self):
+    def __init__(self, vm=VM, transport=JSONRequester):
         self._registration = None
 
         self._registration_file = cherrypy.config.get('puck.registration_file')
-        self._puck = JSONRequest(cherrypy.config.get('puck.api_url'))
+        self._puck = transport(cherrypy.config.get('puck.api_url'))
 
         if not self.register():
             raise LookupError()
 
-        self._vm = VM(self._registration)
+        self._vm = vm(self._registration)
 
     def getVM(self):
         '''

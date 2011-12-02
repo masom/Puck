@@ -1,5 +1,5 @@
 import unittest, cherrypy, os
-from lib.puck import Puck
+from lib.puck import Puck, MockRequester
 from lib.vm import VM
 
 def getConf():
@@ -50,19 +50,19 @@ cherrypy.config.update(getConf())
 class PuckTest(unittest.TestCase):
 
     def testInit(self):
-        p = Puck()
+        p = Puck(transport=MockRequester)
         self.assertTrue(isinstance(p, Puck))
 
     def testGetVM(self):
-        p = Puck()
+        p = Puck(transport=MockRequester)
         self.assertTrue(isinstance(p.getVM(), VM))
 
     def test_GetRegistration(self):
-        p = Puck()
+        p = Puck(transport=MockRequester)
         self.assertNotEqual(p._getRegistration(), "", "Registration is empty!")
 
     def test_loadRegistration(self):
-        p = Puck()
+        p = Puck(transport=MockRequester)
         p._registration_file = '/tmp/non-existent-reg'
         self.assertRaises(IOError, p._loadRegistration)
 
@@ -73,8 +73,8 @@ class PuckTest(unittest.TestCase):
         self.assertEqual(4, p._loadRegistration(), "Registration data length does not match expected.")
 
     def test_GetJails(self):
-        p = Puck()
-        jails = p.getJails()
+        p = Puck(transport=MockRequester)
+        jails = p.getJails(None)
         self.assertTrue(isinstance(jails, dict), "getJails() did not return a dictionary.")
         self.assertGreater(len(jails.keys()), 0)
 
@@ -84,7 +84,7 @@ class PuckTest(unittest.TestCase):
                 self.assertEqual(jails[k][i].keys().sort(), getJail().keys().sort(), "getJails dict keys are not the same as expected.")
 
     def test_GetKeys(self):
-        p = Puck()
+        p = Puck(transport=MockRequester)
         keys = p.getKeys()
         self.assertTrue(isinstance(keys, dict))
         self.assertGreater(len(keys.keys()), 0)
@@ -93,7 +93,7 @@ class PuckTest(unittest.TestCase):
             self.assertEqual(keys[k].keys().sort(), getKey().keys().sort(), "getKeys dict keys are not the same as expected.")
 
     def test_GetEnvironments(self):
-        p = Puck()
+        p = Puck(transport=MockRequester)
         env = p.getEnvironments()
         self.assertTrue(isinstance(env, dict))
         self.assertGreater(len(env.keys()), 0)
