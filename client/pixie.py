@@ -15,10 +15,17 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
+
+if not __name__ == "__main__":
+    raise SystemError("Pixie cannot be imported.")
+
 import os, sys, time
+
 if not sys.version_info >= (2,7):
-    print "Python 2.7 is required for Pixie."
-    os._exit(1)
+    sys.exit("Python 2.7 is required for Pixie.")
+
+if not os.geteuid()==0:
+    sys.exit("\nPixie must be run as root.\n")
 
 import cherrypy
 from lib.vm import VM
@@ -41,9 +48,6 @@ class Root(Controller):
             VM=self._puck.getVM()
         )
         return self.render('/index.html', **env)
-
-if not __name__ == "__main__":
-    raise SystemError("Pixie cannot be imported.")
 
 if not len(sys.argv) == 2:
     print "Usage:"
