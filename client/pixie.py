@@ -15,8 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import cherrypy, os, sys, time
+import os, sys, time
+if not sys.version_info >= (2,7):
+    print "Python 2.7 is required for Pixie."
+    os._exit(1)
 
+import cherrypy
 from lib.vm import VM
 from lib.puck import Puck
 from lib.jails import *
