@@ -1,9 +1,13 @@
 <%inherit file="/layouts/default.html" />
 
-
 <%block name="css"> 
     <link type="text/css" rel="stylesheet" href="/static/css/form.css">
 </%block>
+
+<%block name="header">
+    Jails Management
+</%block>
+
 <form class="basic" name="jails" method="post" action="/jails/add">
     <fieldset>
         <legend>Jail</legend>
