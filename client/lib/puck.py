@@ -23,7 +23,7 @@ class MockRequester(object):
     '''
     This mimick a requester. Used by unit tests.
     '''
-    def __init__(self, base):
+    def __init__(self):
         pass
 
     def post(self, resource, data=''):
@@ -89,8 +89,8 @@ class JSONRequester(object):
     '''
     Handles commmunication with Puck using JSON for data encoding.
     '''
-    def __init__(self, base):
-        self._base = base
+    def __init__(self):
+        self._base = cherrypy.config.get('puck.api_url')
 
         opener = urllib2.build_opener(urllib2.HTTPHandler)
         self._open = opener.open
@@ -120,11 +120,15 @@ class Puck(object):
     '''
     Puck API Client
     '''
-    def __init__(self, vm=VM, transport=JSONRequester):
+    def __init__(self, vm=VM, transport=None):
         self._registration = None
 
         self._registration_file = cherrypy.config.get('puck.registration_file')
-        self._puck = transport(cherrypy.config.get('puck.api_url'))
+
+        if not transport:
+            transport = cherrypy.config.get('puck.transport')
+
+        self._puck = transport()
 
         if not self.register():
             raise LookupError()

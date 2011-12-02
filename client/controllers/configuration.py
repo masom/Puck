@@ -10,7 +10,7 @@ class ConfigurationController(Controller):
         self._puck = puck
         self._vm = puck.getVM()
 
-    def __canVMBeModified(self):
+    def __assert_vm_is_modifiable(self):
         '''
         Checks if the VM can be modified.
         '''
@@ -19,9 +19,17 @@ class ConfigurationController(Controller):
             cherrypy.session['flash'] = "The virtual machine may not be modified at this time."
             raise cherrypy.HTTPRedirect('/')
 
+    def __assert_env_set(self):
+        '''
+        Checks if the VM environment has been set
+        '''
+        if not self._vm.environment:
+            cherrypy.session['flash'] = "You must first select an environment."
+            raise cherrypy.HTTPRedirect('/configure/')
+
     @cherrypy.expose
     def index(self):
-        self.__canVMBeModified()
+        self.__assert_vm_is_modifiable()
 
         env = dict(   
             VM=self._vm,
@@ -30,7 +38,7 @@ class ConfigurationController(Controller):
         return self.render("/configure/index.html", **env)
     @cherrypy.expose
     def environment(self, *args, **kwargs):
-        self.__canVMBeModified()
+        self.__assert_vm_is_modifiable()
 
         environments = self._puck.getEnvironments()
 
@@ -50,7 +58,8 @@ class ConfigurationController(Controller):
 
     @cherrypy.expose
     def jails(self, *args, **kwargs):
-        self.__canVMBeModified()
+        self.__assert_vm_is_modifiable()
+        self.__assert_env_set()
 
         jails = self._puck.getJails(self._vm.environment)
 
@@ -81,7 +90,7 @@ class ConfigurationController(Controller):
 
     @cherrypy.expose
     def keys(self, *args, **kwargs):
-        self.__canVMBeModified()
+        self.__assert_vm_is_modifiable()
 
         keys = self._puck.getKeys()
 
@@ -110,7 +119,7 @@ class ConfigurationController(Controller):
 
     @cherrypy.expose
     def save(self):
-        self.__canVMBeModified()
+        self.__assert_vm_is_modifiable()
 
         if not cherrypy.request.method == "POST":
             raise cherrypy.HTTPRedirect('/configure/')
