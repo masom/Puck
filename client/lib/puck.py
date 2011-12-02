@@ -20,6 +20,9 @@ import cherrypy
 from vm import VM
 
 class JSONRequest(object):
+    '''
+    Handles commmunication with Puck using JSON for data encoding.
+    '''
     def __init__(self, base):
         self._base = base
 
@@ -33,7 +36,7 @@ class JSONRequest(object):
     def get(self, resource, **params):
 	if params:
 		resource += '?' + urllib.urlencode(params)
-        return self._request('GET', resource)
+        return json.load(self._request('GET', resource))
 
     def put(self, resource, data=''):
         return self._request('PUT', resource, data=data)
@@ -62,11 +65,17 @@ class Puck(object):
 
         self._vm = VM(self._registration)
 
-
     def getVM(self):
+        '''
+        Returns the VM instance the API is attached to.
+        '''
         return self._vm
 
     def register(self):
+        '''
+        Register the VM to puck.
+        Essentially it lets puck know the VM exists.
+        '''
         if not os.path.exists(self._registration_file):
             self._getRegistration()
             return self._saveRegistration()
@@ -77,7 +86,10 @@ class Puck(object):
         return self._saveRegistration()
 
     def _getRegistration(self):
-        info = json.load(self._puck.post('registration'))
+        '''
+        Post the VM to puck and receive back the registration details.
+        '''
+        info = self._puck.post('registration')
         self._registration = info['id']
 
     def _loadRegistration(self):
@@ -97,16 +109,31 @@ class Puck(object):
         return True
 
     def getJails(self, env):
-        return json.load(self._puck.get('jails', environment=env))
+        '''
+        Get the jail list assigned to the designated environment.
+        '''
+        return self._puck.get('jails', environment=env)
 
     def updateStatus(self):
+        '''
+        Tell Puck about VM status changes
+        '''
         pass
 
     def updateConfig(self):
+        '''
+        Send to PUCK the VM configuration.
+        '''
         pass
 
     def getKeys(self):
-	    return json.load(self._puck.get("keys"))
+        '''
+        Get a list of public ssh keys from Puck.
+        '''
+        return self._puck.get("keys")
 
     def getEnvironments(self):
-        return json.load(self._puck.get('environments'))
+        '''
+        Get the environment list.
+        '''
+        return self._puck.get('environments')

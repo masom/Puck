@@ -27,6 +27,11 @@ if not sys.version_info >= (2,7):
 if not os.geteuid()==0:
     sys.exit("\nPixie must be run as root.\n")
 
+if not len(sys.argv) == 2:
+    print "Usage:"
+    print "\tpython pixie.py pixie.conf"
+    os._exit(1)
+
 import cherrypy
 from lib.vm import VM
 from lib.puck import Puck
@@ -48,11 +53,6 @@ class Root(Controller):
             VM=self._puck.getVM()
         )
         return self.render('/index.html', **env)
-
-if not len(sys.argv) == 2:
-    print "Usage:"
-    print "\tpython pixie.py pixie.conf"
-    os._exit(1)
 
 cherrypy.config.update(sys.argv[1])
 conf = {
