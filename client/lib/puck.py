@@ -19,7 +19,7 @@ import os, urllib2, urllib, json
 import cherrypy
 from vm import VM
 
-class MockRequester(object):
+class MockTransport(object):
     '''
     This mimick a requester. Used by unit tests.
     '''
@@ -85,7 +85,7 @@ class MockRequester(object):
         }
         return environments
 
-class JSONRequester(object):
+class JSONTransport(object):
     '''
     Handles commmunication with Puck using JSON for data encoding.
     '''
