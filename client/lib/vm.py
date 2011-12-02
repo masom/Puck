@@ -86,6 +86,11 @@ class VM(object):
         self.jails.load(data['jails'])
 
     def persist(self):
+        data = self.getConfiguration()
+        with open(self._persist_file, 'w') as f:
+            f.write(json.dumps(data, sort_keys=True, indent=4))
+
+    def getConfiguration(self):
         data = {}
         data['id'] = self.id
         data['jails'] = self.jails.export()
@@ -93,9 +98,7 @@ class VM(object):
         data['status'] = self.status
         data['environment'] = self.environment
         data['configured'] = self.configured
-
-        with open(self._persist_file, 'w') as f:
-            f.write(json.dumps(data, sort_keys=True, indent=4))
+        return data
 
     def configurationValid(self):
         listItems = [self.jails.get(), self.keys]

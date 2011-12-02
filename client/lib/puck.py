@@ -184,13 +184,13 @@ class Puck(object):
         '''
         Tell Puck about VM status changes
         '''
-        pass
+        self._puck.put('status', data=self.vm.status)
 
     def updateConfig(self):
         '''
         Send to PUCK the VM configuration.
         '''
-        pass
+        self._puck.put('config', data=self._vm.getConfiguration())
 
     def getKeys(self):
         '''
