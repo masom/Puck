@@ -75,12 +75,12 @@ root.setup = SetupController(puck)
 
 cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
 cherrypy.engine.vmsetup.subscribe()
+cherrypy.engine.signal_handler.subscribe()
 
 app = cherrypy.tree.mount(root, '/', conf)
 
-if hasattr(cherrypy.engine, "signal_handler"):
-    cherrypy.engine.signal_handler.subscribe()
 if hasattr(cherrypy.engine, "console_control_handler"):
     cherrypy.engine.console_control_handler.subscribe()
+
 cherrypy.engine.start()
 cherrypy.engine.block()
