@@ -39,6 +39,9 @@ We plan to open source our base flavour and the tool to sync the installed ports
 LGPL v3
 
 # See
-http://www.freshports.org/archivers/rpm4/Makefile
-http://en.wikipedia.org/wiki/Puck_(mythology)
+- http://freebsd.org
+- http://erdgeist.org/arts/software/ezjail/
+- http://www.freshports.org/archivers/rpm4/Makefile
+- http://openstack.org/
+- http://en.wikipedia.org/wiki/Puck_(mythology)
 
