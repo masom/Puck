@@ -102,7 +102,7 @@ class ApiYum(ApiCall):
 class Api(Controller):
     models = []
     sub = [ApiRegistration, ApiKeys, ApiStatus, ApiConfig,
-           ApiEnvironments, ApiJails]
+           ApiEnvironments, ApiJails, ApiYum]
 
     def __init__(self, models):
         Controller.__init__(self, models)

@@ -24,6 +24,7 @@ root = controllers.Root('db.sqlite3')
 root.add('jails', controllers.Jails)
 root.add('keys', controllers.Keys)
 root.add('api', controllers.Api)
+root.add('repos', controllers.Repos)
 root.load()
 
 def connect(thread_index):
@@ -52,7 +53,7 @@ if __name__ == "__main__":
     })
 
     conn = sqlite3.connect(root._db)
-    models.migrate(conn, [models.Key, models.Jail])
+    models.migrate(conn, [models.Key, models.Jail, models.YumRepo])
     conn.commit()
     conn.close()
             
