@@ -137,13 +137,13 @@ class JailConfigTask(SetupTask):
                 self.log("Flavour `%s` directory is missing in `%s" % (jail.type, flavour_dir))
                 return False
 
-            if not self._writeKeys(authorized_key_file):
+            if not self._writeKeys(jail, authorized_key_file):
                 return False
 
-            if not self._writeResolvConf(resolv_file):
+            if not self._writeResolvConf(jail, resolv_file):
                 return False
 
-            if not self._writeYumRepoConf(yum_file):
+            if not self._writeYumRepoConf(jail, yum_file):
                 return False
 
             if not self._createJail(jail):
@@ -151,7 +151,7 @@ class JailConfigTask(SetupTask):
         self.log('Completed')
         return True
 
-    def _writeKeys(self, authorized_key_file):
+    def _writeKeys(self, jail, authorized_key_file):
         '''Write authorized keys'''
 
         try:
@@ -163,7 +163,7 @@ class JailConfigTask(SetupTask):
             return False
         return True
 
-    def _writeResolvConf(self, resolv_file):
+    def _writeResolvConf(self, jail, resolv_file):
         '''Copy resolv.conf'''
 
         try:
@@ -173,7 +173,7 @@ class JailConfigTask(SetupTask):
             return False
         return True
 
-    def _writeYumRepoConf(self, yum_file):
+    def _writeYumRepoConf(self, jail, yum_file):
         '''Setup yum repo.d file ezjail will use.'''
 
         try:

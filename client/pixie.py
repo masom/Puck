@@ -75,6 +75,8 @@ root.setup = SetupController(puck)
 
 cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
 cherrypy.engine.vmsetup.subscribe()
+
+cherrypy.process.plugins.SignalHandler.handlers['SIGINT'] = cherrypy.engine.exit
 cherrypy.engine.signal_handler.subscribe()
 
 app = cherrypy.tree.mount(root, '/', conf)
