@@ -121,7 +121,7 @@ class JailConfigTask(SetupTask):
     def run(self):
         self.log('Started')
 
-        jail_dir = cherrypy.request.app.config['SetupPlugin'].get('jail_dir')
+        jail_dir = cherrypy.config.get('setup_plugin.jail_dir')
         flavour_dir = "%s/flavours" % jail_dir
 
         for jail in self.vm.jails:
