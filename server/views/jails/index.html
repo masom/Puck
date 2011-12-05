@@ -20,33 +20,33 @@
                         % if not len(types):
                             <li>No jails are set for this environment</li>
                         % else:
-                                % for type_, jailList in types.iteritems():
-                                    <li class="subsection"> 
-                                        <h4>${type_}</h4>
-                                        % if not len(jailList):
-                                            <div>No jails are set for this type</div>
-                                        % else:
-                                                <ol>
-                                                    % for jailId, jail in jailList:
-                                                        <li>
-                                                            <a href="/jails/view/${jailId}">
-                                                                ${jail.name}
-                                                            </a>
-                                                        </li>
-                                                    % endfor
-                                                </ol>
-                                                <ol>
-                                                    % for jailId, jail in jailList:
-                                                        <li>
-                                                            <a href="/jails/delete/${jailId}">
-                                                                Delete
-                                                            </a>
-                                                        </li>
-                                                    % endfor
-                                                </ol>
-                                        % endif
-                                    </li>
-                                % endfor
+                            % for type_, jailList in types.iteritems():
+                                <li class="subsection"> 
+                                    <h4>${type_}</h4>
+                                    % if not len(jailList):
+                                        <div>No jails are set for this type</div>
+                                    % else:
+                                        <ol>
+                                            % for jailId, jail in jailList:
+                                                <li>
+                                                    <a href="/jails/view/${jailId}">
+                                                        ${jail.name}
+                                                    </a>
+                                                </li>
+                                            % endfor
+                                        </ol>
+                                        <ol>
+                                            % for jailId, jail in jailList:
+                                                <li>
+                                                    <a href="/jails/delete/${jailId}">
+                                                        Delete
+                                                    </a>
+                                                </li>
+                                            % endfor
+                                        </ol>
+                                    % endif
+                                </li>
+                            % endfor
                         % endif
                     </ol>
                 </li>

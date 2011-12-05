@@ -32,6 +32,8 @@ class Launcher(object):
 
     def launch(self):
         name = self.VM._newId()
+        while os.path.exists("%s.vdi" % name):
+            name = self.VM._newId()
 
         vm = "VBoxManage"
 
@@ -55,7 +57,8 @@ class Launcher(object):
         retcode = call([vm, "modifyvm", name, 
                             "--memory", "1024"])
         retcode = call([vm, "modifyvm", name, 
-                            "--nic1", "bridged"])
+                            "--nic1", "bridged",
+                            "--bridgeadapter1", "eth0"])
         retcode = call([vm, "createhd", 
                             "--filename",  "%s.vdi" % name, 
                             "--size", "8096", 
