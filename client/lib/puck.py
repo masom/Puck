@@ -40,7 +40,8 @@ class MockTransport(object):
             'registration': self._getRegistration,
             'jails': self._getJails,
             'keys': self._getKeys,
-            'environments': self._getEnvironments
+            'environments': self._getEnvironments,
+            'yum-repo': self._getYumRepo,
         }.get(resource, None)
         if not method:
             raise NotImplementedError()
@@ -84,6 +85,18 @@ class MockTransport(object):
             'prod': 'Production'
         }
         return environments
+
+    def _getYumRepo(self):
+        repo = '''[fedora]
+        name=Fedora $releasever - $basearch
+        failovermethod=priority
+        #baseurl=http://download.fedoraproject.org/pub/fedora/linux/releases/$releasever/Everything/$basearch/os/
+        mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=fedora-$releasever&arch=$basearch
+        enabled=1
+        metadata_expire=7d
+        gpgcheck=1
+        gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$basearch'''
+        return repo
 
 class JSONTransport(object):
     '''
@@ -222,3 +235,9 @@ class Puck(object):
         Get the environment list.
         '''
         return self._puck.get('environments')
+
+    def getYumRepo(self, env):
+        '''
+        Get the YUM repository configuration file.
+        '''
+        return self._puck.get('yum_repo', environment=env)

@@ -83,11 +83,12 @@ class EZJailSetupTask(SetupTask):
             '''Extraction'''
             try:
                 with tarfile.open(file['tmp_file'], mode='r:*') as t:
-                    if not t.getmember(file['type']):
-                        raise tarfile.ExtractError("Member `%s` not found." % file['type'])
+                    '''Will raise KeyError if file does not exists.'''
+                    if not t.getmember(file['type']).isdir():
+                        raise tarfile.ExtractError("Tar member `%s` is not a folder." % file['type'])
                     t.extractall("%s/" % dst_dir)
-            except IOError as e:
-                self.log("Critical error! File `%s` could not be extracted. Reason: %s" % e)
+            except (IOError, KeyError, tarfile.ExtractError) as e:
+                self.log("Critical error! File `%s` could not be extracted. Reason: %s" % (file['tmp_file'], e))
 
             '''Remove the temporary tarball'''
             try:
@@ -139,13 +140,16 @@ class JailConfigTask(SetupTask):
                 self.log("Flavour `%s` directory is missing in `%s" % (jail.type, flavour_dir))
                 return False
 
+            yum_repo = self.puck.getYumRepo(self.vm.environment)
+
+
             if not self._writeKeys(jail, authorized_key_file):
                 return False
 
             if not self._writeResolvConf(jail, resolv_file):
                 return False
 
-            if not self._writeYumRepoConf(jail, yum_file):
+            if not self._writeYumRepoConf(yum_repo, yum_file):
                 return False
 
             if not self._createJail(jail):
@@ -175,13 +179,13 @@ class JailConfigTask(SetupTask):
             return False
         return True
 
-    def _writeYumRepoConf(self, jail, yum_file):
+    def _writeYumRepoConf(self, yum_repo, yum_file):
         '''Setup yum repo.d file ezjail will use.'''
 
         try:
             with open(yum_file, 'w') as f:
-                f.write(self.vm.yumRepoData)
-        except IOError as e:
+                f.write(yum_repo['data'])
+        except (KeyError, IOError) as e:
             self.log("Error while writing YUM repo data: %s" % e)
             return False
         return True

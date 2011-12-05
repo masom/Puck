@@ -39,7 +39,7 @@ class VM(object):
         self._load()
 
     def update(self, **kwargs):
-        valid = ['keys', 'environment', 'environments']
+        valid = ['keys', 'environment']
         for key in kwargs:
             if not key in valid:
                 continue
@@ -58,7 +58,7 @@ class VM(object):
                 continue
             jail = self.jails.create(data)
             self.jails.add(jail)
-
+        
     def _load(self):
         if not os.path.exists(self._persist_file):
             return
