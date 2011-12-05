@@ -5,7 +5,7 @@ Copyright (C) 2011  The Hotel Communication Network inc.
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+(at your option) any later version.f
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -52,7 +52,11 @@ class Jails(object):
         if not jail.id in self._jails:
             raise KeyError()
 
-        #@todo: Stop the jail / delete it
+        try:
+            self._jails[jail.id].stop()
+            self._jails[jail.id].delete()
+        except KeyError as e:
+            pass
         del(self._jails[jail.id])
 
     def contain(self, id):
@@ -104,15 +108,15 @@ class Jail(object):
         return
 
     def start(self):
-        return self._manager.start(self._data['name'])
+        return self._manager.start(self._data['type'])
     def stop(self):
-        return self._manager.stop(self._data['name'])
+        return self._manager.stop(self._data['type'])
     def status(self):
-        return self._manager.status(self._data['name'])
+        return self._manager.status(self._data['type'])
     def create(self):
-        return self._manager.create(self, self._data['flavour'], self._data['name'], self._data['ip'])
+        return self._manager.create(self, self._data['flavour'], self._data['type'], self._data['ip'])
     def delete(self):
-        return self._manager.delete(self._data['name'])
+        return self._manager.delete(self._data['type'])
 
 class EzJail(object):
 
@@ -165,19 +169,15 @@ class EzJail(object):
 
         command = "ezjail-admin list"
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
-        data = stdoutdata.splitlines(True)
+        data = stdoutdata.split().splitlines(True)
         if not jail:
             return data
 
-        for line in data:
+        for line in data[2:]:
             found = line.find(jail)
             if found < 0:
-                #Line is not about this jail
                 continue
-
-            #@TODO: Parse line
-            return line
-
+            return data[:2] + [line]
         raise KeyError("Jail not found.")
         
     def create(self, flavour, name, ip):
@@ -195,14 +195,7 @@ class EzJail(object):
     def delete(self, jail):
         '''
         Deletes a jail from the system
-        @raise KeyError when the jail does not exists.
         '''
-
-        '''
-        Here we just need to know the jail is listed.
-        `status` will raise KeyError if the jail does not exists.
-        '''
-        self.status(jail)
 
         commands = [
             "ezjail-admin stop %s" % jail,
