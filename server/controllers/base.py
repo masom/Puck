@@ -19,24 +19,20 @@ from collections import namedtuple
 
 import cherrypy
 
-from mako.template import Template
-from mako.lookup   import TemplateLookup
-
-
 Crumb = namedtuple("Crumb", ["url", "name"])
 
 class Controller(object):
-    lookup = TemplateLookup(directories=['views'])
     models = []
     sub = []
 
-    def __init__(self, models):
+    def __init__(self, lookup, models):
+        self._lookup = lookup
+
         for model in self.models:
             setattr(self, model.__name__, models[model])
             
-    @classmethod
-    def render(cls, template, crumbs=[], **variables):
-        tmpl = cls.lookup.get_template(template)
+    def render(self, template, crumbs=[], **variables):
+        tmpl = self._lookup.get_template(template)
         variables['flash'] = cherrypy.session.pop('flash', None)
         variables['breadcrumbs'] = crumbs
         return tmpl.render(**variables)

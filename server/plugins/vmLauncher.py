@@ -30,7 +30,7 @@ class Launcher(object):
         for cls in models:
             setattr(self, cls.__name__, models[cls])
 
-    def launch(self):
+    def launch(self, with_base=True):
         name = self.VM._newId()
         while os.path.exists("%s.vdi" % name):
             name = self.VM._newId()
@@ -49,6 +49,7 @@ class Launcher(object):
         if os.path.exists(tree):
             shutil.rmtree(tree)
 
+        hda = "%s.vdi" % name
 
         retcode = call([vm, "createvm", 
                             "--name", name, 
@@ -59,15 +60,18 @@ class Launcher(object):
         retcode = call([vm, "modifyvm", name, 
                             "--nic1", "bridged",
                             "--bridgeadapter1", "eth0"])
-        retcode = call([vm, "createhd", 
-                            "--filename",  "%s.vdi" % name, 
-                            "--size", "8096", 
-                            "--variant", "FIXED"])
+        if with_base:
+            shutil.copy('/usr/local/share/puck/base.vdi', hda)
+        else:
+            retcode = call([vm, "createhd", 
+                                "--filename",  hda,
+                                "--size", "8096", 
+                                "--variant", "FIXED"])
         retcode = call([vm, "storagectl", name, 
                             "--name", "IDE Controller",
                             "--add", "ide"])
         retcode = call([vm, "modifyvm", name, 
-                            "--hda", "%s.vdi" % name])
+                            "--hda", hda])
         retcode = call([vm, "storageattach", name, 
                             "--storagectl", "IDE Controller",
                             "--port", "1",

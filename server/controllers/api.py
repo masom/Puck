@@ -97,8 +97,8 @@ class Api(Controller):
     sub = [ApiRegistration, ApiKeys, ApiStatus, ApiConfig,
            ApiEnvironments, ApiJails]
 
-    def __init__(self, models):
-        Controller.__init__(self, models)
+    def __init__(self, _lookup, models):
+        Controller.__init__(self, None, models)
 
         self.registration = ApiRegistration(models)
         self.keys = ApiKeys(models)
