@@ -10,7 +10,7 @@ It is not yet ready for use (still integration work to be done between puck and 
 # Virtualization Support
 Current plans are to support VirtualBox, QEMU and OpenStack (euca2-tools).
 
-By supporting OpenStack, we probably can easily add Eucalyptus and EC2.
+By supporting OpenStack, we can probably easily add Eucalyptus and EC2.
 
 # Why RPM and YUM
 While the port system is great at creating the perfect server setup, handling package updates for the user software stack is a little bit more complex.
