@@ -166,14 +166,20 @@ class Puck(object):
     def _loadRegistration(self):
         '''
         Load the registration from persistent storage
+        @raise IOError when the file could not be read.
         '''
+
+        if not os.path.exists(self._registration_file):
+            return False
+
         with open(self._registration_file, 'r') as f:
             self._registration = f.readline().strip()
         return (len(self._registration))
 
     def _saveRegistration(self):
         '''
-        Save the registration code to persistent storage
+        Save the registration code to persistent storagea
+        @raise IOError when the file could not be written
         '''
         with open(self._registration_file, 'w') as f:
             f.write(self._registration)
