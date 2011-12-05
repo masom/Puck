@@ -91,6 +91,13 @@ class ApiJails(ApiCall):
                                     for jailId, jail in typJails)
         return result
 
+class ApiYum(ApiCall):
+    exposed = True
+    models = [models.YumRepo]
+
+    @cherrypy.tools.json_out()
+    def GET(self, environment=None):
+        return self.YumRepo.repos()[environment]['data']
 
 class Api(Controller):
     models = []
@@ -106,3 +113,4 @@ class Api(Controller):
         self.config = ApiConfig(models)
         self.environments = ApiEnvironments(models)
         self.jails = ApiJails(models)
+        self.yum_repo = ApiYum(models)

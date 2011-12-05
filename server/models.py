@@ -264,7 +264,13 @@ class Environment(Model):
     def get(self):
         return self._envs
 
-        
+class YumRepo(Model):
+    Table = sqltable("yum_repos", 
+                        "environment" & (Text | "PRIMARY KEY"),
+                        "data" & Text
+                    )
+    def items(self):
+        return list(self._select(orderBy=["environment"])) 
 
         
 def migrate(conn, models):
