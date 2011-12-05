@@ -83,10 +83,12 @@ class EZJailSetupTask(SetupTask):
             '''Extraction'''
             try:
                 with tarfile.open(file['tmp_file'], mode='r:*') as t:
-                    if not t.getmember(file['type']):
-                        raise tarfile.ExtractError("Member `%s` not found." % file['type'])
+                    '''Will raise KeyError if file does not exists.'''
+                    if not t.getmember(file['type']).isdir():
+                        raise tarfile.ExtractError("Tar member `%s` is not a folder." % file['type'])
+
                     t.extractall("%s/" % dst_dir)
-            except IOError as e:
+            except (IOError, KeyError, tarfile.ExtractError) as e:
                 self.log("Critical error! File `%s` could not be extracted. Reason: %s" % e)
 
             '''Remove the temporary tarball'''
