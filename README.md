@@ -7,6 +7,11 @@ We have pushed patches to freebsd ports for RPM and have upcoming ones for YUM.
 
 It is not yet ready for use (still integration work to be done between puck and pixie).
 
+# Virtualization Support
+Current plans are to support VirtualBox, QEMU and OpenStack (euca2-tools).
+
+By supporting OpenStack, we probably can easily add Eucalyptus and EC2.
+
 # Why RPM and YUM
 While the port system is great at creating the perfect server setup, handling package updates for the user software stack is a little bit more complex.
 Yum and RPM allows updating the stack more easily and most of all, it has great support for multiple channels (repos).
