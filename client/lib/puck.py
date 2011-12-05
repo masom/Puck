@@ -102,7 +102,7 @@ class JSONTransport(object):
     def get(self, resource, **params):
         if params:
             resource += '?' + urllib.urlencode(params)
-        return json.load(self._request('GET', resource))
+        return self._request('GET', resource)
 
     def put(self, resource, id, data=''):
         resource += '/%s' % id
@@ -115,7 +115,7 @@ class JSONTransport(object):
         request = urllib2.Request(self._resource(resource), data=data)
         request.add_header('Content-Type', 'application/json')
         request.get_method = lambda : method
-        return self._open(request)
+        return json.load(self._open(request))
 
 class Puck(object):
     '''
