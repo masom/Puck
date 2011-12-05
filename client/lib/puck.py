@@ -104,7 +104,8 @@ class JSONTransport(object):
             resource += '?' + urllib.urlencode(params)
         return json.load(self._request('GET', resource))
 
-    def put(self, resource, data=''):
+    def put(self, resource, id, data=''):
+        resource += '/%s' % id
         return self._request('PUT', resource, data=data)
 
     def _resource(self, *args):
@@ -188,13 +189,21 @@ class Puck(object):
         '''
         Tell Puck about VM status changes
         '''
-        self._puck.put('status', data=self.vm.status)
+        data = {
+                'id': self.vm.id,
+                'status': self.vm.status
+        }
+        self._puck.put('status', self.vm.id, data)
 
     def updateConfig(self):
         '''
         Send to PUCK the VM configuration.
         '''
-        self._puck.put('config', data=self._vm.getConfiguration())
+        data = {
+            'id': self.vm.id,
+            'config': self._vm.getConfiguration()
+        }
+        self._puck.put('config', self.vm.id, data)
 
     def getKeys(self):
         '''

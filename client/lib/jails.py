@@ -175,8 +175,10 @@ class EzJail(object):
                 #Line is not about this jail
                 continue
 
-            #TODO: Parse line
+            #@TODO: Parse line
             return line
+
+        raise KeyError("Jail not found.")
         
     def create(self, flavour, name, ip):
         '''
@@ -191,4 +193,20 @@ class EzJail(object):
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(cmd)).communicate()
 
     def delete(self, jail):
-        raise NotImplementedError()
+        '''
+        Deletes a jail from the system
+        @raise KeyError when the jail does not exists.
+        '''
+
+        '''
+        Here we just need to know the jail is listed.
+        `status` will raise KeyError if the jail does not exists.
+        '''
+        self.status(jail)
+
+        commands = [
+            "ezjail-admin stop %s" % jail,
+            "ezjail-admin delete -w %s" % jail
+        ]
+        for command in commands:
+            (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
