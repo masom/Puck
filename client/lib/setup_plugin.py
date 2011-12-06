@@ -68,10 +68,13 @@ class EZJailSetupTask(SetupTask):
         base_dir = cherrypy.config.get('setup_plugin.jail_dir')
         dst_dir = '%s/flavours' % base_dir
 
+        os.makedirs(dst_dir)
+
         '''Holds the temporary file list'''
         tmpfiles = self._retrieveFlavours()
         if not tmpfiles:
             return False
+
 
         '''Verify and extract the flavour tarball'''
         for file in tmpfiles:
