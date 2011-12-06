@@ -118,7 +118,7 @@ class Jail(object):
         Here we make the assumption the type is the same as the flavour...
         Will need to refactor for more global use than HCN's
         '''
-        return self._manager.create(self, self._data['type'], self._data['type'], self._data['ip'])
+        return self._manager.create(self._data['type'], self._data['type'], self._data['ip'])
     def delete(self):
         return self._manager.delete(self._data['type'])
 
@@ -196,6 +196,13 @@ class EzJail(object):
         cmd = "ezjail-admin create -f %s %s %s" % (flavour, name, ip)
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(cmd)).communicate()
 
+        print
+        print
+        print stdoutdata
+        print stderrdata
+        print
+        print
+
     def delete(self, jail):
         '''
         Deletes a jail from the system
@@ -207,3 +214,9 @@ class EzJail(object):
         ]
         for command in commands:
             (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+            print
+            print
+            print stdoutdata
+            print stderrdata
+            print
+            print
