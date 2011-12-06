@@ -103,7 +103,7 @@ class ApiYum(ApiCall):
             TODO: API ERROR HANDLING
             '''
             return
-        return repos[environment]['data']
+        return {'environment': environment, 'data': repos[environment]}
 
 class Api(Controller):
     models = []
