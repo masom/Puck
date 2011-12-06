@@ -6,7 +6,8 @@ class ConfigurationController(Controller):
     Handles configuration related controls.
     '''
 
-    def __init__(self, puck):
+    def __init__(self, lookup, puck):
+        Controller.__init__(self, lookup)
         self._puck = puck
         self._vm = puck.getVM()
 

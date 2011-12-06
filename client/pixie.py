@@ -15,8 +15,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
+import os 
 
 import cherrypy
+from mako.lookup import TemplateLookup
+
 from lib.vm import VM
 from lib.puck import Puck
 from lib.jails import *
@@ -26,9 +29,11 @@ from lib.controller import Controller
 from controllers.configuration import ConfigurationController
 from controllers.setup import SetupController
 
+
 class Root(Controller):
 
-    def __init__(self, puck):
+    def __init__(self, lookup, puck):
+        Controller.__init__(self, lookup)
         self._puck = puck
 
     @cherrypy.expose
@@ -52,13 +57,15 @@ CONF = {
 
 def argparser():
     import argparse
+
     parser = argparse.ArgumentParser(description="Puck client")
     parser.add_argument("-c", "--config", default="/etc/pixie.conf")
     parser.add_argument("-d", "--daemonize", action="store_true")
+    parser.add_argument("-t", "--templatedir", default=os.getcwd())
     return parser
 
 if __name__ == "__main__":
-    import os, sys
+    import os.path, sys
 
     if not sys.version_info >= (2,7):
         sys.exit("Python 2.7 is required for Pixie.")
@@ -69,6 +76,7 @@ if __name__ == "__main__":
     parser = argparser()
     args = parser.parse_args()
 
+
     if args.daemonize:
         daemonizer = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
         daemonizer.subscribe()
@@ -76,11 +84,16 @@ if __name__ == "__main__":
 
     cherrypy.config.update(args.config)
 
+    lookup = TemplateLookup(
+                    directories=[os.path.join(args.templatedir, reldir)
+                                    for reldir in ["html"]]
+        )
+
     puck = Puck()
 
-    root = Root(puck)
-    root.configure = ConfigurationController(puck)
-    root.setup = SetupController(puck)
+    root = Root(lookup, puck)
+    root.configure = ConfigurationController(lookup, puck)
+    root.setup = SetupController(lookup, puck)
 
     cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
     cherrypy.engine.vmsetup.subscribe()
