@@ -1,0 +1,14 @@
+<%inherit file="/layouts/default.html" />
+<%block name="header">
+    Repository Configuration Management
+</%block>
+
+<form name="keys" method="post" action="/repos/edit/${repo.environment}">
+	<input type="hidden" name="repo.environment" value="${repo.environment}" />
+    <div style="margin: 10px;">
+        <textarea id="data" name="repo.data" style="width: 600px; height: 500px;">${repo.data}</textarea>
+    </div>
+    <div>
+        <input type="submit" value="Update" />
+    </div>
+</form>

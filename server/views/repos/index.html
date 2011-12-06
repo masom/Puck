@@ -1,0 +1,23 @@
+<%inherit file="/layouts/default.html" />
+<%block name="header">
+    Repo Configuration Management
+</%block>
+<div>
+    <a href="/repos/add">
+        Add a new repository configuration
+    </a>
+</div>
+<h2>Repositories</h2>
+% if not len(repos):
+    <div>There are currently no registered repositories configuration.</div>
+% else:
+    <ul>
+        % for key in repos:
+            <li>
+                <a href="/repos/view/${key}">
+                    ${environments[key]}
+                </a>
+            </li>
+        % endfor
+    </ul>
+% endif

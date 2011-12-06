@@ -1,0 +1,21 @@
+<%inherit file="/layouts/default.html" />
+<%block name="header">
+    Repository Configuration Management
+</%block>
+
+<form name="keys" method="post" action="/repos/add">
+    <div>
+        <label for="name">Environment: </label>
+        <select id="name" name="repo.environment">
+        	% for env in available:
+        		<option value="${env}">${environments[env]}</option>
+        	% endfor
+        </select>
+    </div>
+    <div style="margin: 10px;">
+        <textarea id="data" name="repo.data" style="width: 600px; height: 500px;"></textarea>
+    </div>
+    <div>
+        <input type="submit" value="Add" />
+    </div>
+</form>

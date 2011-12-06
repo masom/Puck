@@ -273,8 +273,29 @@ class YumRepo(SQLModel):
                         "data" & Text,
                         primaryKey="environment"
                     )
+
+    def get(self, env):
+        query = "SELECT {fields} FROM {table} WHERE environment=?".format(
+            fields=','.join(self.Table._fields),
+            table=self.Table._name
+        )
+        crs = cherrypy.thread_data.db.cursor()
+        crs.execute(query, (env,))
+        return self.Table(*crs.fetchone())
+
+    def create(self, data):
+        for k in ['environment', 'data']:
+            if not 'repo.%s' % k in data:
+                raise KeyError("Missing data: `%s`" % k)
+        entity = {
+            'environment': data['repo.environment'],
+            'data': data['repo.data']
+        }
+        return self.new(entity)
+
     def update(self, data):
-        return self._update(data['id'], 'data', data['data'])
+        print data
+        return self._update(data['repo.environment'], 'data', data['repo.data'])
 
     def repos(self):
         _repos = self._select(orderBy=["environment"])
