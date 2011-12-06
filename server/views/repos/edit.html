@@ -4,9 +4,9 @@
 </%block>
 
 <form name="keys" method="post" action="/repos/edit/${repo.environment}">
-    <div>
-        <label for="data">Repository: </label>
-        <textarea id="data" name="repo.data"></textarea>
+	<input type="hidden" name="repo.environment" value="${repo.environment}" />
+    <div style="margin: 10px;">
+        <textarea id="data" name="repo.data" style="width: 600px; height: 500px;">${repo.data}</textarea>
     </div>
     <div>
         <input type="submit" value="Update" />

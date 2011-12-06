@@ -25,23 +25,31 @@ class Repos(Controller):
 
     @cherrypy.expose
     def index(self):
-        env = dict(repos=self.YumRepo.repos())
-        return self.render("repos/index.html", crumbs=self.crumbs[:-1], **env)
+        env = dict(
+            repos=self.YumRepo.repos(),
+            environments=self.Environment.get()
+        )
+        return self.render("/repos/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
     def add(self, **post):
         if post:
-            self.YumRepo.new(post)
-            cherrypy.session['flash'] = "Repo successfully added"
-            raise cherrypy.HTTPRedirect("/repos")
+            try:
+                self.YumRepo.create(post)
+                cherrypy.session['flash'] = "Repo successfully added"
+                raise cherrypy.HTTPRedirect("/repos/index")
+            except KeyError as e:
+                cherrypy.session['flash'] = "There was a problem adding the new repository: %s" % e
 
         '''
         Only list environments not having a repo.
         '''
         repos = self.YumRepo.repos()
-        environments = set(repos.keys()) - set(self.Environment.get().keys())
-        return self.render("repos/add.html", crumbs=self.crumbs, environments=environments)
+        environments = self.Environment.get()
+        available = set(self.Environment.get().keys()) - set(repos.keys())
+        return self.render("/repos/add.html", crumbs=self.crumbs, environments=environments, available=available)
 
+    @cherrypy.expose
     def edit(self, id, **post):
 
         repo = self.YumRepo.get(id)
@@ -52,8 +60,16 @@ class Repos(Controller):
             self.YumRepo.update(post)
             raise cherrypy.HTTPRedirect('/repos/view/%s' % id)
 
+        env = dict(
+            repo=repo,
+            env=self.Environment.get()[repo.environment]
+        )
+        return self.render("/repos/edit.html", crumbs=self.crumbs, **env)
+
     @cherrypy.expose
-    def view(self, keyId):
-        key = self.YumRepo.get(keyId)
-        env = dict(repo=repo)
-        return self.render("repos/view.html", crumbs=self.crumbs, **env)
+    def view(self, id):
+        env = dict(
+            repo=self.YumRepo.get(id),
+            env=self.Environment.get()[id]
+        )
+        return self.render("/repos/view.html", crumbs=self.crumbs, **env)

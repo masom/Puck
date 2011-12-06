@@ -12,10 +12,10 @@
     <div>There are currently no registered repositories configuration.</div>
 % else:
     <ul>
-        % for id, repo in repos:
+        % for key in repos:
             <li>
-                <a href="/repos/view/${keyId}">
-                    ${repo.environment}
+                <a href="/repos/view/${key}">
+                    ${environments[key]}
                 </a>
             </li>
         % endfor
