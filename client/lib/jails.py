@@ -114,7 +114,11 @@ class Jail(object):
     def status(self):
         return self._manager.status(self._data['type'])
     def create(self):
-        return self._manager.create(self, self._data['flavour'], self._data['type'], self._data['ip'])
+        '''
+        Here we make the assumption the type is the same as the flavour...
+        Will need to refactor for more global use than HCN's
+        '''
+        return self._manager.create(self, self._data['type'], self._data['type'], self._data['ip'])
     def delete(self):
         return self._manager.delete(self._data['type'])
 
