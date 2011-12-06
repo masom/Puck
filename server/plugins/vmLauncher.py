@@ -61,7 +61,9 @@ class Launcher(object):
                             "--nic1", "bridged",
                             "--bridgeadapter1", "eth0"])
         if with_base:
-            shutil.copy('/usr/local/share/puck/base.vdi', hda)
+            retcode = call([vm, "clonehd", 
+                                '/usr/local/share/puck/base.vdi', 
+                                hda])
         else:
             retcode = call([vm, "createhd", 
                                 "--filename",  hda,
