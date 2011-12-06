@@ -73,7 +73,7 @@ root = Root(puck)
 root.configure = ConfigurationController(puck)
 root.setup = SetupController(puck)
 
-daemonizer = cherrpy.process.plugins.Daemonizer(cherrpy.engine)
+daemonizer = cherrypy.process.plugins.Daemonizer(cherrpy.engine)
 daemonizer.subscribe()
 
 cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)

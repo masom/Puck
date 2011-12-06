@@ -226,8 +226,11 @@ class VM(SQLModel):
     def __init__(self, config):
         Model.__init__(self, config)
 
-        wordlist = ["apple", "banana", "carrot", "pepper", "orange",
-        "eggplant", "squash", ]
+        wordlist = ["apple", "banana", "carrot", "pepper", "salt", "orange",
+        "eggplant", "squash", "melon", "peach", "kale", "swiss chard",
+        "tomato", "potato", "onion", "grapefruit", "radish", "broccoli", 
+        "cilantro", "parsley", "plum", "scallion", "haberno", "strawberry",
+        "grape", "cranberry", "lemongrass", "sugarcane"]
         self._wordlist = deque(wordlist)
 
 
