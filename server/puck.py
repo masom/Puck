@@ -15,12 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
+import os
 import cherrypy, sqlite3
 from collections import namedtuple, OrderedDict
 import models, controllers
 
 
-root = controllers.Root('db.sqlite3')
+templatedir = os.getcwd()
+root = controllers.Root('db.sqlite3', templatedir)
 root.add('jails', controllers.Jails)
 root.add('keys', controllers.Keys)
 root.add('api', controllers.Api)
