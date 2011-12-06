@@ -295,7 +295,6 @@ class YumRepo(SQLModel):
         return self.new(entity)
 
     def update(self, data):
-        print data
         return self._update(data['repo.environment'], 'data', data['repo.data'])
 
     def repos(self):

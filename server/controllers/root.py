@@ -68,7 +68,6 @@ class Root(Controller):
             models.update(*(scls.models for scls in cls.sub))
 
         models = dict((cls, cls({})) for cls in models)
-        print(models)
 
         for route, cls in self._routes.iteritems():
             need = set(cls.models).union(*[scls.models for scls in cls.sub])
