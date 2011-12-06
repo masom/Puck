@@ -15,31 +15,23 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import os, os.path
-import sqlite3
+import cherrypy, sqlite3
 from collections import namedtuple, OrderedDict
-
-import cherrypy
-from cherrypy.process.plugins import Daemonizer
-
-
 import models, controllers
 
+
+root = controllers.Root('db.sqlite3')
+root.add('jails', controllers.Jails)
+root.add('keys', controllers.Keys)
+root.add('api', controllers.Api)
+root.add('repos', controllers.Repos)
+root.load()
 
 def connect(thread_index):
     cherrypy.thread_data.db = sqlite3.connect(root._db)
 
 if __name__ == "__main__":
-    basedir = os.getcwd()
-    d = Daemonizer(cherrypy.engine)
-    d.subscribe()
-
-    root = controllers.Root(os.path.join(basedir, 'db.sqlite3'), basedir)
-    root.add('jails', controllers.Jails)
-    root.add('keys', controllers.Keys)
-    root.add('api', controllers.Api)
-    root.load()
-
+    import os
     conf =  {
         '/' : { 
             'request.dispatch' : cherrypy.dispatch.Dispatcher(),
@@ -51,17 +43,17 @@ if __name__ == "__main__":
         '/static' : {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': 'static',
-            'tools.staticdir.root': basedir,
+            'tools.staticdir.root': os.getcwd(),
             'tools.staticdir.index': 'index.html'
         }
     }
     cherrypy.config.update({
-        'server.socket_port' : 80,
+        'server.socket_port' : 8080,
         'server.socket_host' : '0.0.0.0'
     })
 
     conn = sqlite3.connect(root._db)
-    models.migrate(conn, [models.Key, models.Jail])
+    models.migrate(conn, [models.Key, models.Jail, models.YumRepo])
     conn.commit()
     conn.close()
             

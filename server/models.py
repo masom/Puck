@@ -264,15 +264,19 @@ class Environment(Model):
     def get(self):
         return self._envs
 
-class YumRepo(Model):
+class YumRepo(SQLModel):
     Table = sqltable("yum_repos", 
                         "environment" & (Text | "PRIMARY KEY"),
-                        "data" & Text
+                        "data" & Text,
+                        primaryKey="environment"
                     )
-    def items(self):
-        return list(self._select(orderBy=["environment"])) 
+    def update(self, data):
+        return self._update(data['id'], 'data', data['data'])
 
-        
+    def repos(self):
+        _repos = self._select(orderBy=["environment"])
+        return dict((repo.environment, repo.data) for id, repo in _repos)
+
 def migrate(conn, models):
     crs = conn.cursor()
 
@@ -284,8 +288,10 @@ def migrate(conn, models):
         )
         exists = crs.fetchone() is not None
         if not exists:
+            cols = table._columns
             if table._primaryKey not in table._fields:
                 cols = (table._primaryKey & (Text | "PRIMARY KEY"),) + table._columns
+            
             query = "CREATE TABLE {name} {fields}".format(
                 name=table._name,
                 fields="(%s)" % ','.join("%s %s" % (col.name, col.type.toVal())
