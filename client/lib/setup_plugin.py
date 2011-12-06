@@ -68,11 +68,17 @@ class EZJailSetupTask(SetupTask):
         base_dir = cherrypy.config.get('setup_plugin.jail_dir')
         dst_dir = '%s/flavours' % base_dir
 
-        os.makedirs(dst_dir)
+        if not os.path.isdir(dst_dir):
+            try:
+                os.makedirs(dst_dir)
+            except OSError as e:
+                self.log('Critical error! Could not create folder `%s`' % dst_dir)
+                return False
 
         '''Holds the temporary file list'''
         tmpfiles = self._retrieveFlavours()
         if not tmpfiles:
+            self.log('No flavours downloaded.')
             return False
 
 

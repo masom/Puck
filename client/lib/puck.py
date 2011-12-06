@@ -128,6 +128,10 @@ class JSONTransport(object):
         request = urllib2.Request(self._resource(resource), data=data)
         request.add_header('Content-Type', 'application/json')
         request.get_method = lambda : method
+        
+        '''
+        TODO: Catch HTTPError and other error handling
+        '''
         return json.load(self._open(request))
 
 class Puck(object):
