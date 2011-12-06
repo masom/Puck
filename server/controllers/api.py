@@ -97,7 +97,13 @@ class ApiYum(ApiCall):
 
     @cherrypy.tools.json_out()
     def GET(self, environment=None):
-        return self.YumRepo.repos()[environment]['data']
+        repos = self.YumRepo.repos()
+        if not environment in repos:
+            '''
+            TODO: API ERROR HANDLING
+            '''
+            return
+        return repos[environment]['data']
 
 class Api(Controller):
     models = []
