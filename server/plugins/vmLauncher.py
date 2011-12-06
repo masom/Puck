@@ -41,7 +41,7 @@ class Launcher(object):
         if any(line.startswith('"%s"' % name)
                     for line in out.splitlines()):
             retcode = call([vm, "unregistervm", name])
-            retcode = call([vm, "closemedium", "disk", 
+            retcode = call([vm, "closemedium", "disk",
                                 "%s.vdi" % name, "--delete"])
 
         path = os.path.join("~", "VirtualBox VMs", name)
@@ -51,18 +51,18 @@ class Launcher(object):
 
         hda = "%s.vdi" % name
 
-        retcode = call([vm, "createvm", 
-                            "--name", name, 
+        retcode = call([vm, "createvm",
+                            "--name", name,
                             "--ostype", "FreeBSD",
                             "--register"])
-        retcode = call([vm, "modifyvm", name, 
+        retcode = call([vm, "modifyvm", name,
                             "--memory", "1024"])
-        retcode = call([vm, "modifyvm", name, 
+        retcode = call([vm, "modifyvm", name,
                             "--nic1", "bridged",
                             "--bridgeadapter1", "eth0"])
         if with_base:
-            retcode = call([vm, "clonehd", 
-                                '/usr/local/share/puck/base.vdi', 
+            retcode = call([vm, "clonehd",
+                                '/usr/local/share/puck/base.vdi',
                                 hda])
         else:
             retcode = call([vm, "createhd", 
@@ -74,9 +74,10 @@ class Launcher(object):
                             "--add", "ide"])
         retcode = call([vm, "modifyvm", name, 
                             "--hda", hda])
-        retcode = call([vm, "storageattach", name, 
-                            "--storagectl", "IDE Controller",
-                            "--port", "1",
-                            "--device", "0", 
-                            "--type", "dvddrive", 
+        if not with_base:
+            retcode = call([vm, "storageattach", name,
+                                "--storagectl", "IDE Controller",
+                                "--port", "1",
+                                "--device", "0",
+                                "--type", "dvddrive",
                             "--medium", ISO])
