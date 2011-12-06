@@ -244,14 +244,15 @@ class VM(SQLModel):
         if name is None:
             name = self._newId()
         vm = self.Table(name, ip, None, None)
+        self._insert(vm)
         return name
 
     def setStatus(self, vmId, status):
         self._update(vmId, 'status', status)
         
 
-    def statuses(self):
-        return list(self._select(fields=["status"]))
+    def list(self):
+        return list(self._select())
 
 class Environment(Model):
     def __init__(self, config):

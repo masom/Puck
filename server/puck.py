@@ -50,12 +50,12 @@ if __name__ == "__main__":
         }
     }
     cherrypy.config.update({
-        'server.socket_port' : 80,
+        'server.socket_port' : 8080,
         'server.socket_host' : '0.0.0.0'
     })
 
     conn = sqlite3.connect(root._db)
-    models.migrate(conn, [models.Key, models.Jail, models.YumRepo])
+    models.migrate(conn, [models.Key, models.Jail, models.VM, models.YumRepo])
     conn.commit()
     conn.close()
             

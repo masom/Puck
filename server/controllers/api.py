@@ -36,6 +36,7 @@ class ApiRegistration(ApiCall):
     @cherrypy.tools.json_out()
     def POST(self):
         name = self.VM.register(cherrypy.request.remote.ip)
+        print("REGISTRATION")
         return {
             'id' : name,
         }

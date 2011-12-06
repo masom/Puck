@@ -22,10 +22,13 @@ from mako.lookup   import TemplateLookup
 
 from controllers.base import *
 import plugins.vmLauncher as vmLauncher
+import models
 
 
 class Root(Controller):
+    crumbs = [Crumb("/", "Home")]
     plugins = [vmLauncher.Launcher]
+    models = [models.VM]
 
     def __init__(self, db, templatedir):
         lookup  = TemplateLookup(
@@ -33,7 +36,7 @@ class Root(Controller):
                                             for relative in ["views"]]
                         )
 
-        Controller.__init__(self, lookup, {})
+        Controller.__init__(self, lookup, dict((m, None) for m in self.models))
         self._db = db
 
 
@@ -41,11 +44,13 @@ class Root(Controller):
         
     @cherrypy.expose
     def index(self):
-        return self.render("index.html")
+        return self.render("index.html", self.crumbs[:-1])
 
     @cherrypy.expose
     def statuses(self, a=None):
-        return "Nope Nope Nope"
+        vms = self.VM.list()
+        env = dict(vms=vms)
+        return self.render("statuses.html", self.crumbs, **env)
 
     @cherrypy.expose
     def start(self):
@@ -57,12 +62,13 @@ class Root(Controller):
         self._routes[route] = cls
 
     def load(self):
-        models = set()
+        models = set(self.models)
         for cls in self._routes.itervalues():
             models.update(cls.models)
             models.update(*(scls.models for scls in cls.sub))
 
         models = dict((cls, cls({})) for cls in models)
+        print(models)
 
         for route, cls in self._routes.iteritems():
             need = set(cls.models).union(*[scls.models for scls in cls.sub])
@@ -72,3 +78,6 @@ class Root(Controller):
         for plugin in self.plugins:
             clsModels = dict((mcls, models[mcls]) for mcls in plugin.models)
             setattr(self, plugin.__name__.lower(), plugin(clsModels))
+
+        for model in self.models:
+            setattr(self, model.__name__, models[model])
