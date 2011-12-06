@@ -16,22 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-if not __name__ == "__main__":
-    raise SystemError("Pixie cannot be imported.")
-
-import os, sys, time
-
-if not sys.version_info >= (2,7):
-    sys.exit("Python 2.7 is required for Pixie.")
-
-if not os.geteuid()==0:
-    sys.exit("\nPixie must be run as root.\n")
-
-if not len(sys.argv) == 2:
-    print "Usage:"
-    print "\tpython pixie.py pixie.conf"
-    os._exit(1)
-
 import cherrypy
 from lib.vm import VM
 from lib.puck import Puck
@@ -54,8 +38,7 @@ class Root(Controller):
         )
         return self.render('/index.html', **env)
 
-cherrypy.config.update(sys.argv[1])
-conf = {
+CONF = {
     '/': {
        'request.dispatch': cherrypy.dispatch.Dispatcher()
     },
@@ -67,25 +50,48 @@ conf = {
     }
 }
 
-puck = Puck()
+def argparser():
+    import argparse
+    parser = argparse.ArgumentParser(description="Puck client")
+    parser.add_argument("-c", "--config", default="/etc/pixie.conf")
+    parser.add_argument("-d", "--daemonize", action="store_true")
+    return parser
 
-root = Root(puck)
-root.configure = ConfigurationController(puck)
-root.setup = SetupController(puck)
+if __name__ == "__main__":
+    import os, sys
 
-daemonizer = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
-daemonizer.subscribe()
+    if not sys.version_info >= (2,7):
+        sys.exit("Python 2.7 is required for Pixie.")
 
-cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
-cherrypy.engine.vmsetup.subscribe()
+    if not os.geteuid()==0:
+        sys.exit("\nPixie must be run as root.\n")
 
-cherrypy.process.plugins.SignalHandler.handlers['SIGINT'] = cherrypy.engine.exit
-cherrypy.engine.signal_handler.subscribe()
+    parser = argparser()
+    args = parser.parse_args()
 
-app = cherrypy.tree.mount(root, '/', conf)
+    if parser.daemonize:
+        daemonizer = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
+        daemonizer.subscribe()
 
-if hasattr(cherrypy.engine, "console_control_handler"):
-    cherrypy.engine.console_control_handler.subscribe()
 
-cherrypy.engine.start()
-cherrypy.engine.block()
+    cherrypy.config.update(parser.config)
+
+    puck = Puck()
+
+    root = Root(puck)
+    root.configure = ConfigurationController(puck)
+    root.setup = SetupController(puck)
+
+    cherrypy.engine.vmsetup = SetupPlugin(puck, cherrypy.engine)
+    cherrypy.engine.vmsetup.subscribe()
+
+    cherrypy.process.plugins.SignalHandler.handlers['SIGINT'] = cherrypy.engine.exit
+    cherrypy.engine.signal_handler.subscribe()
+
+    app = cherrypy.tree.mount(root, '/', CONF)
+
+    if hasattr(cherrypy.engine, "console_control_handler"):
+        cherrypy.engine.console_control_handler.subscribe()
+
+    cherrypy.engine.start()
+    cherrypy.engine.block()
