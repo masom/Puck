@@ -69,12 +69,12 @@ if __name__ == "__main__":
     parser = argparser()
     args = parser.parse_args()
 
-    if parser.daemonize:
+    if args.daemonize:
         daemonizer = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
         daemonizer.subscribe()
 
 
-    cherrypy.config.update(parser.config)
+    cherrypy.config.update(args.config)
 
     puck = Puck()
 
