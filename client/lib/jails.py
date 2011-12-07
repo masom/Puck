@@ -109,12 +109,20 @@ class Jail(object):
 
     def start(self):
         return self._manager.start(self._data['type'])
+
     def stop(self):
         return self._manager.stop(self._data['type'])
+
     def status(self):
         return self._manager.status(self._data['type'])
+
     def create(self):
-        return self._manager.create(self, self._data['flavour'], self._data['type'], self._data['ip'])
+        '''
+        Here we make the assumption the type is the same as the flavour...
+        Will need to refactor for more global use than HCN's
+        '''
+        return self._manager.create(self._data['type'], self._data['type'], self._data['ip'])
+
     def delete(self):
         return self._manager.delete(self._data['type'])
 
@@ -143,7 +151,7 @@ class EzJail(object):
 
         command = "ezjail-admin start"
         if jail:
-            command += " %s" % jail
+            command += " %s" % str(jail)
 
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
 
@@ -155,7 +163,7 @@ class EzJail(object):
 
         command = "ezjail-admin stop"
         if jail:
-            command += " %s" % jail
+            command += " %s" % str(jail)
 
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
 
@@ -189,8 +197,14 @@ class EzJail(object):
         '''
         ezjail-admin create -f [flavour] [name] [ip]
         '''
-        cmd = "ezjail-admin create -f %s %s %s" % (flavour, name, ip)
+
+        '''
+        shlex does not support unicode with python < 2.7.3
+        '''
+        cmd = str("ezjail-admin create -f %s %s %s" % (flavour, name, ip))
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(cmd)).communicate()
+
+        '''TODO logging? '''
 
     def delete(self, jail):
         '''
@@ -202,4 +216,10 @@ class EzJail(object):
             "ezjail-admin delete -w %s" % jail
         ]
         for command in commands:
-            (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+            (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(str(command))).communicate()
+            print
+            print
+            print stdoutdata
+            print stderrdata
+            print
+            print
