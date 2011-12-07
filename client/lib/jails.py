@@ -151,7 +151,7 @@ class EzJail(object):
 
         command = "ezjail-admin start"
         if jail:
-            command += " %s" % jail
+            command += " %s" % str(jail)
 
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
 
@@ -163,7 +163,7 @@ class EzJail(object):
 
         command = "ezjail-admin stop"
         if jail:
-            command += " %s" % jail
+            command += " %s" % str(jail)
 
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
 
@@ -204,12 +204,7 @@ class EzJail(object):
         cmd = str("ezjail-admin create -f %s %s %s" % (flavour, name, ip))
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(cmd)).communicate()
 
-        print
-        print
-        print stdoutdata
-        print stderrdata
-        print
-        print
+        '''TODO logging? '''
 
     def delete(self, jail):
         '''
