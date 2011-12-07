@@ -23,9 +23,6 @@ class Keys(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/keys", "Keys")]
     models = [models.Key]
 
-    def hash(self):
-        return self.Key.keys()
-
     @cherrypy.expose
     def index(self):
         env = dict(keys=self.Key.keys())
@@ -33,15 +30,26 @@ class Keys(Controller):
 
     @cherrypy.expose
     def add(self, **post):
+        key = self.Key.Table(None, None)
         if post:
-            self.Key.new(post)
-            cherrypy.session['flash'] = "Key successfully added"
-            raise cherrypy.HTTPRedirect("/keys")
-        return self.render("keys/add.html", crumbs=self.crumbs)
+            keystr = post['key'].split()
+            if '\n' in post['key']:
+                cherrypy.session['flash'] = "Key is invalid"
+            elif len(keystr) not in (2,3):
+                cherrypy.session['flash'] = "Key is invalid"
+            else:
+                self.Key.new(post)
+                cherrypy.session['flash'] = "Key successfully added"
+                raise cherrypy.HTTPRedirect("/keys")
+            key = self.Key.Table(post['name'], post['key'])
+
+
+        env = dict(key=key, disabled=False)
+        return self.render("keys/add.html", crumbs=self.crumbs, **env)
 
 
     @cherrypy.expose
     def view(self, keyId):
         key = self.Key.get(keyId)
-        env = dict(key=key)
-        return self.render("keys/view.html", crumbs=self.crumbs, **env)
+        env = dict(key=key, disabled=True)
+        return self.render("keys/add.html", crumbs=self.crumbs, **env)

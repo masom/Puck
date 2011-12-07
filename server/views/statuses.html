@@ -1,34 +1,39 @@
 <%inherit file="/layouts/default.html" />
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/view.css">
+</%block>
 <%block name="header">
     Statuses
 </%block>
 
-<div style="display: inline-block;">
-    <h3>Name</h3>
-    <ol>
-        % for vmId, vm in vms:
-            <li>${vm.name}</li>
-        % endfor
-    </ol>
-</div>
-<div style="display: inline-block;">
-    <h3>IP</h3>
-    <ol>
-        % for vmId, vm in vms:
-            <li>
-                <a href="http://${vm.ip}:8080">
-                    ${vm.ip}
-                </a>
-            </li>
-        % endfor
-    <ol>
-</div>
-<div style="display: inline-block;">
-    <h3>Status</h3>
-    <ol>
-        % for vmId, vm in vms:
-            <li>${vm.status}</li>
-        % endfor
-    </ol>
+<div class="info">
+    <div>
+        <h3>Name</h3>
+        <ol>
+            % for vmId, vm in vms:
+                <li>${vm.name}</li>
+            % endfor
+        </ol>
+    </div>
+    <div>
+        <h3>IP</h3>
+        <ol>
+            % for vmId, vm in vms:
+                <li>
+                    <a href="http://${vm.ip}:8080">
+                        ${vm.ip}
+                    </a>
+                </li>
+            % endfor
+        <ol>
+    </div>
+    <div>
+        <h3>Status</h3>
+        <ol>
+            % for vmId, vm in vms:
+                <li>${vm.status}</li>
+            % endfor
+        </ol>
+    </div>
 </div>
 

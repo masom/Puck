@@ -1,18 +1,28 @@
 <%inherit file="/layouts/default.html" />
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/form.css">
+</%block>
 <%block name="header">
     Keys Management
 </%block>
 
-<form name="keys" method="post" action="/keys/add">
+<% atts = '' if not disabled else 'disabled' %>
+
+<form class="vertical" name="keys" method="post" action="/keys/add">
     <div>
-        <label for="name">Name: </label>
-        <input id="name" name="name" type="text" />
+        <label for="name">Title</label>
+        <input id="name" name="name" type="text" required ${atts}
+            value="${key.name if key.name else ''}" />
     </div>
     <div>
-        <label for="key">Key: </label>
-        <textarea id="key" name="key"></textarea>
+        <label for="key">Key</label>
+        <textarea id="key" name="key" required ${atts}>${key.key if key.key else ''}</textarea>
     </div>
-    <div>
-        <input type="submit" value="Add" />
-    </div>
+
+    % if not disabled:
+        <div>
+            <input type="submit" value="Add" />
+        </div>
+    % endif
 </form>
