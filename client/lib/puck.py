@@ -21,7 +21,7 @@ from vm import VM
 
 class MockTransport(object):
     '''
-    This mimick a requester. Used by unit tests.
+    This mimic a requester. Used by unit tests.
     '''
     def __init__(self):
         pass
@@ -41,7 +41,7 @@ class MockTransport(object):
             'jails': self._getJails,
             'keys': self._getKeys,
             'environments': self._getEnvironments,
-            'yum-repo': self._getYumRepo,
+            'yum_repo': self._getYumRepo,
         }.get(resource, None)
         if not method:
             raise NotImplementedError()
