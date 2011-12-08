@@ -198,7 +198,7 @@ class EzJail(object):
                 continue
             return data[:2] + [line]
         raise KeyError("Jail not found.")
-        
+
     def create(self, flavour, name, ip):
         '''
         Creates a new jail based off a flavour, name and ip
@@ -209,6 +209,12 @@ class EzJail(object):
         ezjail-admin create -f [flavour] [name] [ip]
         '''
         '''TODO logging? '''
+
+        '''         
+        shlex does not support unicode with python < 2.7.3          
+        '''
+        cmd = str("ezjail-admin create -f %s %s %s" % (flavour, name, ip))
+        subprocess.Popen(shlex.split(cmd)).wait()
 
     def delete(self, jail):
         '''

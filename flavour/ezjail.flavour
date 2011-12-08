@@ -1,0 +1,83 @@
+#!/bin/sh
+#
+# BEFORE: DAEMON
+#
+# ezjail flavour example
+
+########################################################
+# Groups
+########################################################
+pw group add -q -n ssh_users
+
+########################################################
+# Users
+########################################################
+#
+# You might want to add some users. The password is to be provided in the
+# encrypted form as found in /etc/master.passwd.
+# The example password here is "admin"
+# Refer to crypt(3) and pw(8) for more information
+
+# echo -n '$1$p75bbfK.$Kz3dwkoVlgZrfLZdAXQt91' |\
+# pw useradd -n admin -u 1001 -s /bin/sh -m -d /home/admin -G wheel -c 'Admin User' -H 0
+# echo -n '$1$p75bbfK.$Kz3dwkoVlgZrfLZdAXQt91' |\
+# pw useradd -n saag -u 1002 -s /bin/sh -m -d /home/saag -G coders -c 'Mutton Saag' -H 0
+# echo -n '$1$p75bbfK.$Kz3dwkoVlgZrfLZdAXQt91' |\
+# pw useradd -n mac -u 1002 -s /bin/sh -m -d /home/mac -G sales -c 'Big Mac' -H 0
+
+########################################################
+# Files
+########################################################
+#
+# You can now give files to users just created
+
+# chown -R admin:coders /usr/local/cvsroot
+# chown -R admin:sales /usr/local/nfs/sales
+
+########################################################
+# Packages
+########################################################
+#
+# Install all packages previously put to /pkg
+# Remove package files afterwards
+
+PACKAGESITE=file:///pkg pkg_add /pkg/All/*.tbz
+
+##########################
+#
+#    RPM REGISTRATION
+#
+#    TODO: Find a better way to do this... this requires too much stuff.
+##########################
+for d in BUILD BUILDROOT RPMS SOURCES SRPMS SPECS; do
+    mkdir -p /root/rpmbuild/$d
+done
+
+mkdir /usr/local/share/hcn/
+cp /pkg/spectemplate /usr/local/share/hcn
+
+HOME=/root
+PATH=$PATH:/usr/local/bin
+export HOME
+export PATH
+pkg_info | /usr/local/bin/python /pkg/registerports.py
+
+/usr/local/bin/rpm --initdb && /usr/local/bin/rpm -ivh /pkg/rpm/*.rpm
+##########################
+#
+# END OF RPM REGISTRATION
+#
+##########################
+
+mkdir /root/.ssh
+chown root:root /root/.ssh
+cat /installdata/authorized_keys >> /root/.ssh/authorized_keys
+
+# Cleanup
+rm -rf /root/rpmbuild
+rm -rf /installdata
+rm -rf /pkg
+
+########################################################
+# Postinstall
+########################################################

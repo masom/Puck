@@ -35,6 +35,43 @@ We plan to open source our base flavour and the tool to sync the installed ports
 - CherryPy 3.2
 - Mako 0.5
 
+- A machine to run puck
+- A FreeBSD virtual machine image
+
+# Installation
+Configure `setup/bootstrap.sh` to match your environment (mostly just change the url of the package site).
+
+The boostrap file should be included in the virtual machine base image and be run during the first boot.
+
+The RPM packages required for Pixie to run are CherryPy and Mako. These should be present in the second package site (named `init`).
+
+More to come.
+
+## Creating a package site
+A package site is essentially just a repository of freebsd pkg tarballs. Here's an example one:
+
+    autoconf-2.68.tbz			help2man-1.40.4.tbz			perl-5.12.4_3.tbz			screen-4.0.3_13.tbz
+    autoconf-wrapper-20101119.tbz		index					pkg-config-0.25_1.tbz			sqlite3-3.7.9.tbz
+    autossh-1.4b.tbz			libassuan-2.0.2.tbz			popt-1.16.tbz				ssmtp-2.64.tbz
+    bash-4.1.11.tbz				libgcrypt-1.5.0.tbz			postgresql-client-8.4.9.tbz		sudo-1.8.3_1.tbz
+    bison-2.4.3,1.tbz			libgpg-error-1.10.tbz			pth-2.0.7.tbz				swig-1.3.40.tbz
+    ca_root_nss-3.12.11_1.tbz		libiconv-1.13.1_1.tbz			py27-PyGreSQL-4.0,1.tbz			tcl-8.4.19_3,1.tbz
+    cowsay-3.03_1.tbz			libksba-1.2.0.tbz			py27-iniparse-0.4.tbz			tcl-8.5.11.tbz
+    curl-7.21.3_2.tbz			libtool-2.4_1.tbz			py27-pyme-0.8.1_4.tbz			tcl-modules-8.5.11.tbz
+    db46-4.6.21.4.tbz			libxml2-2.7.8_1.tbz			py27-sqlite3-2.7.2_1.tbz		unzip-6.0_1.tbz
+    expect-5.43.0_3.tbz			lua-5.1.4_6.tbz				py27-urlgrabber-3.9.1.tbz		vim-7.3.121.tbz
+    gettext-0.18.1.1.tbz			m4-1.4.16,1.tbz				py27-yaml-3.10.tbz			wget-1.13.4_1.tbz
+    gmake-3.82.tbz				nano-2.2.6.tbz				py27-yum-metadata-parser-1.1.4.tbz	zip-3.0.tbz
+    gnupg-2.0.18_1.tbz			nspr-4.8.9.tbz				python27-2.7.2_3.tbz
+    gpgme-1.3.1.tbz				nss-3.12.11.tbz				rpm-4.9.1.2_1.tbz
+    gsed-4.2.1_2.tbz			p5-Locale-gettext-1.05_3.tbz		rsync-3.0.9.tbz
+
+The index file is used by the bootstrap script to download the appropriate packages.
+
+## Generating the package index
+
+`rm index; for file in *; do echo $file >> index; done;`
+
 # License
 LGPL v3
 
