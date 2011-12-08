@@ -201,9 +201,6 @@ class JailConfigTask(SetupTask):
 
     def _createJail(self, jail):
         '''Create the jail'''
-        flavour = jail.type
-        name = jail.type
-        ip = jail.ip
         try:
             jail.create()
         except OSError as e:
@@ -228,7 +225,7 @@ class JailStartupTask(SetupTask):
                 self.log("Could not start jail `%s`: %s" % (jail.type, e))
                 return False
             self.log("Jail `%s` started" % (jail.type))
-            if not self.ezjail.status(jail.type):
+            if not jail.status():
                 self.log("Jail `%s` is not running!" % jail.type)
                 return False
 

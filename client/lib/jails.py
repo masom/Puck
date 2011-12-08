@@ -153,7 +153,7 @@ class EzJail(object):
         if jail:
             command += " %s" % str(jail)
 
-        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+        returncode = subprocess.call(shlex.split(command), shell=True)
 
     def stop(self, jail = None):
         '''
@@ -177,6 +177,10 @@ class EzJail(object):
 
         command = "ezjail-admin list"
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+
+        if len(stdoutdata) == 0:
+            raise RuntimeError("No data returned by ezjail.")
+
         data = stdoutdata.split().splitlines(True)
         if not jail:
             return data
@@ -203,7 +207,6 @@ class EzJail(object):
         '''
         cmd = str("ezjail-admin create -f %s %s %s" % (flavour, name, ip))
         (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(cmd)).communicate()
-
         '''TODO logging? '''
 
     def delete(self, jail):
