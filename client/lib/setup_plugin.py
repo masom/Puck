@@ -352,7 +352,7 @@ class SetupPlugin(plugins.SimplePlugin):
         if self.worker and self.worker.isAlive():
             self.worker.stop()
 
-    def _start_worker(self):
+    def _startWorker(self):
         self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue, ezjail = self._ezjail)
         self.worker.start()
 
@@ -366,7 +366,7 @@ class SetupPlugin(plugins.SimplePlugin):
             self._startWorker()
 
         tasks = [
-            #EZJailTask(self.vm),
+            EZJailTask(self.vm),
             EZJailSetupTask(self.vm),
             JailConfigTask(self.vm),
             JailStartupTask(self.vm)
