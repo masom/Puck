@@ -86,6 +86,9 @@ class Jails(object):
 
         return self._jails[id]
 
+    def status(self):
+        return self._manager.status()
+
 class Jail(object):
     def __init__(self, manager, config):
         self._data = {}
