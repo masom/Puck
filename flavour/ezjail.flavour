@@ -56,9 +56,6 @@ done
 mkdir /usr/local/share/hcn/
 cp /pkg/spectemplate /usr/local/share/hcn
 
-mkdir -p /usr/local/etc/rpm
-cp /pkg/macros.hcn /usr/local/etc/rpm/
-
 HOME=/root
 PATH=$PATH:/usr/local/bin
 export HOME
