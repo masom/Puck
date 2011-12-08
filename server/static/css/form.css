@@ -18,3 +18,24 @@ form.basic label {
     line-height: 1.8;
     width: 120px;
 }
+
+form.vertical label {
+    display: block;
+    font-weight: bold;
+}
+
+form.vertical input, form.vertical textarea {
+    margin-bottom: 1em;
+}
+
+
+form.vertical textarea {
+    width: 50em;
+    height: 9.5em;
+}
+
+[disabled] {
+    color: #555;
+    background-color: #eee;
+
+}
