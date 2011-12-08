@@ -228,6 +228,7 @@ class EzJail(object):
             print
             print
 
+class StopLoopException(Exception): pass
 class EzJailStarter(object):
     '''Workaround for python thread breaking jail start.'''
 
@@ -283,4 +284,4 @@ class EzJailStarter(object):
         subprocess.Popen(shlex.split(cmd)).wait()
 
     def _stop(self, data):
-        raise StopIteration()
+        raise StopLoopException()
