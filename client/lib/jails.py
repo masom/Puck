@@ -17,6 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import sys, os, shlex, subprocess
 
+'''For the EzjailCreator workaround'''
+import socket, json
+
 class Jails(object):
     '''
     List of jails in the system
@@ -32,6 +35,9 @@ class Jails(object):
 
     def count(self):
         return len(self._jails)
+
+    def setSocket(self, ezjl_socket):
+        self._manager.setSocket(ezjl_socket)
 
     def load(self, jails):
         '''
@@ -128,6 +134,9 @@ class Jail(object):
 
 class EzJail(object):
 
+    def setSocket(self, ezjl_socket):
+        self._socket = ezjl_socket
+
     def install(self):
         '''
         Installs ezjail
@@ -148,12 +157,10 @@ class EzJail(object):
         Starts the jails or a specific jail
         @raise OSError when command not found.
         '''
-
-        command = "ezjail-admin start"
-        if jail:
-            command += " %s" % str(jail)
-
-        returncode = subprocess.call(shlex.split(command), shell=True)
+        self._socket.send(json.dumps({'id': 'start', 'name': jail}))
+        '''block while we wait for completion'''
+        status = self._socket.recv(512)
+        print status
 
     def stop(self, jail = None):
         '''
@@ -201,12 +208,6 @@ class EzJail(object):
         '''
         ezjail-admin create -f [flavour] [name] [ip]
         '''
-
-        '''
-        shlex does not support unicode with python < 2.7.3
-        '''
-        cmd = str("ezjail-admin create -f %s %s %s" % (flavour, name, ip))
-        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(cmd)).communicate()
         '''TODO logging? '''
 
     def delete(self, jail):
@@ -226,3 +227,60 @@ class EzJail(object):
             print stderrdata
             print
             print
+
+class EzJailStarter(object):
+    '''Workaround for python thread breaking jail start.'''
+
+
+    def getSocketFile(self):
+        '''Initialize the communication socket'''
+
+        self._socket_file = "/tmp/pixie_ezc_%s" % os.getpid()
+        return self._socket_file
+
+    def teardown(self):
+        self._socket.close()
+
+    def run(self):
+        self._socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self._socket.bind(self._socket_file)
+        self._socket.listen(1)
+
+        (conn, addr) = self._socket.accept()
+        while True:
+            data = conn.recv(4096)
+
+            print "Received data: `%s`" % data
+
+            (execute, data) = self._handle(data)
+
+            if execute:
+                try:
+                    execute(data)
+                except StopIteration:
+                    break
+            conn.send("started")
+        conn.close()
+
+    def _handle(self, data):
+        try:
+            command  = json.loads(data)
+        except ValueError:
+            return (False, False)
+
+        if not 'id' in command:
+            return (False, False)
+
+        execute = {
+            'shutdown': self._stop,
+            'start': self._startJail
+        }.get(command['id'], False)
+
+        return (execute, data)
+
+    def _startJail(self, data):
+        cmd = "ezjail-admin start %s" % str(data['name'])
+        subprocess.Popen(shlex.split(cmd)).wait()
+
+    def _stop(self, data):
+        raise StopIteration()

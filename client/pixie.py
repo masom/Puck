@@ -15,20 +15,21 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import os 
+import os, sys, time, json
 
 import cherrypy
 from mako.lookup import TemplateLookup
 
 from lib.vm import VM
 from lib.puck import Puck
-from lib.jails import *
+from lib.jails import EzJailStarter
 from lib.setup_plugin import SetupPlugin
 
 from lib.controller import Controller
 from controllers.configuration import ConfigurationController
 from controllers.setup import SetupController
 
+import socket
 
 class Root(Controller):
 
@@ -64,18 +65,43 @@ def argparser():
     parser.add_argument("-t", "--templatedir", default=os.getcwd())
     return parser
 
+def start_jail_launcher():
+    ''' Workaround for threads breaking ezjail-admin start '''
+    launcher = EzJailStarter()
+    socket_file = launcher.getSocketFile()
+
+    pid = os.fork()
+    if pid == 0:
+        '''Child here'''
+        launcher.run()
+        print "Child process exiting."
+        os._exit(0)
+
+    print "Child process is %s. Awaiting available socket." % pid
+    attempts = 0
+    while not os.path.exists(socket_file):
+        time.sleep(0.1)
+        attempts += 1
+        if (attempts > 50):
+            print "Child process is not listening on socket!"
+            os._exit(1)
+
+    ezjc_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    ezjc_socket.connect(socket_file)
+    return (pid, ezjc_socket)
+
 if __name__ == "__main__":
-    import os.path, sys
 
     if not sys.version_info >= (2,7):
         sys.exit("Python 2.7 is required for Pixie.")
 
-    if not os.geteuid()==0:
+    '''if not os.geteuid()==0:
         sys.exit("\nPixie must be run as root.\n")
-
+    '''
     parser = argparser()
     args = parser.parse_args()
-
+    
+    (pid, ezjl_socket) = start_jail_launcher()
 
     if args.daemonize:
         daemonizer = cherrypy.process.plugins.Daemonizer(cherrypy.engine)
@@ -90,6 +116,7 @@ if __name__ == "__main__":
         )
 
     puck = Puck()
+    puck.getVM().jails.setSocket(ezjl_socket)
 
     root = Root(lookup, puck)
     root.configure = ConfigurationController(lookup, puck)
@@ -108,3 +135,8 @@ if __name__ == "__main__":
 
     cherrypy.engine.start()
     cherrypy.engine.block()
+
+    ezjl_socket.sendall(json.dumps({'id': 'shutdown'}))
+    ezjl_socket.close()
+    '''Wait for the child to terminate.'''
+    os.waitpid(pid, 0)
