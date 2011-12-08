@@ -46,7 +46,9 @@ class SetupTask(object):
 
 class EZJailTask(SetupTask):
     '''
-    Setups ezjail in the virtual machine
+    Setups ezjail in the virtual machine.
+    TODO: As installing ezjail builds world each time, it would probably be better to store
+    the resulting basejail.
     '''
     def run(self):
         self.log('Started')
@@ -250,6 +252,7 @@ class SetupWorkerThread(threading.Thread):
         self._bus = bus
         self._outqueue = outqueue
         self._ezjail = ezjail
+        self.successful = False
 
     def stop(self):
         self._stop.set()
@@ -282,9 +285,15 @@ class SetupWorkerThread(threading.Thread):
                 time.sleep(1) 
         except RuntimeError as err:
             self._bus.log(str(err))
-            self._queue.empty()
+            '''Cleanup'''
+            while not self._queue.empty():
+                self._queue.get(False)
+                self.successful = False
+                return False
         except queue.Empty:
-            self._bus.log("Shutting down.  no task.")
+            self._bus.log("Shutting down. No task.")
+        self.successful = True
+        self._outqueue.put("%s finished." % self.__class__.__name__)
 
 class SetupPlugin(plugins.SimplePlugin):
     '''
@@ -343,16 +352,19 @@ class SetupPlugin(plugins.SimplePlugin):
         if self.worker and self.worker.isAlive():
             self.worker.stop()
 
+    def _start_worker(self):
+        self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue, ezjail = self._ezjail)
+        self.worker.start()
+
     def _setup_start(self, **kwargs):
         self.bus.log("Received start request.")
 
         '''Start the worker if it is not running.'''
-        if not self.worker or not self.worker.isAlive():
-            self.bus.log("Start called. Starting worker.")
-            self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue, ezjail = self._ezjail)
-            self.worker.start()
+        if not self.worker:
+            self._startWorker()
+        if not self.worker.is_alive() and not self.worker.successful:
+            self._startWorker()
 
-        
         tasks = [
             #EZJailTask(self.vm),
             EZJailSetupTask(self.vm),
@@ -370,6 +382,8 @@ class SetupPlugin(plugins.SimplePlugin):
         '''
         Returns the current log queue
         '''
+        if self.worker and self.worker.successful:
+            return self.statuses
 
         status = self._readQueue(self._workerQueue)
         while status:
