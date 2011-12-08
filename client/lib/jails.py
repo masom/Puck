@@ -253,11 +253,11 @@ class EzJailStarter(object):
 
             print "Received data: `%s`" % data
 
-            (execute, data) = self._handle(data)
+            (execute, command) = self._handle(data)
 
             if execute:
                 try:
-                    execute(data)
+                    execute(command)
                 except StopIteration:
                     break
             conn.send("started")
@@ -277,7 +277,7 @@ class EzJailStarter(object):
             'start': self._startJail
         }.get(command['id'], False)
 
-        return (execute, data)
+        return (execute, command)
 
     def _startJail(self, data):
         cmd = "ezjail-admin start %s" % str(data['name'])
