@@ -95,9 +95,9 @@ if __name__ == "__main__":
     if not sys.version_info >= (2,7):
         sys.exit("Python 2.7 is required for Pixie.")
 
-    '''if not os.geteuid()==0:
+    if not os.geteuid()==0:
         sys.exit("\nPixie must be run as root.\n")
-    '''
+
     parser = argparser()
     args = parser.parse_args()
     
