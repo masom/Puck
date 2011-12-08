@@ -84,9 +84,3 @@ rm -rf /pkg
 ########################################################
 # Postinstall
 ########################################################
-
-#Modify hcnadmin shell
-[ -e /usr/local/bin/bash ] && pw user mod hcnadmin -s /usr/local/bin/bash
-
-#Create Apache log dir
-mkdir -p /var/log/apache2
