@@ -82,3 +82,6 @@ div.flash p{
 	font-weight: bold;
 	margin: 10px;
 }
+pre{
+        font-family: 'Inconsolata', sans-serif;
+}

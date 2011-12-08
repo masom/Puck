@@ -146,14 +146,7 @@ class EzJail(object):
         @raise OSError when command not found.
         '''
         command = 'ezjail-admin install -m -p'
-        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
-        print
-        print
-        print stdoutdata
-        print "---------"
-        print stderrdata
-        print
-        print
+        subprocess.Popen(shlex.split(command)).wait()
         
     def start(self, jail = None):
         '''
@@ -175,7 +168,7 @@ class EzJail(object):
         if jail:
             command += " %s" % str(jail)
 
-        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+        subprocess.Popen(shlex.split(command)).wait()
 
     def status(self, jail = None):
         '''
@@ -186,12 +179,12 @@ class EzJail(object):
         '''
 
         command = "ezjail-admin list"
-        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+        output = subprocess.check_output(shlex.split(command))
 
-        if len(stdoutdata) == 0:
+        if len(output) == 0:
             raise RuntimeError("No data returned by ezjail.")
 
-        data = stdoutdata.split().splitlines(True)
+        data = output.splitlines(False)
         if not jail:
             return data
 
@@ -229,13 +222,7 @@ class EzJail(object):
             "ezjail-admin delete -w %s" % jail
         ]
         for command in commands:
-            (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(str(command))).communicate()
-            print
-            print
-            print stdoutdata
-            print stderrdata
-            print
-            print
+            subprocess.Popen(shlex.split(str(command))).wait()
 
 class StopLoopException(Exception): pass
 class EzJailStarter(object):
