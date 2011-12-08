@@ -137,6 +137,8 @@ class JailConfigTask(SetupTask):
         flavour_dir = "%s/flavours" % jail_dir
 
         for jail in self.vm.jails:
+            self.log("Configuring jail `%s`." % jail.type)
+    
             path = "%s/%s" % (flavour_dir, jail.type)
             authorized_key_file = "%s/installdata/authorized_keys" % path
             resolv_file = "%s/etc/resolv.conf" % path
@@ -146,21 +148,25 @@ class JailConfigTask(SetupTask):
             exists = os.path.exists(path)
             is_dir = os.path.isdir(path)
             if not exists or not is_dir:
-                self.log("Flavour `%s` directory is missing in `%s" % (jail.type, flavour_dir))
+                self.log("Flavour `%s` directory is missing in `%s." % (jail.type, flavour_dir))
                 return False
 
+            self.log("Retrieving yum repository for environment `%s`." % self.vm.environment)
             yum_repo = self.puck.getYumRepo(self.vm.environment)
 
-
+            self.log("Writing ssh keys.")
             if not self._writeKeys(jail, authorized_key_file):
                 return False
 
+            self.log("Copying resolv.conf.")
             if not self._writeResolvConf(jail, resolv_file):
                 return False
 
+            self.log("Writing yum repository.")
             if not self._writeYumRepoConf(yum_repo, yum_file):
                 return False
 
+            self.log("Creating jail.")
             if not self._createJail(jail):
                 return False
         self.log('Completed')
