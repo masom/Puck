@@ -5,12 +5,17 @@
 </%block>
 
 <%include file="/elements/information.html" />
-
+<h3>Jails</h3>
+<pre>
+% for line in VM.jails.status():
+  ${line}
+% endfor
+</pre>
 <h3>Setup Logs</h3>
 % if len(statuses) > 15:
 	<a href="/setup/status_clear">Clear Logs</a>
 %endif
-<ul class="logs">
+<ul class="logs" style="height: 100px; overflow: scroll;">
 	% for status in statuses:
 		<li><p>${status}</p></li>
 	% endfor
