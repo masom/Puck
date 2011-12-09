@@ -20,7 +20,7 @@
 	</div>
 	<div style="float: left; width: 300px; margin-left: 10px;">
 		<h2>Setup</h2>
-		% if VM.isConfigured() and VM.status in ['setup', 'configured']:
+		% if VM.isConfigured() and VM.status in ['setup', 'configured', 'setup_failed']:
 			<p><a href="/setup/start">Setup this virtual machine.</a>
 		%else:
 			<p>The virtual machine has not yet been configured.</p>

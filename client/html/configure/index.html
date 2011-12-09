@@ -39,6 +39,12 @@
 		</tr>
 	% endfor
 	</table>
+	<h3>Jail Network Interface</h3>
+	% if VM.interface:
+		<p>${VM.interface}</p>
+	% endif
+	<a href="/configure/netiface"><button>Modify</button></a>
+
 	% if VM.environment:
 		<a href="/configure/jails"><button>Modify</button></a>
 	% else:
