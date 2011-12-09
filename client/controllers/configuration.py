@@ -72,7 +72,7 @@ class ConfigurationController(Controller):
 
         env = dict(
             VM=self._vm,
-            interfacess=self.vm.interfaces
+            interfacess=self._vm.interfaces
         )
         return self.render("/configure/interface.html", **env)
 

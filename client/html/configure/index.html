@@ -39,17 +39,19 @@
 		</tr>
 	% endfor
 	</table>
-	<h3>Jail Network Interface</h3>
-	% if VM.interface:
-		<p>${VM.interface}</p>
-	% endif
-	<a href="/configure/netiface"><button>Modify</button></a>
 
 	% if VM.environment:
 		<a href="/configure/jails"><button>Modify</button></a>
 	% else:
 		<p>An environment must be selected to configure jail selection.</p>
 	% endif
+
+	<h3>Jail Network Interface</h3>
+	% if VM.interface:
+		<p>${VM.interface}</p>
+	% endif
+	<a href="/configure/netiface"><button>Modify</button></a>
+
 	<h3>SSH Keys</h3>
 	<ul>
 	% for key in VM.keys:
