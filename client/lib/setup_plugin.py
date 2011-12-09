@@ -78,29 +78,27 @@ class InterfacesSetupTask(SetupTask, RcReader):
     def run(self):
         self.log('Started')
 
+        '''TODO: Move netmask to config.'''
         netmask = '255.255.0.0'
         (jails_ip, missing) = self._get_missing_ip()
         self._add_missing_ips(missing, netmask)
         self._add_missing_rc(jails_ip, netmask)
         return True
 
-
     def _add_missing_rc(self, jails_ip, netmask):
         rc_addresses = []
         rc = self._get_rc_content()
         alias_count = self._calculate_alias_count(rc_addresses, rc)
 
-        for ip in jails_ip:
-            if self._add_rc_ip(rc_addresses, f, alias_count, ip, netmask):
-                alias_count += 1
+        with open('/etc/rc.conf', 'a') as f:
+            for ip in jails_ip:
+                if self._add_rc_ip(rc_addresses, f, alias_count, ip, netmask):
+                    alias_count += 1
 
     def _add_missing_ips(self, missing, netmask):
-        '''TODO: move netmask to config.'''
-        netmask = '255.255.0.0'
-        with open('/etc/rc.conf', 'a') as f:
-            for ip in missing:
-                self.log("Registering new ip address `%s`" % ip)
-                self._add_ip(ip, netmask)
+        for ip in missing:
+            self.log("Registering new ip address `%s`" % ip)
+            self._add_ip(ip, netmask)
 
     def _get_missing_ip(self):
         interfaces = NetInterfaces.getInterfaces()
