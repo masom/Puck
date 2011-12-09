@@ -44,5 +44,32 @@ class InterfacesSetupTaskTest(unittest.TestCase):
         data = file.readline()
         self.assertTrue(retval)
         self.assertEqual(data, expected)
-        
-        
+        file.close()
+
+    def test_calculate_alias_count(self):
+        task = InterfacesSetupTask(MockPuck(), None)
+
+        rc = StringIO.StringIO()
+        addresses = []
+        alias_count = task._calculate_alias_count(addresses, rc)
+        self.assertEqual(0, alias_count)
+
+        rc.writelines(["ifconfig_em0_alias0\n", "ifconfig_em0_alias1\n"])
+        rc.flush()
+        rc.seek(0)
+        alias_count = task._calculate_alias_count(addresses, rc)
+        self.assertEqual(2, alias_count)
+
+        rc.writelines(["is0\n", "ifconfig_alias1\n", "sshd_enable=YES\n"])
+        rc.seek(0)
+        rc.flush()
+
+        alias_count = task._calculate_alias_count(addresses, rc)
+        self.assertEqual(2, alias_count)
+
+        rc.writelines(["ifconfig_em0_alias33\n"])
+        rc.seek(0)
+        rc.flush()
+        alias_count = task._calculate_alias_count(addresses, rc)
+        self.assertEqual(3, alias_count)
+        rc.close()
