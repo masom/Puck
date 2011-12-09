@@ -35,7 +35,16 @@ class SetupTask(object):
         now = datetime.datetime.now()
         self.queue.put("%s\t%s\t%s" % (now.strftime("%Y-%m-%d %H:%M:%S"), self.__class__.__name__, msg))
 
-class EZJailTask(SetupTask):
+class RcReader(object):
+    def _get_rc_content(self):
+        rc = None
+        with open('/etc/rc.conf', 'r') as f:
+            rc = f.read().split()
+        if not rc:
+            raise RuntimeError("File `/etc/rc.conf` is empty!")
+        return rc
+
+class EZJailTask(SetupTask, RcReader):
     '''
     Setups ezjail in the virtual machine.
     TODO: As installing ezjail builds world each time, it would probably be better to store
@@ -43,15 +52,27 @@ class EZJailTask(SetupTask):
     '''
     def run(self):
         self.log('Started')
+
         try:
+            self._enable_ezjail()
             self.ezjail.install()
-        except OSError as e:
+        except (IOError, OSError) as e:
             self.log("Error while installing ezjail: %s" % e)
             return False
         self.log('Completed')
         return True
 
-class InterfacesSetupTask(SetupTask):
+    def _enable_ezjail(self):
+        rc = self._get_rc_content()
+        for line in rc:
+            if line.startswith('ezjail_enable'):
+                return
+
+        '''if we get here, it means ezjail_enable is not in rc.conf'''
+        with open('/etc/rc.conf', 'a') as f:
+            f.write("ezjail_enable=\"YES\"\n")
+
+class InterfacesSetupTask(SetupTask, RcReader):
     '''Configures network interfaces for the jails.'''
 
     def run(self):
@@ -80,14 +101,6 @@ class InterfacesSetupTask(SetupTask):
             if not jail.ip in interfaces:
                 missing.append(jail.ip)
         return sorted(set(missing))
-
-    def _get_rc_content(self):
-        rc = None
-        with open('/etc/rc.conf', 'r') as f:
-            rc = f.read().split()
-        if not rc:
-            raise RuntimeError("File `/etc/rc.conf` is empty!")
-        return rc
 
     def _calculate_alias_count(self, addresses, rc):
         alias_count = 0
