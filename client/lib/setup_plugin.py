@@ -28,7 +28,7 @@ class SetupTask(object):
         self.__class__._nameCounter += 1
         self.name = self.__class__.__name__
         self.queue = queue
-        self.puck = puck
+        self._puck = puck
         self.vm = puck.getVM()
 
     def run(self):
@@ -148,7 +148,7 @@ class JailConfigTask(SetupTask):
                 return False
 
             self.log("Retrieving yum repository for environment `%s`." % self.vm.environment)
-            yum_repo = self.puck.getYumRepo(self.vm.environment)
+            yum_repo = self._puck.getYumRepo(self.vm.environment)
 
             self.log("Writing ssh keys.")
             if not self._writeKeys(jail, authorized_key_file):
@@ -289,7 +289,7 @@ class SetupWorkerThread(threading.Thread):
             self._bus.log("Shutting down. No task.")
 
         self.successful = True
-        self.puck.getVM().status = 'setup_complete'
+        self._puck.getVM().status = 'setup_complete'
         self._outqueue.put("%s finished." % self.__class__.__name__)
 
     def _empty_queue(self):
@@ -309,7 +309,7 @@ class SetupPlugin(plugins.SimplePlugin):
     def __init__(self, puck, bus, freq=30.0):
         plugins.SimplePlugin.__init__(self, bus)
         self.freq = freq
-        self.puck = puck
+        self._puck = puck
         self._queue = queue.Queue()
         self._workerQueue = queue.Queue()
         self.worker = None
