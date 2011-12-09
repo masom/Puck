@@ -23,19 +23,13 @@ from jails import EzJail
 class SetupTask(object):
     _nameCounter = 0
 
-    def __init__(self, puck, id = 'SetupTask'):
+    def __init__(self, puck, queue, id = 'SetupTask'):
         self.id = "%s-%s" % (id, self.__class__._nameCounter)
         self.__class__._nameCounter += 1
         self.name = self.__class__.__name__
-
+        self.queue = queue
         self.puck = puck
         self.vm = puck.getVM()
-
-    def setOutQueue(self, queue):
-        self.queue = queue
-
-    def setEzJail(self, ezjail):
-        self.ezjail = ezjail
 
     def run(self):
         raise NotImplementedError("`run` must be defined.")
@@ -245,13 +239,13 @@ class SetupWorkerThread(threading.Thread):
     regularly for the stopped() condition.
     """
 
-    def __init__(self, bus, queue, outqueue, ezjail):
+    def __init__(self, bus, queue, outqueue, puck):
         super(self.__class__, self).__init__()
         self._stop = threading.Event()
         self._queue = queue
         self._bus = bus
         self._outqueue = outqueue
-        self._ezjail = ezjail
+        self._puck = puck
         self.successful = False
 
     def stop(self):
@@ -265,9 +259,9 @@ class SetupWorkerThread(threading.Thread):
         Run a task
         @raise RuntimeError when the task failed to complete
         '''
-        task = self._queue.get(True, 10)
-        task.setOutQueue(self._outqueue)
-        task.setEzJail(self._ezjail)
+
+        ''' This will probably need to be wrapped in a try/catch.'''
+        task = self._queue.get(True, 10)(self._puck, self._outqueue)
 
         loginfo = (self.__class__.__name__, task.__class__.__name__)
         self._bus.log("%s received task: %s" % loginfo)
@@ -283,17 +277,27 @@ class SetupWorkerThread(threading.Thread):
             while not self.stopped():
                 self._step()
                 time.sleep(1) 
+
         except RuntimeError as err:
             self._bus.log(str(err))
-            '''Cleanup'''
-            while not self._queue.empty():
-                self._queue.get(False)
-                self.successful = False
-                return False
+            self._empty_queue()
+            self.successful = False
+            self._puck.getVM().status = 'setup_failed'
+            return False
+
         except queue.Empty:
             self._bus.log("Shutting down. No task.")
+
         self.successful = True
+        self.puck.getVM().status = 'setup_complete'
         self._outqueue.put("%s finished." % self.__class__.__name__)
+
+    def _empty_queue(self):
+        while not self._queue.empty():
+            try:
+                self._queue.get(False)
+            except queue.Empty:
+                return
 
 class SetupPlugin(plugins.SimplePlugin):
     '''
@@ -302,15 +306,14 @@ class SetupPlugin(plugins.SimplePlugin):
     The plugin launches a separate thread to asynchronously execute the tasks.
     '''
 
-    def __init__(self, vm, bus, freq=30.0):
+    def __init__(self, puck, bus, freq=30.0):
         plugins.SimplePlugin.__init__(self, bus)
         self.freq = freq
-        self.vm = vm
+        self.puck = puck
         self._queue = queue.Queue()
         self._workerQueue = queue.Queue()
         self.worker = None
         self.statuses = []
-        self._ezjail = EzJail()
 
     def start(self):
         self.bus.log('Starting up setup tasks')
@@ -353,7 +356,7 @@ class SetupPlugin(plugins.SimplePlugin):
             self.worker.stop()
 
     def _start_worker(self):
-        self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue, ezjail = self._ezjail)
+        self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue, puck = self._puck)
         self.worker.start()
 
     def _setup_start(self, **kwargs):
@@ -366,10 +369,10 @@ class SetupPlugin(plugins.SimplePlugin):
             self._startWorker()
 
         tasks = [
-            #EZJailTask(self.vm),
-            EZJailSetupTask(self.vm),
-            JailConfigTask(self.vm),
-            JailStartupTask(self.vm)
+            #EZJailTask,
+            EZJailSetupTask,
+            JailConfigTask,
+            JailStartupTask
         ]
 
         self.bus.log("Publishing tasks")
@@ -380,10 +383,10 @@ class SetupPlugin(plugins.SimplePlugin):
 
     def _setup_status(self, **kwargs):
         '''
-        Returns the current log queue
+        Returns the current log queue and if the setup is running or not.
         '''
         if self.worker and self.worker.successful:
-            return self.statuses
+            return (self.statuses, False)
 
         status = self._readQueue(self._workerQueue)
         while status:
@@ -392,9 +395,9 @@ class SetupPlugin(plugins.SimplePlugin):
             status = self._readQueue(self._workerQueue)
 
         if not self.worker or not self.worker.isAlive():
-            self.statuses.append("%s worker is not running." % self.__class__.__name__)
+            return (self.statuses, False)
 
-        return self.statuses
+        return (self.statuses, True)
 
     def _readQueue(self, q, blocking = True, timeout = 0.2):
         '''

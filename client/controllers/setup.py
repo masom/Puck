@@ -39,10 +39,11 @@ class SetupController(Controller):
 
     @cherrypy.expose
     def status(self):
-        statuses = cherrypy.engine.publish("setup", action="status").pop()
+        (statuses, running) = cherrypy.engine.publish("setup", action="status").pop()
         env = dict(
             VM = self._vm,
-            statuses = statuses
+            statuses = statuses,
+            setup_running = running
         )
         return self.render("/setup/status.html", **env)
     @cherrypy.expose
