@@ -19,6 +19,7 @@ import threading, Queue as queue, time, subprocess, shlex, datetime, urllib, tar
 import cherrypy
 from cherrypy.process import wspbus, plugins
 from jails import EzJail
+from lib.interfaces import NetInterfaces
 
 class SetupTask(object):
 
@@ -49,6 +50,69 @@ class EZJailTask(SetupTask):
             return False
         self.log('Completed')
         return True
+
+class InterfacesSetupTask(SetupTask):
+    '''Configures network interfaces for the jails.'''
+
+    def run(self):
+        self.log('Started')
+        rc_addresses = []
+        rc = self._get_rc_content()
+        alias_count = self._calculate_alias_count(addresses, rc)
+
+        missing = self._get_missing_ip()
+        self._add_missing_ips(rc_addresses, alias_count, missing)
+
+    def _add_missing_rc_ip(self, rc_addresses, alias_count, missing):
+        '''TODO: move netmask to config.'''
+        netmask = '255.255.0.0'
+        with open('/etc/rc.conf', 'a') as f:
+            for ip in missing:
+                self._add_ip(ip, netmask)
+                if self._add_rc_ip(rc_addresses, f, alias_count, ip, netmask):
+                    alias_count += 1
+
+    def _get_missing_ip(selfs):
+        interfaces = NetInterfaces.getInterfaces()
+        missing = []
+
+        for jail in self.vm.jails:
+            if not jail.ip in interfaces:
+                missing.append(jail.ip)
+        return set(missing)
+
+    def _get_rc_content(self):
+        rc = None
+        with open('/etc/rc.conf', 'r') as f:
+            rc = f.read().split()
+        if not rc:
+            raise RuntimeError("File `/etc/rc.conf` is empty!")
+        return rc
+
+    def _calculate_alias_count(self, addresses, rc):
+        alias_count = 0
+
+        for line in rc:
+            if line.startswith('ifconfig_%s_alias' % self.vm.interface):
+                alias_count += 1
+                addresses.append(line)
+
+        return alias_count
+
+    def _add_ip(self, ip, netmask):
+        command = "ifconfig %s alias %s netmask %s" % (self.vm.interfaces, ip, netmask)
+        subprocess.Popen(shlex.split(command)).wait()
+
+    def _add_rc_ip(self, rc_addresses, file, alias_count, ip, netmask):
+
+        for item in rc_addresses:
+            if item.find(ip) > 0:
+                return False
+
+        template = 'ifconfig_%s_alias_%s="inet %s netmask %s"'
+        line = "%s\n" % template
+        file.write(line % (self.vm.interface, alias_count, ip, netmask))
+        file.flush()
 
 class EZJailSetupTask(SetupTask):
     '''
@@ -260,8 +324,6 @@ class SetupWorkerThread(threading.Thread):
         task = self._queue.get(True, 10)(self._puck, self._outqueue)
 
         loginfo = (self.__class__.__name__, task.__class__.__name__)
-        self._bus.log("%s received task: %s" % loginfo)
-        self._outqueue.put("%s starting task: %s" % loginfo)
 
         if not task.run():
             raise RuntimeError("%s error while running task `%s`" % loginfo)
@@ -275,14 +337,13 @@ class SetupWorkerThread(threading.Thread):
                 time.sleep(1) 
 
         except RuntimeError as err:
-            self._bus.log(str(err))
+            self._bus.log(err)
             self._empty_queue()
             self.successful = False
             self._puck.getVM().status = 'setup_failed'
             return False
-
         except queue.Empty:
-            self._bus.log("Shutting down. No task.")
+            pass
 
         self.successful = True
         self._puck.getVM().status = 'setup_complete'
@@ -367,6 +428,7 @@ class SetupPlugin(plugins.SimplePlugin):
         tasks = [
             #EZJailTask,
             EZJailSetupTask,
+            InterfacesSetupTask,
             JailConfigTask,
             JailStartupTask
         ]

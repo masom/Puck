@@ -37,6 +37,7 @@ class ConfigurationController(Controller):
         )
 
         return self.render("/configure/index.html", **env)
+
     @cherrypy.expose
     def environment(self, *args, **kwargs):
         self.__assert_vm_is_modifiable()
@@ -47,7 +48,7 @@ class ConfigurationController(Controller):
             if kwargs.has_key("vm.environment"): 
                 env_id = kwargs['vm.environment']
                 if environments.has_key(env_id):
-                    self._vm.update(environment=env_id, environments=environments)
+                    self._vm.update(environment=env_id)
                     cherrypy.session['flash'] = "Environment updated."
                     raise cherrypy.HTTPRedirect('/configure/')
 
@@ -56,6 +57,24 @@ class ConfigurationController(Controller):
             environments=environments
         )
         return self.render("/configure/environment.html", **env)
+
+    @cherrypy.expose
+    def netiface(self, *args, **kwargs):
+        self.__assert_vm_is_modifiable()
+
+        if cherrypy.request.method == "POST":
+            if kwargs.has_key("vm.interface"): 
+                iface = kwargs['vm.interface']
+                if iface in self.vm.interfaces:
+                    self._vm.update(interface=iface)
+                    cherrypy.session['flash'] = "Network Interface updated."
+                    raise cherrypy.HTTPRedirect('/configure/')
+
+        env = dict(
+            VM=self._vm,
+            interfacess=self.vm.interfaces
+        )
+        return self.render("/configure/interface.html", **env)
 
     @cherrypy.expose
     def jails(self, *args, **kwargs):
