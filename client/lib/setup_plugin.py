@@ -358,8 +358,6 @@ class SetupWorkerThread(threading.Thread):
         try:
             while not self.stopped():
                 self._step()
-                time.sleep(1) 
-
         except RuntimeError as err:
             self._bus.log(str(err))
             self._empty_queue()
