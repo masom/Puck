@@ -64,7 +64,7 @@ class PuckTest(unittest.TestCase):
     def test_loadRegistration(self):
         p = Puck(transport=MockTransport)
         p._registration_file = '/tmp/non-existent-reg'
-        self.assertRaises(IOError, p._loadRegistration)
+        self.assertFalse(p._loadRegistration())
 
         with open("/tmp/reg-test", 'w') as f:
             f.write('test')
