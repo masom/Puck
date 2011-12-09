@@ -21,12 +21,8 @@ from cherrypy.process import wspbus, plugins
 from jails import EzJail
 
 class SetupTask(object):
-    _nameCounter = 0
 
-    def __init__(self, puck, queue, id = 'SetupTask'):
-        self.id = "%s-%s" % (id, self.__class__._nameCounter)
-        self.__class__._nameCounter += 1
-        self.name = self.__class__.__name__
+    def __init__(self, puck, queue):
         self.queue = queue
         self._puck = puck
         self.vm = puck.getVM()
@@ -375,10 +371,8 @@ class SetupPlugin(plugins.SimplePlugin):
             JailStartupTask
         ]
 
-        self.bus.log("Publishing tasks")
         #TODO: Persistence of the list when failure occurs.
         for task in tasks:
-            self.bus.log("\t Publishing: %s" % task.name)
             self._queue.put(task)
 
     def _setup_status(self, **kwargs):
