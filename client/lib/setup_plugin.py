@@ -79,12 +79,15 @@ class InterfacesSetupTask(SetupTask, RcReader):
         self.log('Started')
         rc_addresses = []
         rc = self._get_rc_content()
-        alias_count = self._calculate_alias_count(addresses, rc)
+        alias_count = self._calculate_alias_count(rc_addresses, rc)
 
         missing = self._get_missing_ip()
         self._add_missing_ips(rc_addresses, alias_count, missing)
 
-    def _add_missing_rc_ip(self, rc_addresses, alias_count, missing):
+        return True
+
+
+    def _add_missing_ips(self, rc_addresses, alias_count, missing):
         '''TODO: move netmask to config.'''
         netmask = '255.255.0.0'
         with open('/etc/rc.conf', 'a') as f:
@@ -351,7 +354,7 @@ class SetupWorkerThread(threading.Thread):
                 time.sleep(1) 
 
         except RuntimeError as err:
-            self._bus.log(err)
+            self._bus.log(str(err))
             self._empty_queue()
             self.successful = False
             self._puck.getVM().status = 'setup_failed'
