@@ -26,23 +26,11 @@ from lib.jails import EzJailStarter
 from lib.setup_plugin import SetupPlugin
 
 from lib.controller import Controller
+from controllers.root import RootController
 from controllers.configuration import ConfigurationController
 from controllers.setup import SetupController
 
 import socket
-
-class Root(Controller):
-
-    def __init__(self, lookup, puck):
-        Controller.__init__(self, lookup)
-        self._puck = puck
-
-    @cherrypy.expose
-    def index(self):
-        env = dict(
-            VM=self._puck.getVM()
-        )
-        return self.render('/index.html', **env)
 
 CONF = {
     '/': {
@@ -111,14 +99,13 @@ if __name__ == "__main__":
     cherrypy.config.update(args.config)
 
     lookup = TemplateLookup(
-                    directories=[os.path.join(args.templatedir, reldir)
-                                    for reldir in ["html"]]
-        )
+        directories=[os.path.join(args.templatedir, reldir) for reldir in ["html"]]
+    )
 
     puck = Puck()
     puck.getVM().jails.setSocket(ezjl_socket)
 
-    root = Root(lookup, puck)
+    root = RootController(lookup, puck)
     root.configure = ConfigurationController(lookup, puck)
     root.setup = SetupController(lookup, puck)
 
@@ -128,10 +115,10 @@ if __name__ == "__main__":
     cherrypy.process.plugins.SignalHandler.handlers['SIGINT'] = cherrypy.engine.exit
     cherrypy.engine.signal_handler.subscribe()
 
-    app = cherrypy.tree.mount(root, '/', CONF)
-
     if hasattr(cherrypy.engine, "console_control_handler"):
         cherrypy.engine.console_control_handler.subscribe()
+
+    app = cherrypy.tree.mount(root, '/', CONF)
 
     cherrypy.engine.start()
     cherrypy.engine.block()
