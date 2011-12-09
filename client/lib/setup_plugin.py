@@ -364,9 +364,9 @@ class SetupPlugin(plugins.SimplePlugin):
 
         '''Start the worker if it is not running.'''
         if not self.worker:
-            self._startWorker()
+            self._start_worker()
         if not self.worker.is_alive() and not self.worker.successful:
-            self._startWorker()
+            self._start_worker()
 
         tasks = [
             #EZJailTask,
