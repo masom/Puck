@@ -72,14 +72,14 @@ class InterfacesSetupTask(SetupTask):
                 if self._add_rc_ip(rc_addresses, f, alias_count, ip, netmask):
                     alias_count += 1
 
-    def _get_missing_ip(selfs):
+    def _get_missing_ip(self):
         interfaces = NetInterfaces.getInterfaces()
         missing = []
 
         for jail in self.vm.jails:
             if not jail.ip in interfaces:
                 missing.append(jail.ip)
-        return set(missing)
+        return sorted(set(missing))
 
     def _get_rc_content(self):
         rc = None

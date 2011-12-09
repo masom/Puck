@@ -2,9 +2,14 @@ import unittest, StringIO, Queue as queue
 
 from lib.setup_plugin import *
 
+class MockJail(object):
+    def __init__(self, ip):
+        self.ip = ip
+
 class MockVM(object):
     def __init__(self):
         self.interface = 'em0'
+        self.jails = [MockJail('127.0.0.1'), MockJail('127.0.0.2')]
 
 class MockPuck(object):
     def getVM(self):
@@ -30,7 +35,7 @@ class InterfacesSetupTaskTest(unittest.TestCase):
         self.assertTrue(retval)
         self.assertEqual(data, expected)
 
-        '''Prevent adding 2  times the template.'''
+        '''Prevent adding 2 times the template.'''
         rc_addresses.append(expected)
         retval = task._add_rc_ip(rc_addresses, file, alias_count, ip, netmask)
         self.assertFalse(retval)
@@ -44,6 +49,7 @@ class InterfacesSetupTaskTest(unittest.TestCase):
         data = file.readline()
         self.assertTrue(retval)
         self.assertEqual(data, expected)
+
         file.close()
 
     def test_calculate_alias_count(self):
@@ -72,4 +78,11 @@ class InterfacesSetupTaskTest(unittest.TestCase):
         rc.flush()
         alias_count = task._calculate_alias_count(addresses, rc)
         self.assertEqual(3, alias_count)
+
         rc.close()
+
+    def test_get_missing_ip(self):
+        task = InterfacesSetupTask(MockPuck(), None)
+
+        missing = task._get_missing_ip()
+        self.assertEqual(['127.0.0.2'], missing)
