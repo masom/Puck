@@ -109,10 +109,11 @@ class InterfacesSetupTask(SetupTask):
             if item.find(ip) > 0:
                 return False
 
-        template = 'ifconfig_%s_alias_%s="inet %s netmask %s"'
+        template = 'ifconfig_%s_alias%s="inet %s netmask %s"'
         line = "%s\n" % template
         file.write(line % (self.vm.interface, alias_count, ip, netmask))
         file.flush()
+        return True
 
 class EZJailSetupTask(SetupTask):
     '''
