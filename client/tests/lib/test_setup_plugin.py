@@ -84,5 +84,5 @@ class InterfacesSetupTaskTest(unittest.TestCase):
     def test_get_missing_ip(self):
         task = InterfacesSetupTask(MockPuck(), None)
 
-        missing = task._get_missing_ip()
+        (jails_ip, missing) = task._get_missing_ip()
         self.assertEqual(['127.0.0.2'], missing)

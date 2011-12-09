@@ -104,5 +104,6 @@ class PuckTest(unittest.TestCase):
     def test_GetYumRepo(self):
         p = Puck(transport=MockTransport)
         repo = p.getYumRepo('development')
-        self.assertTrue(isinstance(repo, str))
-        self.assertGreater(len(repo), 0, "Empty repo data!")
+        self.assertTrue(isinstance(repo, dict))
+        self.assertTrue(repo.has_key('data'))
+        self.assertGreater(len(repo['data']), 0, "Empty repo data!")

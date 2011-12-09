@@ -77,33 +77,41 @@ class InterfacesSetupTask(SetupTask, RcReader):
 
     def run(self):
         self.log('Started')
+
+        netmask = '255.255.0.0'
+        (jails_ip, missing) = self._get_missing_ip()
+        self._add_missing_ips(missing, netmask)
+        self._add_missing_rc(jails_ip, netmask)
+        return True
+
+
+    def _add_missing_rc(self, jails_ip, netmask):
         rc_addresses = []
         rc = self._get_rc_content()
         alias_count = self._calculate_alias_count(rc_addresses, rc)
 
-        missing = self._get_missing_ip()
-        self._add_missing_ips(rc_addresses, alias_count, missing)
+        for ip in jails_ip:
+            if self._add_rc_ip(rc_addresses, f, alias_count, ip, netmask):
+                alias_count += 1
 
-        return True
-
-
-    def _add_missing_ips(self, rc_addresses, alias_count, missing):
+    def _add_missing_ips(self, missing, netmask):
         '''TODO: move netmask to config.'''
         netmask = '255.255.0.0'
         with open('/etc/rc.conf', 'a') as f:
             for ip in missing:
+                self.log("Registering new ip address `%s`" % ip)
                 self._add_ip(ip, netmask)
-                if self._add_rc_ip(rc_addresses, f, alias_count, ip, netmask):
-                    alias_count += 1
 
     def _get_missing_ip(self):
         interfaces = NetInterfaces.getInterfaces()
         missing = []
+        jails_ip = []
 
         for jail in self.vm.jails:
+            jails_ip.append(jail.ip)
             if not jail.ip in interfaces:
                 missing.append(jail.ip)
-        return sorted(set(missing))
+        return (jails_ip, sorted(set(missing)) )
 
     def _calculate_alias_count(self, addresses, rc):
         alias_count = 0
@@ -123,8 +131,9 @@ class InterfacesSetupTask(SetupTask, RcReader):
 
         for item in rc_addresses:
             if item.find(ip) > 0:
+                self.log("rc already knows about ip `%s`" % ip)
                 return False
-
+        self.log("Registering new rc value for ip `%s`" % ip)
         template = 'ifconfig_%s_alias%s="inet %s netmask %s"'
         line = "%s\n" % template
         file.write(line % (self.vm.interface, alias_count, ip, netmask))

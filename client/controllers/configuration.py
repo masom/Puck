@@ -62,17 +62,19 @@ class ConfigurationController(Controller):
     def netiface(self, *args, **kwargs):
         self.__assert_vm_is_modifiable()
 
+        interfaces = sorted(set(self._vm.interfaces.values()))
+
         if cherrypy.request.method == "POST":
             if kwargs.has_key("vm.interface"): 
                 iface = kwargs['vm.interface']
-                if iface in self.vm.interfaces:
+                if iface in interfaces:
                     self._vm.update(interface=iface)
                     cherrypy.session['flash'] = "Network Interface updated."
                     raise cherrypy.HTTPRedirect('/configure/')
 
         env = dict(
             VM=self._vm,
-            interfacess=self._vm.interfaces
+            interfaces=interfaces
         )
         return self.render("/configure/interface.html", **env)
 
