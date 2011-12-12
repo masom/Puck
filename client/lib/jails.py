@@ -153,6 +153,9 @@ class Jail(object):
 
 class EzJail(object):
 
+    def __init__(self):
+        self._prog = '/usr/local/bin/ezjail-admin'
+
     def setSocket(self, ezjl_socket):
         '''Set the socket used to communicate with the fork handling jail start.'''
         self._socket = ezjl_socket
@@ -162,7 +165,7 @@ class EzJail(object):
         Installs ezjail
         @raise OSError when command not found.
         '''
-        command = 'ezjail-admin install -m -p'
+        command = '%s install -m -p' % self._prog
         subprocess.Popen(shlex.split(command)).wait()
         
     def start(self, jail = None):
@@ -181,7 +184,7 @@ class EzJail(object):
         @raise OSError when command not found.
         '''
 
-        command = "ezjail-admin stop"
+        command = "%s stop" % self._prog
         if jail:
             command += " %s" % str(jail)
 
@@ -195,7 +198,7 @@ class EzJail(object):
         @return list
         '''
 
-        command = "ezjail-admin list"
+        command = "%s list" % self._prog
         output = subprocess.check_output(shlex.split(command))
 
         if len(output) == 0:
@@ -226,7 +229,7 @@ class EzJail(object):
         '''         
         shlex does not support unicode with python < 2.7.3          
         '''
-        cmd = str("ezjail-admin create -f %s %s %s" % (flavour, name, ip))
+        cmd = str("%s create -f %s %s %s" % (self._prog, flavour, name, ip))
         subprocess.Popen(shlex.split(cmd)).wait()
 
     def delete(self, jail):
@@ -235,8 +238,8 @@ class EzJail(object):
         '''
 
         commands = [
-            "ezjail-admin stop %s" % jail,
-            "ezjail-admin delete -w %s" % jail
+            "%s stop %s" % (self._prog, jail),
+            "%s delete -w %s" % (self._prog, jail)
         ]
         for command in commands:
             subprocess.Popen(shlex.split(str(command))).wait()
