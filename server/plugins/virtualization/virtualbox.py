@@ -23,14 +23,15 @@ import models
 
 ISO = "FreeBSD.iso"
 
-class Launcher(object):
+class VirtualBox(Launcher):
     models = [models.VM]
+    supported_api = ['create', 'delete', 'status', 'stop', 'start', 'restart']
 
     def __init__(self, models):
         for cls in models:
             setattr(self, cls.__name__, models[cls])
 
-    def launch(self, with_base=True):
+    def create(self, image_id=None, instance_type=None, with_base=True):
         name = self.VM._newId()
         while os.path.exists("%s.vdi" % name):
             name = self.VM._newId()
