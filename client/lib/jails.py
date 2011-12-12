@@ -34,9 +34,11 @@ class Jails(object):
             yield self._jails[i]
 
     def count(self):
+        '''Returns the number of jails'''
         return len(self._jails)
 
     def setSocket(self, ezjl_socket):
+        '''Sets the create socket to the jail manager. Ugly hack.'''
         self._manager.setSocket(ezjl_socket)
 
     def load(self, jails):
@@ -47,14 +49,19 @@ class Jails(object):
             self.add(self.create(j))
 
     def create(self, config):
+        '''Creates a new jail, returning it'''
         return self._jail(self._manager, config)
 
     def add(self, jail):
+        '''Add a jail
+        raises KeyError if the jail already exists.'''
         if jail.id in self._jails:
             raise KeyError()
         self._jails[jail.id] = jail
 
     def remove(self, jail):
+        '''Remove a jail.
+        raises KeyError if the jail does not exists.'''
         if not jail.id in self._jails:
             raise KeyError()
 
@@ -69,15 +76,19 @@ class Jails(object):
         return id in self._jails
 
     def clear(self):
+        '''Clear the jail registry'''
         self._jails.clear()
 
     def export(self):
+        '''Exports the jail as a list'''
         jails = []
         for j in self._jails:
             jails.append(self._jails[j].export())
         return jails
  
     def get(self, id=None):
+        '''Gets a jail
+        raises KeyError if the jail was not found.'''
         if not id:
             return self._jails.values()
 
@@ -85,6 +96,10 @@ class Jails(object):
             raise KeyError()
 
         return self._jails[id]
+
+    def status(self):
+        '''Returns the status of the jails.'''
+        return self._manager.status()
 
 class Jail(object):
     def __init__(self, manager, config):
@@ -99,6 +114,7 @@ class Jail(object):
         self._manager = manager
 
     def export(self):
+        '''Export the jail data.'''
         return self._data
 
     def __getattr__(self, name):
@@ -114,16 +130,19 @@ class Jail(object):
         return
 
     def start(self):
+        '''Starts the jail'''
         return self._manager.start(self._data['type'])
 
     def stop(self):
+        '''Stops the jail'''
         return self._manager.stop(self._data['type'])
 
     def status(self):
+        '''Get the jail status'''
         return self._manager.status(self._data['type'])
 
     def create(self):
-        '''
+        '''Create a jail
         Here we make the assumption the type is the same as the flavour...
         Will need to refactor for more global use than HCN's
         '''
@@ -138,6 +157,7 @@ class EzJail(object):
         self._prog = '/usr/local/bin/ezjail-admin'
 
     def setSocket(self, ezjl_socket):
+        '''Set the socket used to communicate with the fork handling jail start.'''
         self._socket = ezjl_socket
 
     def install(self):
@@ -146,14 +166,7 @@ class EzJail(object):
         @raise OSError when command not found.
         '''
         command = '%s install -m -p' % self._prog
-        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
-        print
-        print
-        print stdoutdata
-        print "---------"
-        print stderrdata
-        print
-        print
+        subprocess.Popen(shlex.split(command)).wait()
         
     def start(self, jail = None):
         '''
@@ -175,7 +188,7 @@ class EzJail(object):
         if jail:
             command += " %s" % str(jail)
 
-        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+        subprocess.Popen(shlex.split(command)).wait()
 
     def status(self, jail = None):
         '''
@@ -186,12 +199,12 @@ class EzJail(object):
         '''
 
         command = "%s list" % self._prog
-        (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(command)).communicate()
+        output = subprocess.check_output(shlex.split(command))
 
-        if len(stdoutdata) == 0:
+        if len(output) == 0:
             raise RuntimeError("No data returned by ezjail.")
 
-        data = stdoutdata.split().splitlines(True)
+        data = output.splitlines(False)
         if not jail:
             return data
 
@@ -229,21 +242,14 @@ class EzJail(object):
             "%s delete -w %s" % (self._prog, jail)
         ]
         for command in commands:
-            (stdoutdata, stderrdata) = subprocess.Popen(shlex.split(str(command))).communicate()
-            print
-            print
-            print stdoutdata
-            print stderrdata
-            print
-            print
+            subprocess.Popen(shlex.split(str(command))).wait()
 
 class StopLoopException(Exception): pass
 class EzJailStarter(object):
     '''Workaround for python thread breaking jail start.'''
 
-
     def getSocketFile(self):
-        '''Initialize the communication socket'''
+        '''Generate a file to be used as UNIX socket'''
 
         self._socket_file = "/tmp/pixie_ezc_%s" % os.getpid()
         return self._socket_file

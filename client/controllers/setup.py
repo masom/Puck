@@ -17,7 +17,7 @@ class SetupController(Controller):
         If it cannot, the user is redirected to the app index.
         '''
 
-        if not self._vm.status in ['configured', 'setup'] or not self._vm.isConfigured():
+        if not self._vm.status in ['configured', 'setup', 'setup_failed'] or not self._vm.isConfigured():
             cherrypy.session['flash'] = "The virtual machine may not be setup at this time."
             raise cherrypy.HTTPRedirect('/')
         
@@ -39,10 +39,11 @@ class SetupController(Controller):
 
     @cherrypy.expose
     def status(self):
-        statuses = cherrypy.engine.publish("setup", action="status").pop()
+        (statuses, running) = cherrypy.engine.publish("setup", action="status").pop()
         env = dict(
             VM = self._vm,
-            statuses = statuses
+            statuses = statuses,
+            setup_running = running
         )
         return self.render("/setup/status.html", **env)
     @cherrypy.expose

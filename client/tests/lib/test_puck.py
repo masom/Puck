@@ -64,7 +64,7 @@ class PuckTest(unittest.TestCase):
     def test_loadRegistration(self):
         p = Puck(transport=MockTransport)
         p._registration_file = '/tmp/non-existent-reg'
-        self.assertRaises(IOError, p._loadRegistration)
+        self.assertFalse(p._loadRegistration())
 
         with open("/tmp/reg-test", 'w') as f:
             f.write('test')
@@ -104,5 +104,6 @@ class PuckTest(unittest.TestCase):
     def test_GetYumRepo(self):
         p = Puck(transport=MockTransport)
         repo = p.getYumRepo('development')
-        self.assertTrue(isinstance(repo, str))
-        self.assertGreater(len(repo), 0, "Empty repo data!")
+        self.assertTrue(isinstance(repo, dict))
+        self.assertTrue(repo.has_key('data'))
+        self.assertGreater(len(repo['data']), 0, "Empty repo data!")

@@ -175,9 +175,13 @@ class NetInterfaces(object):
         return result
 
     @classmethod
-    def getInterfaces(self):
+    def getInterfaces(self, detailed=True):
         ifaces = {}
         raw = self.getifaddrs()
+
+        if not detailed:
+            return raw.keys()
+
         for iface in raw:
             if AF_INET in raw[iface]:
                 for i in raw[iface][AF_INET]:

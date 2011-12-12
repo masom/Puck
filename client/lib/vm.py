@@ -31,7 +31,8 @@ class VM(object):
         self.keys = {}
         self.status = 'new'
         self.environment = None
-        self.environments = None
+        self.interface = None
+
         self.interfaces = NetInterfaces.getInterfaces()
         self.configured = False
 
@@ -39,7 +40,9 @@ class VM(object):
         self._load()
 
     def update(self, **kwargs):
-        valid = ['keys', 'environment']
+        '''Update the VM object with provided values.'''
+
+        valid = ['keys', 'environment', 'interface']
         for key in kwargs:
             if not key in valid:
                 continue
@@ -51,6 +54,8 @@ class VM(object):
         self.configurationValid()
 
     def _set_jails(self, jails):
+        '''Sets the jails to the provided list.'''
+
         self.jails.clear()
 
         for data in jails:
@@ -58,12 +63,14 @@ class VM(object):
                 continue
             jail = self.jails.create(data)
             self.jails.add(jail)
-        
+
     def _load(self):
+        '''Load the vm off the persistent storage.'''
+
         if not os.path.exists(self._persist_file):
             return
 
-        keys = ['id', 'keys', 'status', 'environment', 'configured']
+        keys = ['id', 'keys', 'status', 'environment', 'configured', 'interface']
         data = {}
 
         try:
@@ -86,11 +93,15 @@ class VM(object):
         self.jails.load(data['jails'])
 
     def persist(self):
+        '''Saves the VM to the persistent storage.'''
+
         data = self.getConfiguration()
         with open(self._persist_file, 'w') as f:
             f.write(json.dumps(data, sort_keys=True, indent=4))
 
     def getConfiguration(self):
+        '''Returns a dictionary filled with the VM configuration data.'''
+
         data = {}
         data['id'] = self.id
         data['jails'] = self.jails.export()
@@ -98,11 +109,14 @@ class VM(object):
         data['status'] = self.status
         data['environment'] = self.environment
         data['configured'] = self.configured
+        data['interface'] = self.interface
         return data
 
     def configurationValid(self):
+        '''Verifies if the configuration is valid and upate the jail status accordingly'''
+
         listItems = [self.jails.get(), self.keys]
-        boolItems = [self.environment]
+        boolItems = [self.environment, self.interface]
 
         for item in listItems:
             if len(item) == 0:
@@ -115,6 +129,8 @@ class VM(object):
         return self.isConfigured(True)
 
     def isConfigured(self, state = None):
+        '''Switch the configuration state or returns it.'''
+
         if state:
             self.configured = state
             self.status = 'configured'

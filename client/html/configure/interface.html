@@ -1,0 +1,20 @@
+<%inherit file="/template.html"/>
+
+<%block name="header">
+    Configuration
+</%block>
+<h2>Network Interface</h2>
+<p>Currently Selected: ${VM.interface}</p>
+<form action="/configure/netiface" method="post">
+	<select name="vm.interface">
+		% for iface in interfaces:
+			% if VM.interface == iface:
+				<% selected = 'selected="selected""' %>
+			% else:
+				<% selected = '' %>
+			% endif
+			<option value="${iface}" ${selected}>${iface}</option>
+		% endfor
+	</select>
+	<button type="submit">Save</button>
+</form>

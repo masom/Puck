@@ -19,23 +19,14 @@ import threading, Queue as queue, time, subprocess, shlex, datetime, urllib, tar
 import cherrypy
 from cherrypy.process import wspbus, plugins
 from jails import EzJail
+from lib.interfaces import NetInterfaces
 
 class SetupTask(object):
-    _nameCounter = 0
 
-    def __init__(self, puck, id = 'SetupTask'):
-        self.id = "%s-%s" % (id, self.__class__._nameCounter)
-        self.__class__._nameCounter += 1
-        self.name = self.__class__.__name__
-
-        self.puck = puck
-        self.vm = puck.getVM()
-
-    def setOutQueue(self, queue):
+    def __init__(self, puck, queue):
         self.queue = queue
-
-    def setEzJail(self, ezjail):
-        self.ezjail = ezjail
+        self._puck = puck
+        self.vm = puck.getVM()
 
     def run(self):
         raise NotImplementedError("`run` must be defined.")
@@ -44,7 +35,16 @@ class SetupTask(object):
         now = datetime.datetime.now()
         self.queue.put("%s\t%s\t%s" % (now.strftime("%Y-%m-%d %H:%M:%S"), self.__class__.__name__, msg))
 
-class EZJailTask(SetupTask):
+class RcReader(object):
+    def _get_rc_content(self):
+        rc = None
+        with open('/etc/rc.conf', 'r') as f:
+            rc = f.read().split()
+        if not rc:
+            raise RuntimeError("File `/etc/rc.conf` is empty!")
+        return rc
+
+class EZJailTask(SetupTask, RcReader):
     '''
     Setups ezjail in the virtual machine.
     TODO: As installing ezjail builds world each time, it would probably be better to store
@@ -52,12 +52,90 @@ class EZJailTask(SetupTask):
     '''
     def run(self):
         self.log('Started')
+
         try:
+            self._enable_ezjail()
             self.ezjail.install()
-        except OSError as e:
+        except (IOError, OSError) as e:
             self.log("Error while installing ezjail: %s" % e)
             return False
         self.log('Completed')
+        return True
+
+    def _enable_ezjail(self):
+        rc = self._get_rc_content()
+        for line in rc:
+            if line.startswith('ezjail_enable'):
+                return
+
+        '''if we get here, it means ezjail_enable is not in rc.conf'''
+        with open('/etc/rc.conf', 'a') as f:
+            f.write("ezjail_enable=\"YES\"\n")
+
+class InterfacesSetupTask(SetupTask, RcReader):
+    '''Configures network interfaces for the jails.'''
+
+    def run(self):
+        self.log('Started')
+
+        '''TODO: Move netmask to config.'''
+        netmask = '255.255.0.0'
+        (jails_ip, missing) = self._get_missing_ip()
+        self._add_missing_ips(missing, netmask)
+        self._add_missing_rc(jails_ip, netmask)
+        return True
+
+    def _add_missing_rc(self, jails_ip, netmask):
+        rc_addresses = []
+        rc = self._get_rc_content()
+        alias_count = self._calculate_alias_count(rc_addresses, rc)
+
+        with open('/etc/rc.conf', 'a') as f:
+            for ip in jails_ip:
+                if self._add_rc_ip(rc_addresses, f, alias_count, ip, netmask):
+                    alias_count += 1
+
+    def _add_missing_ips(self, missing, netmask):
+        for ip in missing:
+            self.log("Registering new ip address `%s`" % ip)
+            self._add_ip(ip, netmask)
+
+    def _get_missing_ip(self):
+        interfaces = NetInterfaces.getInterfaces()
+        missing = []
+        jails_ip = []
+
+        for jail in self.vm.jails:
+            jails_ip.append(jail.ip)
+            if not jail.ip in interfaces:
+                missing.append(jail.ip)
+        return (jails_ip, sorted(set(missing)) )
+
+    def _calculate_alias_count(self, addresses, rc):
+        alias_count = 0
+
+        for line in rc:
+            if line.startswith('ifconfig_%s_alias' % self.vm.interface):
+                alias_count += 1
+                addresses.append(line)
+
+        return alias_count
+
+    def _add_ip(self, ip, netmask):
+        command = "ifconfig %s alias %s netmask %s" % (self.vm.interfaces, ip, netmask)
+        subprocess.Popen(shlex.split(command)).wait()
+
+    def _add_rc_ip(self, rc_addresses, file, alias_count, ip, netmask):
+
+        for item in rc_addresses:
+            if item.find(ip) > 0:
+                self.log("rc already knows about ip `%s`" % ip)
+                return False
+        self.log("Registering new rc value for ip `%s`" % ip)
+        template = 'ifconfig_%s_alias%s="inet %s netmask %s"'
+        line = "%s\n" % template
+        file.write(line % (self.vm.interface, alias_count, ip, netmask))
+        file.flush()
         return True
 
 class EZJailSetupTask(SetupTask):
@@ -154,7 +232,7 @@ class JailConfigTask(SetupTask):
                 return False
 
             self.log("Retrieving yum repository for environment `%s`." % self.vm.environment)
-            yum_repo = self.puck.getYumRepo(self.vm.environment)
+            yum_repo = self._puck.getYumRepo(self.vm.environment)
 
             self.log("Writing ssh keys.")
             if not self._writeKeys(jail, authorized_key_file):
@@ -245,13 +323,13 @@ class SetupWorkerThread(threading.Thread):
     regularly for the stopped() condition.
     """
 
-    def __init__(self, bus, queue, outqueue, ezjail):
+    def __init__(self, bus, queue, outqueue, puck):
         super(self.__class__, self).__init__()
         self._stop = threading.Event()
         self._queue = queue
         self._bus = bus
         self._outqueue = outqueue
-        self._ezjail = ezjail
+        self._puck = puck
         self.successful = False
 
     def stop(self):
@@ -265,13 +343,11 @@ class SetupWorkerThread(threading.Thread):
         Run a task
         @raise RuntimeError when the task failed to complete
         '''
-        task = self._queue.get(True, 10)
-        task.setOutQueue(self._outqueue)
-        task.setEzJail(self._ezjail)
+
+        ''' This will probably need to be wrapped in a try/catch.'''
+        task = self._queue.get(True, 10)(self._puck, self._outqueue)
 
         loginfo = (self.__class__.__name__, task.__class__.__name__)
-        self._bus.log("%s received task: %s" % loginfo)
-        self._outqueue.put("%s starting task: %s" % loginfo)
 
         if not task.run():
             raise RuntimeError("%s error while running task `%s`" % loginfo)
@@ -282,18 +358,25 @@ class SetupWorkerThread(threading.Thread):
         try:
             while not self.stopped():
                 self._step()
-                time.sleep(1) 
         except RuntimeError as err:
             self._bus.log(str(err))
-            '''Cleanup'''
-            while not self._queue.empty():
-                self._queue.get(False)
-                self.successful = False
-                return False
+            self._empty_queue()
+            self.successful = False
+            self._puck.getVM().status = 'setup_failed'
+            return False
         except queue.Empty:
-            self._bus.log("Shutting down. No task.")
+            pass
+
         self.successful = True
+        self._puck.getVM().status = 'setup_complete'
         self._outqueue.put("%s finished." % self.__class__.__name__)
+
+    def _empty_queue(self):
+        while not self._queue.empty():
+            try:
+                self._queue.get(False)
+            except queue.Empty:
+                return
 
 class SetupPlugin(plugins.SimplePlugin):
     '''
@@ -302,15 +385,14 @@ class SetupPlugin(plugins.SimplePlugin):
     The plugin launches a separate thread to asynchronously execute the tasks.
     '''
 
-    def __init__(self, vm, bus, freq=30.0):
+    def __init__(self, puck, bus, freq=30.0):
         plugins.SimplePlugin.__init__(self, bus)
         self.freq = freq
-        self.vm = vm
+        self._puck = puck
         self._queue = queue.Queue()
         self._workerQueue = queue.Queue()
         self.worker = None
         self.statuses = []
-        self._ezjail = EzJail()
 
     def start(self):
         self.bus.log('Starting up setup tasks')
@@ -352,8 +434,8 @@ class SetupPlugin(plugins.SimplePlugin):
         if self.worker and self.worker.isAlive():
             self.worker.stop()
 
-    def _startWorker(self):
-        self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue, ezjail = self._ezjail)
+    def _start_worker(self):
+        self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue, puck = self._puck)
         self.worker.start()
 
     def _setup_start(self, **kwargs):
@@ -361,29 +443,28 @@ class SetupPlugin(plugins.SimplePlugin):
 
         '''Start the worker if it is not running.'''
         if not self.worker:
-            self._startWorker()
+            self._start_worker()
         if not self.worker.is_alive() and not self.worker.successful:
-            self._startWorker()
+            self._start_worker()
 
         tasks = [
-            EZJailTask(self.vm),
-            EZJailSetupTask(self.vm),
-            JailConfigTask(self.vm),
-            JailStartupTask(self.vm)
+            #EZJailTask,
+            EZJailSetupTask,
+            InterfacesSetupTask,
+            JailConfigTask,
+            JailStartupTask
         ]
 
-        self.bus.log("Publishing tasks")
         #TODO: Persistence of the list when failure occurs.
         for task in tasks:
-            self.bus.log("\t Publishing: %s" % task.name)
             self._queue.put(task)
 
     def _setup_status(self, **kwargs):
         '''
-        Returns the current log queue
+        Returns the current log queue and if the setup is running or not.
         '''
         if self.worker and self.worker.successful:
-            return self.statuses
+            return (self.statuses, False)
 
         status = self._readQueue(self._workerQueue)
         while status:
@@ -392,9 +473,9 @@ class SetupPlugin(plugins.SimplePlugin):
             status = self._readQueue(self._workerQueue)
 
         if not self.worker or not self.worker.isAlive():
-            self.statuses.append("%s worker is not running." % self.__class__.__name__)
+            return (self.statuses, False)
 
-        return self.statuses
+        return (self.statuses, True)
 
     def _readQueue(self, q, blocking = True, timeout = 0.2):
         '''

@@ -21,7 +21,7 @@ from vm import VM
 
 class MockTransport(object):
     '''
-    This mimick a requester. Used by unit tests.
+    This mimic a requester. Used by unit tests.
     '''
     def __init__(self):
         pass
@@ -41,7 +41,7 @@ class MockTransport(object):
             'jails': self._getJails,
             'keys': self._getKeys,
             'environments': self._getEnvironments,
-            'yum-repo': self._getYumRepo,
+            'yum_repo': self._getYumRepo,
         }.get(resource, None)
         if not method:
             raise NotImplementedError()
@@ -87,15 +87,16 @@ class MockTransport(object):
         return environments
 
     def _getYumRepo(self):
-        repo = '''[fedora]
-        name=Fedora $releasever - $basearch
-        failovermethod=priority
-        #baseurl=http://download.fedoraproject.org/pub/fedora/linux/releases/$releasever/Everything/$basearch/os/
-        mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=fedora-$releasever&arch=$basearch
-        enabled=1
-        metadata_expire=7d
-        gpgcheck=1
-        gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$basearch'''
+        repo = {'data': '''[fedora]
+            name=Fedora $releasever - $basearch
+            failovermethod=priority
+            #baseurl=http://download.fedoraproject.org/pub/fedora/linux/releases/$releasever/Everything/$basearch/os/
+            mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=fedora-$releasever&arch=$basearch
+            enabled=1
+            metadata_expire=7d
+            gpgcheck=1
+            gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$basearch'''
+        }
         return repo
 
 class JSONTransport(object):
