@@ -1,12 +1,7 @@
-from launcher import Launcher
+from plugins.virtualization.launcher import Launcher
 from euca2ools.commands.euca import RunInstances, RebootInstances, DescribeInstances, TerminateInstances
 class Euca(Launcher):
-    models = [models.VM]
     supported_api = ['create', 'delete', 'status', 'restart']
-
-    def __init__(self, models):                
-        for cls in models:
-            setattr(self, cls.__name__, models[cls])
 
     def _eucatool_init(self, cmd):
         '''Initialize the euca command.'''

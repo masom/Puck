@@ -18,28 +18,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os.path
 
 import cherrypy
-from mako.lookup   import TemplateLookup
-
 from controllers.base import *
-import plugins.vmLauncher as vmLauncher
 import models
 
 
 class Root(Controller):
     crumbs = [Crumb("/", "Home")]
-    plugins = [vmLauncher.Launcher]
     models = [models.VM]
 
-    def __init__(self, db, templatedir):
-        lookup  = TemplateLookup(
-                            directories=[os.path.join(templatedir, relative) 
-                                            for relative in ["views"]]
-                        )
-
+    def __init__(self, db, lookup):
         Controller.__init__(self, lookup, dict((m, None) for m in self.models))
         self._db = db
-
-
         self._routes = {}
         
     @cherrypy.expose
@@ -54,7 +43,8 @@ class Root(Controller):
 
     @cherrypy.expose
     def start(self):
-        self.launcher.launch()
+
+        cherrypy.engine.publish("virtualization", action="create", image_id='temp')
         cherrypy.session['flash'] = "VM started"
         raise cherrypy.HTTPRedirect("/statuses")
 
@@ -73,10 +63,6 @@ class Root(Controller):
             need = set(cls.models).union(*[scls.models for scls in cls.sub])
             clsModels = dict((mcls, models[mcls]) for mcls in need)
             setattr(self, route, cls(self._lookup, clsModels))
-
-        for plugin in self.plugins:
-            clsModels = dict((mcls, models[mcls]) for mcls in plugin.models)
-            setattr(self, plugin.__name__.lower(), plugin(clsModels))
 
         for model in self.models:
             setattr(self, model.__name__, models[model])

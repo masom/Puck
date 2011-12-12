@@ -19,38 +19,37 @@ import shutil
 import os.path
 from subprocess import call, check_output
 
-import models
+from plugins.virtualization.launcher import Launcher
 
 ISO = "FreeBSD.iso"
 
 class VirtualBox(Launcher):
-    models = [models.VM]
     supported_api = ['create', 'delete', 'status', 'stop', 'start', 'restart']
 
-    def __init__(self, models):
-        for cls in models:
-            setattr(self, cls.__name__, models[cls])
-
     def create(self, image_id=None, instance_type=None, with_base=True):
-        name = self.VM._newId()
-        while os.path.exists("%s.vdi" % name):
-            name = self.VM._newId()
+
+        name = image_id
+
+        vdi_template = "%s_%s.vdi"
+        i = 0
+        while os.path.exists(vdi_template % (name, i)):
+            i += 1
 
         vm = "VBoxManage"
+
+        hda = vdi_template % (name, i)
 
         out = check_output([vm, "list", "vms"])
         if any(line.startswith('"%s"' % name)
                     for line in out.splitlines()):
             retcode = call([vm, "unregistervm", name])
             retcode = call([vm, "closemedium", "disk",
-                                "%s.vdi" % name, "--delete"])
+                                hda, "--delete"])
 
         path = os.path.join("~", "VirtualBox VMs", name)
         tree = os.path.expanduser(path)
         if os.path.exists(tree):
             shutil.rmtree(tree)
-
-        hda = "%s.vdi" % name
 
         retcode = call([vm, "createvm",
                             "--name", name,
