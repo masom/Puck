@@ -78,7 +78,7 @@ class InterfacesSetupTask(SetupTask, RcReader):
     def run(self):
         self.log('Started')
 
-        '''TODO: Move netmask to config.'''
+        '''TODO: Move netmask to jail config.'''
         netmask = '255.255.0.0'
         (jails_ip, missing) = self._get_missing_ip()
         self._add_missing_ips(missing, netmask)
@@ -448,7 +448,7 @@ class SetupPlugin(plugins.SimplePlugin):
             self._start_worker()
 
         tasks = [
-            #EZJailTask,
+            EZJailTask,
             EZJailSetupTask,
             InterfacesSetupTask,
             JailConfigTask,
