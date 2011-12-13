@@ -1,6 +1,23 @@
+'''
+Puck: FreeBSD virtualization guest configuration server
+Copyright (C) 2011  The Hotel Communication Network inc.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+'''
 from plugins.virtualization.launcher import Launcher
 from euca2ools.commands.euca import RunInstances, RebootInstances, DescribeInstances, TerminateInstances
-class Euca(Launcher):
+class Euca2(Launcher):
     supported_api = ['create', 'delete', 'status', 'restart']
 
     def _eucatool_init(self, cmd):
@@ -47,7 +64,10 @@ class Euca(Launcher):
 
         return method(**params)
 
-    def create(self, image_id, instance_type):
+    def create(self, **kwargs):
+        image_id = kwargs['image_id']
+        instance_type = kwargs['instance_type']
+
         cmd = euca2ools.commands.euca.runinstances.RunInstances()
         self._eucatool_init(cmd)
         cmd.instance_type = instance_type
@@ -75,7 +95,8 @@ class Euca(Launcher):
         reservation = self._euca_make_request(cmd, conn, 'run_instances', **options)
         return reservation.id
 
-    def status(self, id):
+    def status(self, **kwargs):
+        id = kwargs['id']
         cmd = euca2ools.commands.euca.describeinstances.DescribeInstances()
         self._eucatool_init(cmd)
 
@@ -91,7 +112,8 @@ class Euca(Launcher):
             instances.extend(reservation.instances)
         return instances
 
-    def delete(self, id):
+    def delete(self, **kwargs):
+        id = kwargs['id']
         cmd = euca2ools.commands.euca.rebootinstances.TerminateInstances()
         self._eucatool_init(cmd)
         cmd.instance_id = id
@@ -102,7 +124,9 @@ class Euca(Launcher):
         instances = self._euca_make_request(cmd, conn, 'terminate_instances', **options)
         return instances
 
-    def restart(self, id):
+    def restart(self, **kwargs):
+        id = kwargs['id']
+
         cmd = euca2ools.commands.euca.rebootinstances.RebootInstances()
         self._eucatool_init(cmd)
         cmd.instance_id = id

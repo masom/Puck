@@ -44,7 +44,9 @@ class Root(Controller):
     @cherrypy.expose
     def start(self):
 
-        cherrypy.engine.publish("virtualization", action="create", image_id='temp')
+        args = dict(action="create", image_id='temp')
+        cherrypy.engine.publish("virtualization", **args)
+
         cherrypy.session['flash'] = "VM started"
         raise cherrypy.HTTPRedirect("/statuses")
 

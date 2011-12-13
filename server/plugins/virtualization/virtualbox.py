@@ -26,9 +26,9 @@ ISO = "FreeBSD.iso"
 class VirtualBox(Launcher):
     supported_api = ['create', 'delete', 'status', 'stop', 'start', 'restart']
 
-    def create(self, image_id=None, instance_type=None, with_base=True):
+    def create(self, **kwargs):
 
-        name = image_id
+        name = kwargs['image_id']
 
         vdi_template = "%s_%s.vdi"
         i = 0

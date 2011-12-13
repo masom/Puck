@@ -71,4 +71,4 @@ class VirtualizationPlugin(plugins.SimplePlugin):
         def default(**kwargs):
             return
 
-        return self.switchboard.get(kwargs['action'], default)()
+        return self.switchboard.get(kwargs['action'], default)(**kwargs)

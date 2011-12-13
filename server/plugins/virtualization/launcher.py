@@ -17,20 +17,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 class Launcher(object):
 
-    def create(self, image_id=None, instance_type=None):
+    def create(self, **kwargs):
         raise NotImplementedError()
 
-    def status(self, id=None):
+    def status(self, **kwargs):
         raise NotImplementedError()
 
-    def start(self, id):
+    def start(self, **kwargs):
         raise NotImplementedError()
 
-    def stop(self, id):
+    def stop(self, **kwargs):
         raise NotImplementedError()
 
-    def delete(self, id):
+    def delete(self, **kwargs):
         raise NotImplementedError()
 
-    def restart(self, id):
+    def restart(self, **kwargs):
         raise NotImplementedError()
