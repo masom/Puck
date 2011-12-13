@@ -1,3 +1,4 @@
+#!/usr/local/bin/python27
 '''
 Pixie: FreeBSD virtualization guest configuration client
 Copyright (C) 2011  The Hotel Communication Network inc.
