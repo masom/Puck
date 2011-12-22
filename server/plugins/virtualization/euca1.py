@@ -35,6 +35,7 @@ class Euca1(Launcher):
     '''Supported versions'''
     EUCA_VERSION = '2007-10-10'
     EUCA_BUNDLER_VERSION = '1.3'
+
     def __init__(self):
         if not hasattr(euca2ools, "VERSION"):
             msg = "euca2ools does not have a version number."
@@ -44,7 +45,7 @@ class Euca1(Launcher):
             msg = "Wrong version of euca2ools. Expected: `%s`. Found: `%s`"
             raise RuntimeError(msg % (self.EUCA_VERSION, euca2ools.VERSION))
 
-    def _euca_init(self):
+    def _euca_init(self, *args):
         '''Initialize a euca connection object and returns it.'''
 
         '''TODO: Read database about current user.'''
@@ -60,7 +61,7 @@ class Euca1(Launcher):
         #if is_s3 is set to True, then it will connect using S3Connection.
         #must be set to False for EC2Connection
 
-        euca = self.Euca()
+        euca = self.Euca(*args)
 
         for key in settings:
             setattr(euca, key, settings[key])
@@ -68,7 +69,56 @@ class Euca1(Launcher):
         return euca
         
     def create(self, **kwargs):
-        pass
+        image_id = kwargs['image_id']
+        instance_type = kwargs['instance_type']
+
+        args = [
+            'key=',
+            'kernel=',
+            'ramdisk=',
+            'instance-count=',
+            'instance-type=',
+            'group=',
+            'user-data=',
+            'user-data-file=',
+            'addressing=',
+            'availability-zone=',
+            'block-device-mapping=',
+            'monitor',
+            'subnet_id=',
+        ]
+        euca = self._euca_init('k:n:t:g:d:f:z:b:', args)
+
+        defaults = dict(
+            image_id = image_id,
+            key_name = None,
+            kernel_id = None,
+            ramdisk_id = None,
+            min_count = 1,
+            max_count = 1,
+            instance_type = instance_type,
+            security_groups = [],
+            user_data = None,
+            user_data_file = None,
+            addressing_type = None,
+            placement = None,
+            block_device_map_args = [],
+            block_device_map = None,
+            monitoring_enabled = False,
+            subnet_id = None,
+        )
+
+        try:
+            euca_conn = euca.make_connection()
+            reservation = euca_conn.run_instances(**defaults)
+        except (ConnectionFailed,Exception) as e:
+            print e.message
+            raise e
+
+        instances = []
+        for instance in reservation.instances:
+            instances.append(instance)
+        return self._generate_instances(instances)
 
     def delete(self, **kwargs):
         euca = self._euca_init()
@@ -82,6 +132,7 @@ class Euca1(Launcher):
 
         connection = euca.make_connection()
         connection.terminate_instances(instance_ids)
+        return True
 
     def status(self, **kwargs):
         #use euca.validate_instance_id on kwargs['id']
@@ -121,3 +172,4 @@ class Euca1(Launcher):
 
         connection = euca.make_connection()
         connection.reboot_instances(ids)
+        return True
