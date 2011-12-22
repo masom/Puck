@@ -17,10 +17,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 class Instance(object):
     '''Generic instance object used by all backends to translate information upstream.'''
-    def __init__(self):
+    def __init__(self, id = None, backend = None, launch_time = None, ip = None, state = None):
         
         '''Generic attributes'''
-        self.id = None
-        self.backend = None
-        self.launch_time = None
-        self.ip = None
+        self.id = id
+        self.backend = backend
+        self.launch_time = launch_time
+        self.ip = ip
+        self.state = state
