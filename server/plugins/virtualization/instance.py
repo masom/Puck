@@ -15,28 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-from plugins.virtualization.instance import Instance
-class Launcher(object):
-
-    def create(self, **kwargs):
-        raise NotImplementedError()
-
-    def status(self, **kwargs):
-        raise NotImplementedError()
-
-    def start(self, **kwargs):
-        raise NotImplementedError()
-
-    def stop(self, **kwargs):
-        raise NotImplementedError()
-
-    def delete(self, **kwargs):
-        raise NotImplementedError()
-
-    def restart(self, **kwargs):
-        raise NotImplementedError()
-
-    def _generate_instances(self, items = []):
-        '''Instance generator.'''
-
-        return [Instance(id=item.id) for item in items]
+class Instance(object):
+    '''Generic instance object used by all backends to translate information upstream.'''
+    def __init__(self, id = None, backend = None, launch_time = None, ip = None, state = None):
+        
+        '''Generic attributes'''
+        self.id = id
+        self.backend = backend
+        self.launch_time = launch_time
+        self.ip = ip
+        self.state = state
