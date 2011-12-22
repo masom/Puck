@@ -124,7 +124,7 @@ class Euca1(Launcher):
             raise ValueError("Received id is not valid.")
 
         connection = euca.make_connection()
-        connection.terminate_instances(list(kwargs['id']))
+        connection.terminate_instances([kwargs['id']])
         return True
 
     def status(self, **kwargs):
@@ -136,16 +136,11 @@ class Euca1(Launcher):
             raise ValueError("Received id is not valid.")
 
         connection = euca.make_connection()
-        reservations = connection.get_all_instances(list(kwargs['id']))
+        reservations = connection.get_all_instances([kwargs['id']])
 
         instances = []
         for reservation in reservations:
-            if len(ids) > 0:
-                for instance in reservation.instances:
-                    if instance.id in ids:
-                        instances.append(instance)
-            else:
-                instances.extend(reservation.instances)
+            instances.extend(reservation.instances)
 
         return self._generate_instances(instances)
 
@@ -156,5 +151,5 @@ class Euca1(Launcher):
             raise ValueError("Received id is not valid.")
 
         connection = euca.make_connection()
-        connection.reboot_instances(list(kwargs['id']))
+        connection.reboot_instances([kwargs['id']])
         return True
