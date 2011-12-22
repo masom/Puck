@@ -120,9 +120,6 @@ class Euca1(Launcher):
     def delete(self, **kwargs):
         euca = self._euca_init()
 
-        if not 'id' in kwargs:
-            raise KeyError()
-
         if not euca.validate_instance_id(kwargs['id']):
             raise ValueError("Received id is not valid.")
 
@@ -134,9 +131,6 @@ class Euca1(Launcher):
         #use euca.validate_instance_id on kwargs['id']
 
         euca = self._euca_init()
-
-        if not 'id' in kwargs:
-            raise KeyError()
 
         if not euca.validate_instance_id(kwargs['id']):
             raise ValueError("Received id is not valid.")
@@ -157,9 +151,6 @@ class Euca1(Launcher):
 
     def restart(self, **kwargs):
         euca = self._euca_init()
-
-        if not 'id' in kwargs:
-            raise KeyError()
 
         if not euca.validate_instance_id(kwargs['id']):
             raise ValueError("Received id is not valid.")
