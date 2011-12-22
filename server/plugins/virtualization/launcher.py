@@ -40,7 +40,5 @@ class Launcher(object):
         '''Instance generator.'''
         instances = []
         for item in items:
-            instance = Instance()
-            instance.id = item.id
-            instances.append(instance)
+            instances.append(Instance(id=item.id))
         return instances
