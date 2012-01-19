@@ -42,7 +42,7 @@ class ApiRegistration(ApiCall):
 
 class ApiKeys(ApiCall):
     models = [models.Key]
-    
+
     @cherrypy.tools.json_out()
     def GET(self):
         keys = self.Key.keys()

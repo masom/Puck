@@ -1,6 +1,6 @@
 <%inherit file="/layouts/default.html" />
 
-<%block name="css"> 
+<%block name="css">
     <link type="text/css" rel="stylesheet" href="/static/css/form.css">
 </%block>
 
@@ -41,6 +41,10 @@
             <li>
                 <label for="ip">Ip:</label>
                 <input id="ip" name="ip" type="text" required />
+            </li>
+            <li>
+                <label for="netmask">Netmask:</label>
+                <input id="netmask" name="netmask" type="text" required />
             </li>
         </ol>
     </fieldset>

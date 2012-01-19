@@ -53,7 +53,7 @@ if __name__ == "__main__":
     )
 
     conf =  {
-        '/' : { 
+        '/' : {
             'request.dispatch' : cherrypy.dispatch.Dispatcher(),
             'tools.sessions.on' : True
         },
@@ -82,6 +82,6 @@ if __name__ == "__main__":
     models.migrate(conn, [models.Key, models.Jail, models.VM, models.YumRepo])
     conn.commit()
     conn.close()
-            
+
     cherrypy.engine.subscribe('start_thread', connect)
     cherrypy.quickstart(root, '/', conf)

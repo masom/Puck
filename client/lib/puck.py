@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import os, urllib2, urllib, json 
+import os, urllib2, urllib, json
 import cherrypy
 from vm import VM
 
@@ -129,11 +129,13 @@ class JSONTransport(object):
         request = urllib2.Request(self._resource(resource), data=data)
         request.add_header('Content-Type', 'application/json')
         request.get_method = lambda : method
-        
-        '''
-        TODO: Catch HTTPError and other error handling
-        '''
-        return json.load(self._open(request))
+
+        try:
+            data = json.load(self._open(request))
+        except HTTPError as e:
+            ''' TODO: Logging '''
+            return None
+        return data
 
 class Puck(object):
     '''

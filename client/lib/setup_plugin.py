@@ -194,7 +194,7 @@ class EZJailSetupTask(SetupTask):
         tmpfiles = []
 
         for jail in self.vm.jails:
-            
+
             try:
                 (filename, headers) = urllib.urlretrieve(jail.url)
             except (urllib.ContentTooShortError, IOError) as e:
@@ -218,7 +218,7 @@ class JailConfigTask(SetupTask):
 
         for jail in self.vm.jails:
             self.log("Configuring jail `%s`." % jail.type)
-    
+
             path = "%s/%s" % (flavour_dir, jail.type)
             authorized_key_file = "%s/installdata/authorized_keys" % path
             resolv_file = "%s/etc/resolv.conf" % path

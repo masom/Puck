@@ -13,7 +13,7 @@
 	% for jail in VM.jails:
 		<li>${jail.name}</li>
 		<%
-			selected_jails.append(jail.id) 
+			selected_jails.append(jail.id)
 		%>
 	% endfor
 </ul>
@@ -23,7 +23,7 @@
 		<h3>${type}</h3>
 		<ul style="list-style: none;">
 			% for key in jails[type]:
-				<% 
+				<%
 					if key in selected_jails:
 						checked = 'checked="checked"'
 					else:

@@ -85,7 +85,7 @@ class Jails(object):
         for j in self._jails:
             jails.append(self._jails[j].export())
         return jails
- 
+
     def get(self, id=None):
         '''Gets a jail
         raises KeyError if the jail was not found.'''
@@ -105,7 +105,7 @@ class Jail(object):
     def __init__(self, manager, config):
         self._data = {}
 
-        keys = ['id', 'url', 'type', 'name', 'ip']
+        keys = ['id', 'url', 'type', 'name', 'ip', 'netmask']
         for k in keys:
             if not k in config:
                 raise KeyError("Configuration value `%s` is not set." % k)
@@ -154,6 +154,7 @@ class Jail(object):
 class EzJail(object):
 
     def __init__(self):
+        self.logs = []
         self._prog = '/usr/local/bin/ezjail-admin'
 
     def setSocket(self, ezjl_socket):
@@ -166,8 +167,10 @@ class EzJail(object):
         @raise OSError when command not found.
         '''
         command = '%s install -m -p' % self._prog
+        self.logs.append(command)
+
         subprocess.Popen(shlex.split(command)).wait()
-        
+
     def start(self, jail = None):
         '''
         Starts the jails or a specific jail
@@ -177,6 +180,7 @@ class EzJail(object):
         '''block while we wait for completion'''
         status = self._socket.recv(512)
         print status
+        '''TODO handle status'''
 
     def stop(self, jail = None):
         '''
@@ -187,7 +191,7 @@ class EzJail(object):
         command = "%s stop" % self._prog
         if jail:
             command += " %s" % str(jail)
-
+        self.logs.append(command)
         subprocess.Popen(shlex.split(command)).wait()
 
     def status(self, jail = None):
@@ -224,12 +228,13 @@ class EzJail(object):
         '''
         ezjail-admin create -f [flavour] [name] [ip]
         '''
-        '''TODO logging? '''
 
-        '''         
-        shlex does not support unicode with python < 2.7.3          
+        '''
+        shlex does not support unicode with python < 2.7.3
         '''
         cmd = str("%s create -f %s %s %s" % (self._prog, flavour, name, ip))
+        self.logs.append(cmd)
+
         subprocess.Popen(shlex.split(cmd)).wait()
 
     def delete(self, jail):
@@ -242,6 +247,8 @@ class EzJail(object):
             "%s delete -w %s" % (self._prog, jail)
         ]
         for command in commands:
+            self.logs.append(command)
+
             subprocess.Popen(shlex.split(str(command))).wait()
 
 class StopLoopException(Exception): pass
@@ -273,12 +280,15 @@ class EzJailStarter(object):
             if execute:
                 try:
                     execute(command)
-                except StopIteration:
+                except StopLoopException:
                     break
-            conn.send("started")
+            conn.send(json.dumps({"status": "started"}))
         conn.close()
 
     def _handle(self, data):
+        '''
+        Handles incoming requests
+        '''
         try:
             command  = json.loads(data)
         except ValueError:
@@ -295,8 +305,15 @@ class EzJailStarter(object):
         return (execute, command)
 
     def _startJail(self, data):
+        '''
+        Starts a jail
+        '''
         cmd = "ezjail-admin start %s" % str(data['name'])
+        conn.send(json.dumps({"status": "starting", "command": cmd}))
         subprocess.Popen(shlex.split(cmd)).wait()
 
     def _stop(self, data):
+        '''
+        Request the jailstarter to be stopped.
+        '''
         raise StopLoopException()

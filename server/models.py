@@ -28,7 +28,7 @@ class SQLType(object):
     def __init__(self, sqltype, attribute=None):
         self._sqltype = sqltype
         self._attribute = attribute
-        
+
     def toVal(self):
         atts = '' if self._attribute is None else ' %s' % self._attribute
         return self._sqltype + atts
@@ -38,7 +38,7 @@ class SQLType(object):
 
     def __or__(self, att):
         return SQLType(self._sqltype, attribute=att)
-        
+
 Text = SQLType("TEXT")
 
 
@@ -69,7 +69,7 @@ def sqltable(tablename, *cols, **config):
     newcls._primaryKey = primaryKey
     return newcls
 
-    
+
 class Model(object):
     def __init__(self, config):
         pass
@@ -108,7 +108,7 @@ class SQLModel(Model):
         query = """
         INSERT INTO {table}
         VALUES ({stubs})
-        """.format(table=self.Table._name, 
+        """.format(table=self.Table._name,
                    stubs=','.join('?' for i in xrange(ncols))
                    )
 
@@ -127,7 +127,7 @@ class SQLModel(Model):
             query += "ORDER BY {orderCols}\n"
 
 
-        query = query.format(table=self.Table._name, 
+        query = query.format(table=self.Table._name,
                              fields=','.join(fields),
                              orderCols=' ,'.join(orderBy))
         crs = cherrypy.thread_data.db.cursor()
@@ -155,7 +155,7 @@ class SQLModel(Model):
             UPDATE {table}
             SET {column} = ?
             WHERE {primaryKey} = ?
-        """.format(table=self.Table._name, 
+        """.format(table=self.Table._name,
                    column=column,
                    primaryKey=self.Table._primaryKey
         )
@@ -169,18 +169,19 @@ class SQLModel(Model):
     def _fieldgetter(fld):
         fldget = attrgetter(fld)
         return lambda (rowId, row): fldget(row)
-        
+
 
 
 class Jail(SQLModel):
-    Table = sqltable("jails", 
-                        "name" & Text, 
+    Table = sqltable("jails",
+                        "name" & Text,
                         "url" & Text,
                         "type" & Text,
                         "ip" & Text,
-                        "environment" & Text
+                        "environment" & Text,
+                        "netmask" & Text
                     )
-    Type = namedtuple("Type", ["name", "ip"])
+    Type = namedtuple("Type", ["name", "ip", "netmask"])
 
     def jails(self):
         jails = self._select(orderBy=["environment", "type", "name"])
@@ -189,16 +190,20 @@ class Jail(SQLModel):
 
         type_ = self._fieldgetter('type')
         environment = self._fieldgetter('environment')
+
+        '''
+        Prepare results by grouping them
+        '''
         for env, envJails in groupby(jails, environment):
             subsection = section[env]
             for typ, typJails in groupby(envJails, key=type_):
                 subsection[typ] = list(typJails)
-            
+
         return section
 
     def types(self):
         return [
-            self.Type("content", "10.0.0.10"), 
+            self.Type("content", "10.0.0.10"),
             self.Type("database", "10.0.0.11"),
             self.Type("support", "10.0.0.12")
             ]
@@ -206,7 +211,7 @@ class Jail(SQLModel):
 
 
 class Key(SQLModel):
-    Table = sqltable("keys", 
+    Table = sqltable("keys",
                         "name" & Text,
                         "key" & Text
                     )
@@ -226,9 +231,10 @@ class VM(SQLModel):
     def __init__(self, config):
         Model.__init__(self, config)
 
+        ''' TODO: Move this to the config file.'''
         wordlist = ["apple", "banana", "carrot", "pepper", "salt", "orange",
         "eggplant", "squash", "melon", "peach", "kale", "swiss chard",
-        "tomato", "potato", "onion", "grapefruit", "radish", "broccoli", 
+        "tomato", "potato", "onion", "grapefruit", "radish", "broccoli",
         "cilantro", "parsley", "plum", "scallion", "haberno", "strawberry",
         "grape", "cranberry", "lemongrass", "sugarcane"]
         self._wordlist = deque(wordlist)
@@ -238,7 +244,7 @@ class VM(SQLModel):
         word = self._wordlist.pop()
         self._wordlist.appendleft(word)
         return word
-        
+
 
     def register(self, ip, name=None):
         if name is None:
@@ -249,7 +255,7 @@ class VM(SQLModel):
 
     def setStatus(self, vmId, status):
         self._update(vmId, 'status', status)
-        
+
 
     def list(self):
         return list(self._select())
@@ -257,6 +263,8 @@ class VM(SQLModel):
 class Environment(Model):
     def __init__(self, config):
         Model.__init__(self, config)
+
+        ''' TODO: Move this to the config file.'''
         self._envs = OrderedDict([
             ('dev','Development'),
             ('testing', 'Testing'),
@@ -269,7 +277,7 @@ class Environment(Model):
         return self._envs
 
 class YumRepo(SQLModel):
-    Table = sqltable("yum_repos", 
+    Table = sqltable("yum_repos",
                         "environment" & (Text | "PRIMARY KEY"),
                         "data" & Text,
                         primaryKey="environment"
@@ -315,7 +323,7 @@ def migrate(conn, models):
             cols = table._columns
             if table._primaryKey not in table._fields:
                 cols = (table._primaryKey & (Text | "PRIMARY KEY"),) + table._columns
-            
+
             query = "CREATE TABLE {name} {fields}".format(
                 name=table._name,
                 fields="(%s)" % ','.join("%s %s" % (col.name, col.type.toVal())
@@ -324,10 +332,11 @@ def migrate(conn, models):
             crs.execute(query)
     conn.commit()
 
-            
+
 
 
 if __name__ == "__main__":
+    ''' THIS IS FOR TESTING ONLY '''
     import sqlite3
     conn = sqlite3.connect("/tmp/example.db3")
     migrate(conn, [Jail, Key])
