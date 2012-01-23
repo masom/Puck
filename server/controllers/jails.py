@@ -27,7 +27,7 @@ class Jails(Controller):
 
     def hash(self):
         return self.Jail.jails()
-        
+
     @cherrypy.expose
     def index(self):
         env = dict(jails=self.Jail.jails())

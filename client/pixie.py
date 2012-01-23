@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     parser = argparser()
     args = parser.parse_args()
-    
+
     (pid, ezjl_socket) = start_jail_launcher()
 
     if args.daemonize:

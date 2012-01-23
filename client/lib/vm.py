@@ -42,11 +42,19 @@ class VM(object):
     def update(self, **kwargs):
         '''Update the VM object with provided values.'''
 
-        valid = ['keys', 'environment', 'interface']
+        valid = ['keys', 'interface']
+
         for key in kwargs:
             if not key in valid:
                 continue
             setattr(self, key, kwargs[key])
+
+        if 'environment' in kwargs:
+            old_env = self.environment
+            self.environment = kwargs['environment']
+
+            if old_env != self.environment:
+                self.jails.clear()
 
         if 'jails' in kwargs:
             self._set_jails(kwargs['jails'])

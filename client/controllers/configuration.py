@@ -32,7 +32,7 @@ class ConfigurationController(Controller):
     def index(self):
         self.__assert_vm_is_modifiable()
 
-        env = dict(   
+        env = dict(
             VM=self._vm,
         )
 
@@ -45,7 +45,7 @@ class ConfigurationController(Controller):
         environments = self._puck.getEnvironments()
 
         if cherrypy.request.method == "POST":
-            if kwargs.has_key("vm.environment"): 
+            if kwargs.has_key("vm.environment"):
                 env_id = kwargs['vm.environment']
                 if environments.has_key(env_id):
                     self._vm.update(environment=env_id)
@@ -65,7 +65,7 @@ class ConfigurationController(Controller):
         interfaces = sorted(set(self._vm.interfaces.values()))
 
         if cherrypy.request.method == "POST":
-            if kwargs.has_key("vm.interface"): 
+            if kwargs.has_key("vm.interface"):
                 iface = kwargs['vm.interface']
                 if iface in interfaces:
                     self._vm.update(interface=iface)

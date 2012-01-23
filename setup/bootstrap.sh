@@ -8,7 +8,7 @@ START=$(pwd)
 PACKAGESITE="http://10.0.254.23/pkgsite/current/"
 
 DEST=$(mktemp -d pkg.XXX)
- 
+
 cd $DEST
 fetch "$PACKAGESITE/pkg/index"
 while read file; do
