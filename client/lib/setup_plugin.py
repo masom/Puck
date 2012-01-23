@@ -78,7 +78,7 @@ class InterfacesSetupTask(SetupTask, RcReader):
     def run(self):
         self.log('Started')
 
-        '''TODO: Move netmask to jail config.'''
+        # @TODO: Move netmask to jail config.
         netmask = '255.255.0.0'
         (jails_ip, missing) = self._get_missing_ip()
         self._add_missing_ips(missing, netmask)
@@ -155,21 +155,21 @@ class EZJailSetupTask(SetupTask):
                 self.log('Critical error! Could not create folder `%s`' % dst_dir)
                 return False
 
-        '''Holds the temporary file list'''
+        # Holds the temporary file list
         tmpfiles = self._retrieveFlavours()
         if not tmpfiles:
             self.log('No flavours downloaded.')
             return False
 
 
-        '''Verify and extract the flavour tarball'''
+        # Verify and extract the flavour tarball
         for file in tmpfiles:
-            '''Verify'''
+            # Verify
             if not tarfile.is_tarfile(file['tmp_file']):
                 self.log("Critical error! File `%s` is not a tarfile." % file['tmp_file'])
                 return False
 
-            '''Extraction'''
+            # Extraction
             try:
                 with tarfile.open(file['tmp_file'], mode='r:*') as t:
                     '''Will raise KeyError if file does not exists.'''
@@ -179,7 +179,7 @@ class EZJailSetupTask(SetupTask):
             except (IOError, KeyError, tarfile.ExtractError) as e:
                 self.log("Critical error! File `%s` could not be extracted. Reason: %s" % (file['tmp_file'], e))
 
-            '''Remove the temporary tarball'''
+            # Remove the temporary tarball
             try:
                 os.unlink(file['tmp_file'])
             except OSerror as e:
@@ -224,7 +224,7 @@ class JailConfigTask(SetupTask):
             resolv_file = "%s/etc/resolv.conf" % path
             yum_file = "%s/installdata/yum_repo" % path
 
-            '''Verify the flavours exists.'''
+            # Verify the flavours exists.
             exists = os.path.exists(path)
             is_dir = os.path.isdir(path)
             if not exists or not is_dir:
@@ -302,7 +302,7 @@ class JailStartupTask(SetupTask):
     def run(self):
         self.log('Started')
 
-        '''Start each jail'''
+        # Start each jail
         for jail in self.vm.jails:
             self.log("Starting jail `%s`" % jail.type)
             try:
@@ -344,7 +344,7 @@ class SetupWorkerThread(threading.Thread):
         @raise RuntimeError when the task failed to complete
         '''
 
-        ''' This will probably need to be wrapped in a try/catch.'''
+        # This will probably need to be wrapped in a try/catch.
         task = self._queue.get(True, 10)(self._puck, self._outqueue)
 
         loginfo = (self.__class__.__name__, task.__class__.__name__)
@@ -414,7 +414,7 @@ class SetupPlugin(plugins.SimplePlugin):
             self.log("Parameter `action` is missing.")
             return
 
-        '''Default task'''
+        # Default task
         def default(**kwargs):
             return
 
@@ -441,7 +441,7 @@ class SetupPlugin(plugins.SimplePlugin):
     def _setup_start(self, **kwargs):
         self.bus.log("Received start request.")
 
-        '''Start the worker if it is not running.'''
+        # Start the worker if it is not running.
         if not self.worker:
             self._start_worker()
         if not self.worker.is_alive() and not self.worker.successful:
@@ -455,7 +455,7 @@ class SetupPlugin(plugins.SimplePlugin):
             JailStartupTask
         ]
 
-        #TODO: Persistence of the list when failure occurs.
+        # @TODO: Persistence of the list when failure occurs.
         for task in tasks:
             self._queue.put(task)
 

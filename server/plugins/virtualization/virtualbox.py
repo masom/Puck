@@ -65,14 +65,14 @@ class VirtualBox(Launcher):
                                 '/usr/local/share/puck/base.vdi',
                                 hda])
         else:
-            retcode = call([vm, "createhd", 
+            retcode = call([vm, "createhd",
                                 "--filename",  hda,
-                                "--size", "8096", 
+                                "--size", "8096",
                                 "--variant", "FIXED"])
-        retcode = call([vm, "storagectl", name, 
+        retcode = call([vm, "storagectl", name,
                             "--name", "IDE Controller",
                             "--add", "ide"])
-        retcode = call([vm, "modifyvm", name, 
+        retcode = call([vm, "modifyvm", name,
                             "--hda", hda])
         if not with_base:
             retcode = call([vm, "storageattach", name,

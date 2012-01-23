@@ -180,7 +180,7 @@ class EzJail(object):
         '''block while we wait for completion'''
         status = self._socket.recv(512)
         print status
-        '''TODO handle status'''
+        # @TODO handle status
 
     def stop(self, jail = None):
         '''
@@ -225,13 +225,9 @@ class EzJail(object):
         @raise OSError when command not found.
         '''
 
-        '''
-        ezjail-admin create -f [flavour] [name] [ip]
-        '''
+        # ezjail-admin create -f [flavour] [name] [ip]
 
-        '''
-        shlex does not support unicode with python < 2.7.3
-        '''
+        # shlex does not support unicode with python < 2.7.3
         cmd = str("%s create -f %s %s %s" % (self._prog, flavour, name, ip))
         self.logs.append(cmd)
 

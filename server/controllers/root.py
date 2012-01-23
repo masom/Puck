@@ -30,7 +30,7 @@ class Root(Controller):
         Controller.__init__(self, lookup, dict((m, None) for m in self.models))
         self._db = db
         self._routes = {}
-        
+
     @cherrypy.expose
     def index(self):
         return self.render("index.html", self.crumbs[:-1])

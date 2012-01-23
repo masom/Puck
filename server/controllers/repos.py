@@ -41,9 +41,7 @@ class Repos(Controller):
             except KeyError as e:
                 cherrypy.session['flash'] = "There was a problem adding the new repository: %s" % e
 
-        '''
-        Only list environments not having a repo.
-        '''
+        # Only list environments not having a repo.
         repos = self.YumRepo.repos()
         environments = self.Environment.get()
         available = set(self.Environment.get().keys()) - set(repos.keys())

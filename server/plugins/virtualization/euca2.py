@@ -23,7 +23,7 @@ class Euca2(Launcher):
     def _eucatool_init(self, cmd):
         '''Initialize the euca command.'''
 
-        '''TODO: Get this from db.'''
+        # @TODO: Get this from db.
         settings = {
             'ec2_user_access_key': 'derp',
             'ec2_user_secret_key': 'derp',
@@ -105,7 +105,7 @@ class Euca2(Launcher):
         options = dict(instance_ids=[id])
         reservations = self._euca_make_request(cmd, conn, 'get_all_instances', **options)
 
-        instances = [] 
+        instances = []
         for reservation in reservations:
             if len(reservation.instances) == 0:
                 continue
@@ -140,4 +140,4 @@ class Euca2(Launcher):
             return self.instance_id
         else:
             return False
-        
+

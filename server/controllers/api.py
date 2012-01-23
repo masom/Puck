@@ -99,9 +99,7 @@ class ApiYum(ApiCall):
     def GET(self, environment=None):
         repos = self.YumRepo.repos()
         if not environment in repos:
-            '''
-            TODO: API ERROR HANDLING
-            '''
+            # @TODO: API ERROR HANDLING
             return
         return {'environment': environment, 'data': repos[environment]}
 

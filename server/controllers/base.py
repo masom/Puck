@@ -30,7 +30,7 @@ class Controller(object):
 
         for model in self.models:
             setattr(self, model.__name__, models[model])
-            
+
     def render(self, template, crumbs=[], **variables):
         tmpl = self._lookup.get_template(template)
         variables['flash'] = cherrypy.session.pop('flash', None)

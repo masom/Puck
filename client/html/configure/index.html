@@ -30,16 +30,16 @@
 	<table>
 		<tr>
 			<th>Type</th>
-            <th>Name</th>
-            <th>IP</th>
-            <th>Netmask</th>
+			<th>Name</th>
+			<th>IP</th>
+			<th>Netmask</th>
 		</tr>
 	% for jail in VM.jails:
 		<tr>
 			<td>${jail.type}</td>
-            <td>${jail.name}</td>
-            <td>${jail.ip}</td>
-            <td>${jail.netmask}</td>
+			<td>${jail.name}</td>
+			<td>${jail.ip}</td>
+			<td>${jail.netmask}</td>
 		</tr>
 	% endfor
 	</table>

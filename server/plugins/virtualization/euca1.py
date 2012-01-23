@@ -29,10 +29,10 @@ class Euca1(Launcher):
         '''Overload euca2ools.Euca2ool setup_environ'''
         def setup_environ(self):
             pass
-        
+
     supported_api = ['create', 'delete', 'status', 'restart']
 
-    '''Supported versions'''
+    # Supported versions
     EUCA_VERSION = '2007-10-10'
     EUCA_BUNDLER_VERSION = '1.3'
 
@@ -48,7 +48,7 @@ class Euca1(Launcher):
     def _euca_init(self, *args):
         '''Initialize a euca connection object and returns it.'''
 
-        '''TODO: Read database about current user.'''
+        # @TODO: Read database about current user.'''
 
         settings = {
             'ec2_user_access_key': None,
@@ -67,7 +67,7 @@ class Euca1(Launcher):
             setattr(euca, key, settings[key])
 
         return euca
-        
+
     def create(self, **kwargs):
         image_id = kwargs['image_id']
         instance_type = kwargs['instance_type']
