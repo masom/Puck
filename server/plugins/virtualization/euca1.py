@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 This is the euca2ools version 1.3 launcher
 '''
 
-from plugins.virtualization.launcher import Launcher
+from libs.launcher import Launcher
 
 import euca2ools
 
@@ -45,15 +45,13 @@ class Euca1(Launcher):
             msg = "Wrong version of euca2ools. Expected: `%s`. Found: `%s`"
             raise RuntimeError(msg % (self.EUCA_VERSION, euca2ools.VERSION))
 
-    def _euca_init(self, *args):
+    def _euca_init(self, credentials, *args):
         '''Initialize a euca connection object and returns it.'''
 
-        # @TODO: Read database about current user.'''
-
         settings = {
-            'ec2_user_access_key': None,
-            'ec2_user_secret_key': None,
-            'ec2_url': None,
+            'ec2_user_access_key': credentials.access_key,
+            'ec2_user_secret_key': credentials.secret_key,
+            'ec2_url': credentials.cloud_url,
             's3_url': None,
             'config_file_path': None,
             'is_s3': False
@@ -72,6 +70,8 @@ class Euca1(Launcher):
         image_id = kwargs['image_id']
         instance_type = kwargs['instance_type']
 
+        credentials = kwargs['credientials']
+
         args = [
             'key=',
             'kernel=',
@@ -87,7 +87,7 @@ class Euca1(Launcher):
             'monitor',
             'subnet_id=',
         ]
-        euca = self._euca_init('k:n:t:g:d:f:z:b:', args)
+        euca = self._euca_init(credentials, 'k:n:t:g:d:f:z:b:', args)
 
         defaults = dict(
             image_id = image_id,
@@ -118,7 +118,8 @@ class Euca1(Launcher):
         return self._generate_instances(reservation.instances)
 
     def delete(self, **kwargs):
-        euca = self._euca_init()
+        credentials = kwargs['credentials']
+        euca = self._euca_init(credentials)
 
         if not euca.validate_instance_id(kwargs['id']):
             raise ValueError("Received id is not valid.")
@@ -129,8 +130,8 @@ class Euca1(Launcher):
 
     def status(self, **kwargs):
         #use euca.validate_instance_id on kwargs['id']
-
-        euca = self._euca_init()
+        credentials = kwargs['credentials']
+        euca = self._euca_init(credentials)
 
         if not euca.validate_instance_id(kwargs['id']):
             raise ValueError("Received id is not valid.")
@@ -145,7 +146,8 @@ class Euca1(Launcher):
         return self._generate_instances(instances)
 
     def restart(self, **kwargs):
-        euca = self._euca_init()
+        credentials = kwargs['credentials']
+        euca = self._euca_init(credentials)
 
         if not euca.validate_instance_id(kwargs['id']):
             raise ValueError("Received id is not valid.")

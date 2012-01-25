@@ -1,6 +1,6 @@
 '''
 Puck: FreeBSD virtualization guest configuration server
-Copyright (C) 2011  The Hotel Communication Network inc.
+Copyright (C) 2012  The Hotel Communication Network inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -15,28 +15,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-from plugins.virtualization.instance import Instance
-class Launcher(object):
 
-    def create(self, **kwargs):
-        raise NotImplementedError()
+class Credentials(object):
+    ''' User credentials abstraction object. '''
 
-    def status(self, **kwargs):
-        raise NotImplementedError()
-
-    def start(self, **kwargs):
-        raise NotImplementedError()
-
-    def stop(self, **kwargs):
-        raise NotImplementedError()
-
-    def delete(self, **kwargs):
-        raise NotImplementedError()
-
-    def restart(self, **kwargs):
-        raise NotImplementedError()
-
-    def _generate_instances(self, items = []):
-        '''Instance generator.'''
-
-        return [Instance(id=item.id) for item in items]
+    def __init__(self, **kwargs):
+        self.cloud_url = kwargs['cloud_url']
+        self.access_key = kwargs['access_key']
+        self.secret_key = kwargs['secret_key']

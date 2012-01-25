@@ -37,7 +37,7 @@ def connect(thread_index):
 if __name__ == "__main__":
 
     if not sys.version_info >= (2,7):
-        sys.exit("Python 2.7 is required for Pixie.")
+        sys.exit("Python 2.7 is required for Puck.")
 
     parser = argparser()
     args = parser.parse_args()

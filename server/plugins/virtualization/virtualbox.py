@@ -19,7 +19,7 @@ import shutil
 import os.path
 from subprocess import call, check_output
 
-from plugins.virtualization.launcher import Launcher
+from libs.launcher import Launcher
 
 ISO = "FreeBSD.iso"
 

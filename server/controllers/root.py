@@ -19,6 +19,7 @@ import os.path
 
 import cherrypy
 from controllers.base import *
+from libs.credentials import Credentials
 import models
 
 
@@ -36,18 +37,33 @@ class Root(Controller):
         return self.render("index.html", self.crumbs[:-1])
 
     @cherrypy.expose
-    def statuses(self, a=None):
+    def login(self, **post):
+        if post:
+            # @TODO actually authenticate. This is a placeholder for now.
+            cherrypy.session['credentials'] = Credentials()
+
+        return self.render("login.html", self.crumbs[:-1])
+
+    @cherrypy.expose
+    def statuses(self):
         vms = self.VM.list()
         env = dict(vms=vms)
         return self.render("statuses.html", self.crumbs, **env)
 
     @cherrypy.expose
     def start(self):
-
-        args = dict(action="create", image_id='temp')
+        args = dict(action="create", image_id='temp', credentials=cherrypy.session.get('credentials'))
         cherrypy.engine.publish("virtualization", **args)
 
         cherrypy.session['flash'] = "VM started"
+        raise cherrypy.HTTPRedirect("/statuses")
+
+    @cherrypy.expose
+    def stop(self, vm_id=None):
+        args = dict(action="stop", id=vm_id, credentials=cherrypy.session.get('credentials'))
+        cherrypy.engine.publish("virtualization", **args)
+
+        cherrypy.session['flash'] = "VM Stopped"
         raise cherrypy.HTTPRedirect("/statuses")
 
     def add(self, route, cls):

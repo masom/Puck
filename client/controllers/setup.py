@@ -20,7 +20,7 @@ class SetupController(Controller):
         if not self._vm.status in ['configured', 'setup', 'setup_failed'] or not self._vm.isConfigured():
             cherrypy.session['flash'] = "The virtual machine may not be setup at this time."
             raise cherrypy.HTTPRedirect('/')
-        
+
         if self._vm.status == 'configured':
             self._vm.status = 'setup'
             self._vm.persist()

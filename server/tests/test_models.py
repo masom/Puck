@@ -41,7 +41,7 @@ class JailTest(unittest.TestCase):
         self.assertEqual(typ.ip, "ip")
 
         jail = Jail({})
-        
+
         self.assertTrue(
             all(isinstance(jtype, Jail.Type) for jtype in jail.types())
         )
@@ -52,6 +52,6 @@ if __name__ == "__main__":
     unittest.main()
 
 
-            
+
 
 
