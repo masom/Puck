@@ -25,7 +25,6 @@ import models
 
 class Root(Controller):
     crumbs = [Crumb("/", "Home")]
-    models = [models.VM]
 
     def __init__(self, db, lookup):
         Controller.__init__(self, lookup, dict((m, None) for m in self.models))
@@ -45,45 +44,8 @@ class Root(Controller):
         return self.render("login.html", self.crumbs[:-1])
 
     @cherrypy.expose
-    def statuses(self):
-        vms = self.VM.list()
-        env = dict(vms=vms)
-        return self.render("statuses.html", self.crumbs, **env)
-
-    @cherrypy.expose
-    def start(self, **post):
-        if 'image_id' in post:
-            args = dict(action="create", image_id=post['image_id'], credentials=cherrypy.session.get('credentials'))
-            cherrypy.engine.publish("virtualization", **args)
-            cherrypy.session['flash'] = "VM started"
-        else:
-            cherrypy.sessino['flash'] = 'Missing image id.'
-
-        raise cherrypy.HTTPRedirect("/statuses")
-
-    @cherrypy.expose
-    def stop(self, vm_id=None):
-        args = dict(action="stop", id=vm_id, credentials=cherrypy.session.get('credentials'))
-        cherrypy.engine.publish("virtualization", **args)
-
-        cherrypy.session['flash'] = "VM Stopped"
-        raise cherrypy.HTTPRedirect("/statuses")
-
+    def logout(self, **post):
+        cherrypy.session['credentials'] = None
+        raise cherrypy.HTTPRedirect("/login")
     def add(self, route, cls):
         self._routes[route] = cls
-
-    def load(self):
-        models = set(self.models)
-        for cls in self._routes.itervalues():
-            models.update(cls.models)
-            models.update(*(scls.models for scls in cls.sub))
-
-        models = dict((cls, cls({})) for cls in models)
-
-        for route, cls in self._routes.iteritems():
-            need = set(cls.models).union(*[scls.models for scls in cls.sub])
-            clsModels = dict((mcls, models[mcls]) for mcls in need)
-            setattr(self, route, cls(self._lookup, clsModels))
-
-        for model in self.models:
-            setattr(self, model.__name__, models[model])

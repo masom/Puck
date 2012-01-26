@@ -76,10 +76,11 @@ if __name__ == "__main__":
     root.add('keys', controllers.Keys)
     root.add('api', controllers.Api)
     root.add('repos', controllers.Repos)
+    root.add('virtual_machines', controllers.VirtualMachines)
     root.load()
 
     conn = sqlite3.connect(root._db)
-    models.migrate(conn, [models.Key, models.Jail, models.VM, models.YumRepo])
+    models.migrate(conn, [models.Key, models.Jail, models.VM, models.YumRepo, models.Image])
     conn.commit()
     conn.close()
 
