@@ -40,7 +40,7 @@ class Root(Controller):
         if post:
             # @TODO actually authenticate. This is a placeholder for now.
             cherrypy.session['credentials'] = Credentials()
-
+            raise cherrypy.HTTPRedirect('/index')
         return self.render("login.html", self.crumbs[:-1])
 
     @cherrypy.expose

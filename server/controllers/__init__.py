@@ -3,3 +3,4 @@ from jails import Jails
 from keys import Keys
 from root import Root
 from repos import Repos
+from virtual_machines import VirtualMachines

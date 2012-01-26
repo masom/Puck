@@ -284,14 +284,7 @@ class Image(SQLModel):
     )
 
     def all(self):
-        query = "SELECT {fields} from {table} order by name ASC".format(
-                fields = ','.join(self.Table._fields),
-                table = self.Table._name
-        )
-        crs = cherrypy.thread_data.db.cursor()
-        crs.execute(query)
-        return self.Table(*crs.fetchall())
-
+        return list(self._select())
     def create(self, data):
         for k in ['id', 'name']:
             if not 'image.%s' in data:

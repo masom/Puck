@@ -25,7 +25,7 @@ class VirtualMachines(Controller):
         Crumb("/virtual_machines", "Virtual Machines")
     ]
 
-    models = [models.VM]
+    models = [models.VM, models.Image]
 
     @cherrypy.expose
     def index(self):
@@ -33,10 +33,16 @@ class VirtualMachines(Controller):
         env = dict(vms=vms)
         return self.render("virtual_machines/index.html", self.crumbs, **env)
 
+    @cherrypy.expose
     def running(self):
         vms = self.VM.list()
-        instances = self.Image.all()
-        return self.render("virtual_machines/running.html", self.crumbs, vms=vms, instances=instances)
+        images = self.Image.all()
+        args = dict(
+            action="status",
+            credentials=cherrypy.session.get('credentials')
+        )
+        instances = cherrypy.engine.publish("virtualization", **args)
+        return self.render("virtual_machines/running.html", self.crumbs, vms=vms, instances=instances, images=images)
 
     @cherrypy.expose
     def start(self, **post):

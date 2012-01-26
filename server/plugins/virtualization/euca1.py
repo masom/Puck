@@ -26,8 +26,32 @@ import euca2ools
 
 class Euca1(Launcher):
     class Euca(euca2ools.Euca2ool):
-        '''Overload euca2ools.Euca2ool setup_environ'''
+        def __init__(self, opts=None, is_s3=False, compat=False):
+            '''Overloads euca2ools.Euca2ool to prevent reading app options.'''
+
+            self.ec2_user_access_key = None
+            self.ec2_user_secret_key = None
+            self.url = None
+            self.is_s3 = is_s3
+            self.img = euca2ools.LinuxImage(False)
+
+            envlist = (
+                'EC2_ACCESS_KEY',
+                'EC2_SECRET_KEY',
+                'S3_URL',
+                'EC2_URL',
+                'EC2_CERT',
+                'EC2_PRIVATE_KEY',
+                'EUCALYPTUS_CERT',
+                'EC2_USER_ID'
+            )
+            self.environ = {}
+            for v in envlist:
+                #TODO: Potentially change __init__ args to parse Credential object instead of values.
+                self.environ[v] = None
+
         def setup_environ(self):
+            '''Overload euca2ools.Euca2ool setup_environ'''
             pass
 
     supported_api = ['create', 'delete', 'status', 'restart']
@@ -59,6 +83,7 @@ class Euca1(Launcher):
         #if is_s3 is set to True, then it will connect using S3Connection.
         #must be set to False for EC2Connection
 
+        print args
         euca = self.Euca(*args)
 
         for key in settings:
@@ -133,8 +158,9 @@ class Euca1(Launcher):
         credentials = kwargs['credentials']
         euca = self._euca_init(credentials)
 
-        if not euca.validate_instance_id(kwargs['id']):
-            raise ValueError("Received id is not valid.")
+        if 'id' in kwargs:
+            if not euca.validate_instance_id(kwargs['id']):
+                raise ValueError("Received id is not valid.")
 
         connection = euca.make_connection()
         reservations = connection.get_all_instances([kwargs['id']])
