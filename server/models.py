@@ -264,7 +264,7 @@ class Environment(Model):
     def __init__(self, config):
         Model.__init__(self, config)
 
-        ''' TODO: Move this to the config file.'''
+        ''' TODO: Move this to the config file or DB'''
         self._envs = OrderedDict([
             ('dev','Development'),
             ('testing', 'Testing'),
@@ -275,6 +275,29 @@ class Environment(Model):
 
     def get(self):
         return self._envs
+
+class Image(SQLModel):
+    Table = sqltable("images",
+            "id" & (Text | "PRIMARY KEY"),
+            "name" & Text,
+            primaryKey = "id"
+    )
+
+    def all(self):
+        query = "SELECT {fields} from {table} order by name ASC".format(
+                fields = ','.join(self.Table._fields),
+                table = self.Table._name
+        )
+        crs = cherrypy.thread_data.db.cursor()
+        crs.execute(query)
+        return self.Table(*crs.fetchall())
+
+    def create(self, data):
+        for k in ['id', 'name']:
+            if not 'image.%s' in data:
+                raise KeyError("Missing data: `%s`" % k)
+        entity = {'id': data['id'], 'name': data['name']}
+        return self.new(entity)
 
 class YumRepo(SQLModel):
     Table = sqltable("yum_repos",

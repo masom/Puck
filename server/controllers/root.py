@@ -51,11 +51,14 @@ class Root(Controller):
         return self.render("statuses.html", self.crumbs, **env)
 
     @cherrypy.expose
-    def start(self):
-        args = dict(action="create", image_id='temp', credentials=cherrypy.session.get('credentials'))
-        cherrypy.engine.publish("virtualization", **args)
+    def start(self, **post):
+        if 'image_id' in post:
+            args = dict(action="create", image_id=post['image_id'], credentials=cherrypy.session.get('credentials'))
+            cherrypy.engine.publish("virtualization", **args)
+            cherrypy.session['flash'] = "VM started"
+        else:
+            cherrypy.sessino['flash'] = 'Missing image id.'
 
-        cherrypy.session['flash'] = "VM started"
         raise cherrypy.HTTPRedirect("/statuses")
 
     @cherrypy.expose

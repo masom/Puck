@@ -23,12 +23,11 @@ class Euca2(Launcher):
     def _eucatool_init(self, credentials, cmd):
         '''Initialize the euca command.'''
 
-        # @TODO: Get this from db.
         settings = {
             'ec2_user_access_key': credentials.access_key,
             'ec2_user_secret_key': credentials.secret_key,
             'url': credentials.cloud_url,
-            'region': 'freebsd'
+            'region': credentials.region
         }
 
         cmd.handle_defaults()

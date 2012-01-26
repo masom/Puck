@@ -19,7 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Credentials(object):
     ''' User credentials abstraction object. '''
 
-    def __init__(self, **kwargs):
-        self.cloud_url = kwargs['cloud_url']
-        self.access_key = kwargs['access_key']
-        self.secret_key = kwargs['secret_key']
+    def __init__(self, cloud_url=None, access_key=None, secret_key=None, region=None, name=None, email=None):
+        self.cloud_url = cloud_url
+        self.access_key = access_key
+        self.secret_key = secret_key
+        self.region = region
+        self.name = name
+        self.email = email
