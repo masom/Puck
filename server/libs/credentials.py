@@ -28,12 +28,16 @@ class Credentials(object):
         self._data = {}
 
         # Auth data is stored as a pickled object in a text field.
+        if data:
+            self._load_data(data)
+        self._post_init()
+
+    def _load_data(self, data):
         try:
             self._data = pickle.loads(data)
         except pickle.PickleError as e:
             #TODO log
             pass
-        self._post_init()
 
     def _post_init(self):
         '''Intended to be overloaded.'''
@@ -42,7 +46,7 @@ class Credentials(object):
 #TODO Probably should be moved within the virtualization plugin.
 # Each plugin could respond to a get-credentials call or something similar that
 # returns the class to be used for authentication
-class EucaCredentials(Credentials)
+class EucaCredentials(Credentials):
 
     def _post_init(self):
         params = ['ec2_url', 's3_url', 'ec2_user_access_key',
