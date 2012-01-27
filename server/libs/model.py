@@ -76,6 +76,7 @@ class ModelCollection(object):
             return None
         if getattr(item, field) == value:
             return True
+        return False
 
     def first(self, key, value):
         ''' Returns the first entity matching a value '''

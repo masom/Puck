@@ -46,8 +46,19 @@ class ModelCollectionTest(unittest.TestCase):
         item = MockModel(name="derp")
         self.assertTrue(mc._find_match(item, "name", "derp"))
 
+        item = MockModel(ello="World")
+        self.assertFalse(mc._find_match(item, "name", "derp"))
+        self.assertTrue(mc._find_match(item, "ello", "World"))
+
     def test_Find(self):
         mc = ModelCollection()
+        item = MockModel(name="world", ip="local")
+        self.assertTrue(mc._find(item, {'name': 'world'}))
+        self.assertTrue(mc._find(item, {'name': 'world', 'ip': 'local'}))
+        self.assertTrue(mc._find(item, {'ip': 'local'}))
+        self.assertFalse(mc._find(item, {'name': 'Chocolate', 'ip': 'local'}))
+        self.assertFalse(mc._find(item, {'echo': 'Nope'}))
+
     def testFind(self):
         mc = ModelCollection()
         self.assertEqual(mc.find(name="derp"), [])
