@@ -24,11 +24,11 @@ class Key(Model):
 
 class Keys(ModelCollection):
     _model = Key
-    def table_definition(self):
-        columns = [
-            ('name', 'TEXT PRIMARY KEY'),
-            ('key', 'TEXT'
-        ]
+    def _generate_table_definition(self):
+        columns = {
+            'name': 'TEXT PRIMARY KEY',
+            'key': 'TEXT'
+        }
         return TableDefinition('keys', columns=columns)
 
 

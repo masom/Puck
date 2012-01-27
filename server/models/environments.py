@@ -26,15 +26,15 @@ class Environments(ModelCollection):
 
     _model = Environment
 
-    def table_definition(self):
-        columns = [
-            ('id', "TEXT PRIMARY KEY")
-            ('name', "TEXT")
-        ]
+    def _generate_table_definition(self):
+        columns = {
+            'id': "TEXT PRIMARY KEY",
+            'name': "TEXT"
+        }
 
         return TableDefinition('environments', columns=columns)
 
-    def _post_init(self):
+    def _after_init(self):
         ''' TODO: Move this to the config file.'''
         items = [
             self.new(id='dev',name='Development'),

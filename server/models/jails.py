@@ -28,13 +28,13 @@ class Jail(Model):
 class Jails(ModelCollection):
     _model = Jail
 
-    def table_definition(self):
-        columns = [
-            ('id', 'TEXT PRIMARY KEY'),
-            ('jail_type', 'TEXT'),
-            ('name', 'TEXT'),
-            ('ip', 'TEXT'),
-            ('netmask', 'TEXT'),
-            ('environment', 'TEXT')
-        ]
+    def _generate_table_definition(self):
+        columns = {
+            'id': 'TEXT PRIMARY KEY',
+            'jail_type': 'TEXT',
+            'name': 'TEXT',
+            'ip': 'TEXT',
+            'netmask': 'TEXT',
+            'environment': 'TEXT'
+        }
         return TableDefinition('jails', columns=columns)

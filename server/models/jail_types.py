@@ -26,15 +26,15 @@ class JailType(Model):
 class JailTypes(ModelCollection):
     _model = JailType
 
-    def table_definition(self):
-        columns = [
-            ('id', 'TEXT PRIMARY KEY'),
-            ('ip', 'TEXT'),
-            ('netmask', 'TEXT')
-        ]
+    def _generate_table_definition(self):
+        columns = {
+            'id': 'TEXT PRIMARY KEY',
+            'ip': 'TEXT',
+            'netmask': 'TEXT'
+        }
         return TableDefinition('jail_types', columns=columns)
 
-    def _post_init(self):
+    def _after_init(self):
         # TODO Move this to database instead of hard coded
         netmask='255.255.255.0'
         self.add(self.new(id='content', ip='10.0.0.10', netmask=netmask))

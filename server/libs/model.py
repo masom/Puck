@@ -17,24 +17,45 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 class ModelCollection(object):
+    ''' Represents a collection of entities '''
+
+    _model = None
+    _table_name = None
+
     def __init__(self):
         self._items = []
         self._post_init()
 
-    def _post_init(self):
+    def _after_init(self):
+        ''' Executed after the object has initialized.'''
         pass
 
     def _before_add(self, entity):
+        '''
+        Executed before an entity is added.
+        If the return value is not True, the entity will not be added.
+        '''
         return True
 
     def table_definition(self):
-        # To be implemented by sub class
-        return None
+        ''' Should return the table definition for the collection. '''
+        if self._table_definition:
+            return self._table_definition
+        self._table_definition = self._generate_table_definition()
+        return self._table_definition
+
+    def _generate_table_definition(self):
+        ''' To be overloaded.'''
+        pass
 
     def all(self):
+        ''' Returns a list of all the entities. '''
+
         return self._items
 
     def find(self, key, value):
+        ''' Returns a list of entities matching a value. '''
+
         items = []
         for i in self._items:
             item = self._items[i]
@@ -43,25 +64,50 @@ class ModelCollection(object):
         return items
 
     def first(self, key, value):
+        ''' Returns the first entity matching a value '''
         for i in self._items:
             item = self._items[i]
             if getattr(item, key) == value:
                 return item
 
     def new(self, **kwargs):
+        ''' Creates a new entity '''
         return self._model(**kwargs)
 
     def add(self, entity):
+        ''' Add an entity to the collection '''
         if not self._before_add(entity):
             return False
 
         return self._items.append(entity)
 
+    def delete(self, entity):
+        ''' Delete the entity. '''
+
+    def _build(self, items):
+        entities = []
+        for r in items:
+            entities.append(self.new(**r))
+        return entities
+
+    def _select_all(self):
+        query = "SELECT * from {table}"
+        crs = cherrypy.thread_data.db.cursor()
+        crs.execute(query.format(table=self._table_name))
+        return self._build(crs.fetchall())
+
+    def _insert(self, entity):
+        definition = self.table_definition()
+        columns = definition.columns.keys()
+        for k in columns:
+            values.append(definition.columns[k])
 
 class Model(object):
     pass
 
 class Migration(object):
+    ''' Handles migrating/creating the database. '''
+
     def __init__(self, connection, tables):
         self._connection = connection
         self._tables = tables
@@ -75,19 +121,17 @@ class Migration(object):
         self._connection.commit()
 
     def _table_exists(self, table_name):
+        ''' Determine if a table exists in the database. '''
+
         crs = self._connection.cursor()
         query = "SELECT name FROM sqlite_master WHERE type='table' AND name=?"
         crs.execute(query, (table_name,))
         return crs.fetchone() is not None
 
 class TableDefinition(object):
+    ''' Represents a table. '''
+
     template = "CREATE TABLE {name} ({fields})"
-
-    class TextColumn(object):
-        pass
-
-    class IntColumn(object):
-        pass
 
     def __init__(self, name, columns, primary_key = 'id'):
         self.primary_key = primary_key
@@ -97,9 +141,8 @@ class TableDefinition(object):
         self._generate_string()
 
     def _generate_string(self):
-        fields = ",".join("%s %s" % col for col in self.columns)
+        fields = ",".join("%s %s" % (col, self.columns[col]) for col in self.columns)
         self._string = self.template.format(name=self.name, fields=fields)
 
     def __str__(self):
         return self._string
-

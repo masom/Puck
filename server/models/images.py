@@ -26,9 +26,9 @@ class Image(Model):
 class Images(ModelCollection):
     _model = Image
 
-    def table_definition(self):
-        columns = [
-            ('id', "TEXT PRIMARY KEY"),
-            ('name', "TEXT")
-        ]
+    def _generate_table_definition(self):
+        columns = {
+            'id': "TEXT PRIMARY KEY",
+            'name': "TEXT"
+        }
         return TableDefinition('images', columns=columns)

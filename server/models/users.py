@@ -24,10 +24,10 @@ class User(Model):
 
 class Users(ModelCollection):
     _model = Key
-    def table_definition(self):
-        columns = [
-            ('name', 'TEXT PRIMARY KEY'),
-            ('key', 'TEXT'
-        ]
-        return TableDefinition('users', columns=columns)
+    def _generate_table_definition(self):
+        columns = {
+            'name': 'TEXT PRIMARY KEY',
+            'key': 'TEXT'
+        }
+        return TableDefinition('users', columns=columns, primary_key='name')
 
