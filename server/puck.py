@@ -33,12 +33,7 @@ def argparser():
 
 def connect(thread_index):
     cherrypy.thread_data.db = sqlite3.connect(root._db)
-    def dict_factory(cursor, row):
-        d = {}
-        for idx,col in enumerate(cursor.description):
-            d[col[0]] = row[idx]
-        return d
-    cherrypy.thread_data.db.row_factory = dict_factory
+    cherrypy.thread_data.db.row_factory = sqlite3.Row
 
 if __name__ == "__main__":
 

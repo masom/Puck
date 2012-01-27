@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from libs.model import ModelCollection, Model
 class Jail(Model):
     def __init__(self, name, ip, netmask, environment, id=None, jail_type=None):
         self.id = id

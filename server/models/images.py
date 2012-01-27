@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from libs.model import ModelCollection, Model
 
 class Image(Model):
-    def __init__(self, id, name)
+    def __init__(self, id, name):
         self.id = id
         self.name = name
 

@@ -21,10 +21,11 @@ class ModelCollection(object):
 
     _model = None
     _table_name = None
+    _table_definition = None
 
     def __init__(self):
         self._items = []
-        self._post_init()
+        self._after_init()
 
     def _after_init(self):
         ''' Executed after the object has initialized.'''
@@ -46,22 +47,35 @@ class ModelCollection(object):
 
     def _generate_table_definition(self):
         ''' To be overloaded.'''
-        pass
+        return None
 
     def all(self):
         ''' Returns a list of all the entities. '''
 
         return self._items
 
-    def find(self, key, value):
+    def find(self, **kwargs):
         ''' Returns a list of entities matching a value. '''
 
         items = []
-        for i in self._items:
-            item = self._items[i]
-            if getattr(item, key) == value:
-                items.append(item)
+        for item in self._items:
+            matches = self._find(items, kwargs)
+            if not matches:
+                continue
+            items.append(item)
         return items
+
+    def _find(self, item, fields):
+        for f in fields:
+            if not self._find_match(item, f, fields[f]):
+                return False
+        return True
+
+    def _find_match(self, item, field, value):
+        if not hasattr(item, field):
+            return None
+        if getattr(item, field) == value:
+            return True
 
     def first(self, key, value):
         ''' Returns the first entity matching a value '''

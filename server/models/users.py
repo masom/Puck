@@ -23,7 +23,7 @@ class User(Model):
         self.key = key
 
 class Users(ModelCollection):
-    _model = Key
+    _model = User
     def _generate_table_definition(self):
         columns = {
             'name': 'TEXT PRIMARY KEY',

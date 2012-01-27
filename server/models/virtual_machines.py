@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from libs.model import ModelCollection, Model, TableDefinition
-import deque
+from collections import deque
 
 class VirtualMachine(Model):
     def __init__(self, name, ip, status, config):
