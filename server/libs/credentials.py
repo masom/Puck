@@ -15,14 +15,43 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
+import pickle
+import cherrypy
 
 class Credentials(object):
     ''' User credentials abstraction object. '''
 
-    def __init__(self, cloud_url=None, access_key=None, secret_key=None, region=None, name=None, email=None):
-        self.cloud_url = cloud_url
-        self.access_key = access_key
-        self.secret_key = secret_key
-        self.region = region
+    def __init__(self, name=None, email=None, password=None, data=None):
         self.name = name
         self.email = email
+        self.password = password
+        self._data = {}
+
+        # Auth data is stored as a pickled object in a text field.
+        try:
+            self._data = pickle.loads(data)
+        except pickle.PickleError as e:
+            #TODO log
+            pass
+        self._post_init()
+
+    def _post_init(self):
+        '''Intended to be overloaded.'''
+        pass
+
+#TODO Probably should be moved within the virtualization plugin.
+# Each plugin could respond to a get-credentials call or something similar that
+# returns the class to be used for authentication
+class EucaCredentials(Credentials)
+
+    def _post_init(self):
+        params = ['ec2_url', 's3_url', 'ec2_user_access_key',
+            'ec2_user_secret_key', 'ec2_cert', 'ec2_private_key',
+            'eucalyptus_cert', 'ec2_user_id'
+        ]
+        for k in params:
+            if k in self._data:
+                setattr(self, k, self._data[k])
+            else:
+                setattr(self, k, None)
+

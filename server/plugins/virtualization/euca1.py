@@ -26,29 +26,25 @@ import euca2ools
 
 class Euca1(Launcher):
     class Euca(euca2ools.Euca2ool):
-        def __init__(self, opts=None, is_s3=False, compat=False):
+        def __init__(self, credentials=None):
             '''Overloads euca2ools.Euca2ool to prevent reading app options.'''
 
-            self.ec2_user_access_key = None
-            self.ec2_user_secret_key = None
-            self.url = None
-            self.is_s3 = is_s3
+            self.ec2_user_access_key = credentials.ec2_user_access_key
+            self.ec2_user_secret_key = credentials.ec2_user_secret_key
+            self.url = credentials.ec2_url
+            self.is_s3 = False
             self.img = euca2ools.LinuxImage(False)
 
-            envlist = (
-                'EC2_ACCESS_KEY',
-                'EC2_SECRET_KEY',
-                'S3_URL',
-                'EC2_URL',
-                'EC2_CERT',
-                'EC2_PRIVATE_KEY',
-                'EUCALYPTUS_CERT',
-                'EC2_USER_ID'
-            )
-            self.environ = {}
-            for v in envlist:
-                #TODO: Potentially change __init__ args to parse Credential object instead of values.
-                self.environ[v] = None
+            self.environ = {
+                'EC2_ACCESS_KEY': credentials.ec2_user_access_key,
+                'EC2_SECRET_KEY': credentials.ec2_user_secret_key,
+                'S3_URL': credentials.s3_url,
+                'EC2_URL': credentials.ec2_url,
+                'EC2_CERT': credentials.ec2_cert,
+                'EC2_PRIVATE_KEY': credentials.ec2_private_key,
+                'EUCALYPTUS_CERT': credentials.eucalyptus_cert,
+                'EC2_USER_ID': credentials.ec2_user_id
+            }
 
         def setup_environ(self):
             '''Overload euca2ools.Euca2ool setup_environ'''
