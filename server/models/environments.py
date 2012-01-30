@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from libs.model import ModelCollection, Model, TableDefinition
 
 class Environment(Model):
-    def __init__(self, id, name):
+    def __init__(self, id=None, name=None):
         self.id = id
         self.name = name
 
@@ -45,4 +45,4 @@ class Environments(ModelCollection):
         ]
 
         for i in items:
-            self.add(item)
+            self.add(i)

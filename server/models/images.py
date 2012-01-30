@@ -30,4 +30,5 @@ class Images(ModelCollection):
         columns = {
             'id': "TEXT PRIMARY KEY",
             'name': "TEXT"
+        }
         return TableDefinition('images', columns=columns)

@@ -25,6 +25,7 @@ class ModelCollection(object):
     _table_definition = None
 
     def __init__(self):
+        self._table_definition = self._generate_table_definition()
         self._items = []
         self._after_init()
 
@@ -41,9 +42,6 @@ class ModelCollection(object):
 
     def table_definition(self):
         ''' Should return the table definition for the collection. '''
-        if self._table_definition:
-            return self._table_definition
-        self._table_definition = self._generate_table_definition()
         return self._table_definition
 
     def _generate_table_definition(self):
@@ -95,11 +93,13 @@ class ModelCollection(object):
         if not self._before_add(entity):
             return False
 
+        # TODO: Save to storage.
         self._items.append(entity)
         return True
 
     def delete(self, entity):
         ''' Delete the entity. '''
+        pass
 
     def _build(self, items):
         ''' Build model entities out of SQL rows. '''
