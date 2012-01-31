@@ -185,13 +185,13 @@ class ModelCollection(object):
 
     def _generate_select_query(self):
         template = '''SELECT * FROM {table}'''
-        return template.format(table=self._table_name)
+        return template.format(table=self._table_definition.name)
 
     def _generate_insert_query(self, insert_data):
         template = '''INSERT INTO {table}({columns}) VALUES ({stub})'''
 
         return template.format(
-            table = self._table_name,
+            table = self._table_definition.name,
             columns = ','.join(k for k in insert_data.keys()),
             stub = ','.join('?' for i in xrange(len(insert_data)))
         )
@@ -206,7 +206,7 @@ class ModelCollection(object):
 
         args['where'] = 'WHERE %s IN (%s)' % (key, ",".join('?' for k in keys))
 
-        args['table'] = self._table_name
+        args['table'] = self._table_definition.name
         args['stub'] = ','.join('%s = ?' % c for c in update_data.keys())
 
         return template.format(**args)
@@ -215,7 +215,7 @@ class ModelCollection(object):
         template = '''DELETE FROM {table} {where}'''
         key = self._table_definition.primary_key
         where = "WHERE %s = ?" % key
-        return template.format(table=self._table_name, where=where)
+        return template.format(table=self._table_definition.name, where=where)
 
 
 class Model(object):

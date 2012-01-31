@@ -1,5 +1,5 @@
 import unittest
-
+from collections import OrderedDict
 from models.environments import Environment, Environments
 from libs.model import ModelCollection, Model
 class EnvironmentTest(unittest.TestCase):
@@ -25,7 +25,7 @@ class EnvironmentsTest(unittest.TestCase):
 
     def testFirst(self):
         envs = Environments()
-        first=  envs._items[0]
+        first =  envs._items[0]
         self.assertEqual(envs.first(), first)
 
     def testNew(self):
@@ -45,3 +45,24 @@ class EnvironmentsTest(unittest.TestCase):
 
     def testDelete(self):
         pass
+
+    def test_GenerateSelectQuery(self):
+        envs = Environments()
+        expected = 'SELECT * FROM environments'
+        self.assertEqual(envs._generate_select_query(), expected)
+
+    def test_GenerateInsertQuery(self):
+        envs = Environments()
+        entity = envs.new()
+
+        expected = OrderedDict([('id', None), ('name', None)])
+        data = envs._generate_query_data(entity)
+        self.assertEqual(expected, data)
+
+        expected = 'INSERT INTO environments(id,name) VALUES (?,?)'
+        self.assertEqual(envs._generate_insert_query(data), expected)
+
+    def testTableDefinition(self):
+        envs = Environments()
+        expected = '''CREATE TABLE environments (id TEXT PRIMARY KEY,name TEXT)'''
+        self.assertEqual(str(envs.table_definition()), expected)
