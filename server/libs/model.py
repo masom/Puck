@@ -265,7 +265,11 @@ class TableDefinition(object):
 
         if not primary_key in columns:
             raise KeyError('Primary key not set')
-        columns[primary_key] = "%s %s" % (columns[primary_key], "PRIMARY KEY")
+
+        pk = "PRIMARY KEY"
+        if columns[primary_key].find(pk) == -1:
+            columns[primary_key] = "%s %s" % (columns[primary_key], pk)
+
         self._generate_string()
 
     def _generate_string(self):

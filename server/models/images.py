@@ -16,10 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from libs.model import ModelCollection, Model
-
+from libs.model import ModelCollection, Model, TableDefinition
+from collections import OrderedDict
 class Image(Model):
-    def __init__(self, id, name):
+    def __init__(self, id=None, name=None):
         self.id = id
         self.name = name
 
@@ -27,8 +27,8 @@ class Images(ModelCollection):
     _model = Image
 
     def _generate_table_definition(self):
-        columns = {
-            'id': "TEXT PRIMARY KEY",
-            'name': "TEXT"
-        }
+        columns = OrderedDict([
+            ('id', "TEXT"),
+            ('name', "TEXT")
+        ])
         return TableDefinition('images', columns=columns)

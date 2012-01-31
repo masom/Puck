@@ -262,6 +262,10 @@ class TableDefinitionTest(unittest.TestCase):
         expected = "CREATE TABLE tests (id integer PRIMARY KEY)"
         self.assertEqual(td._string, expected)
 
+        td = TableDefinition("tests", {'id': 'integer PRIMARY KEY'})
+        expected = "CREATE TABLE tests (id integer PRIMARY KEY)"
+        self.assertEqual(td._string, expected)
+
         td = TableDefinition("tests", {'id': 'integer', 'name': 'TEXT'})
         expected = "CREATE TABLE tests (id integer PRIMARY KEY,name TEXT)"
         self.assertEqual(td._string, expected)
