@@ -16,9 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from libs.model import ModelCollection, Model
+from libs.model import ModelCollection, Model, TableDefinition
+from  collections import OrderedDict
 class Jail(Model):
-    def __init__(self, name, ip, netmask, environment, id=None, jail_type=None):
+    def __init__(self, name=None, ip=None, netmask=None, environment=None, id=None, jail_type=None):
         self.id = id
         self.jail_type = jail_type
         self.name = name
@@ -30,12 +31,12 @@ class Jails(ModelCollection):
     _model = Jail
 
     def _generate_table_definition(self):
-        columns = {
-            'id': 'TEXT PRIMARY KEY',
-            'jail_type': 'TEXT',
-            'name': 'TEXT',
-            'ip': 'TEXT',
-            'netmask': 'TEXT',
-            'environment': 'TEXT'
-        }
+        columns = OrderedDict([
+            ('id', 'TEXT'),
+            ('jail_type', 'TEXT'),
+            ('name', 'TEXT'),
+            ('ip', 'TEXT'),
+            ('netmask', 'TEXT'),
+            ('environment', 'TEXT')
+        ])
         return TableDefinition('jails', columns=columns)
