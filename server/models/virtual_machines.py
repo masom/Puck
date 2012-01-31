@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from libs.model import ModelCollection, Model, TableDefinition
-from collections import deque
+from collections import OrderedDict, deque
 
 class VirtualMachine(Model):
     def __init__(self, name, ip, status, config):
@@ -39,12 +39,12 @@ class VirtualMachines(ModelCollection):
         ])
 
     def _generate_table_definition(self):
-        columns = {
-            'name': 'TEXT PRIMARY KEY',
-            'ip': 'TEXT',
-            'status': 'TEXT',
-            'config': 'TEXT'
-        }
+        columns = OrderedDict([
+            ('name', 'TEXT'),
+            ('ip', 'TEXT'),
+            ('status', 'TEXT'),
+            ('config', 'TEXT')
+        ])
         return TableDefinition('virtual_machines', columns=columns, primary_key='name')
 
     def new(self, **kwargs):

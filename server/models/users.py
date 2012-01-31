@@ -16,18 +16,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from libs.model import ModelCollection, Model, TableDefinition
+from collections import OrderedDict
 
 class User(Model):
-    def __init__(self, name, key):
+    def __init__(self, name=None, password=None, key=None):
         self.name = name
+        self.password = password
         self.key = key
 
 class Users(ModelCollection):
     _model = User
     def _generate_table_definition(self):
-        columns = {
-            'name': 'TEXT PRIMARY KEY',
-            'key': 'TEXT'
-        }
+        columns = OrderedDict([
+            ('name', 'TEXT'),
+            ('password', 'TEXT'),
+            ('key', 'TEXT')
+        ])
         return TableDefinition('users', columns=columns, primary_key='name')
 

@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from libs.model import ModelCollection, Model, TableDefinition
+from collections import OrderedDict
 
 class YumRepository(Model):
     def __init__(self):
@@ -24,9 +25,8 @@ class YumRepository(Model):
 class YumRepositories(ModelCollection):
     _model = YumRepository
     def _generate_table_definition(self):
-        columns = {
-            "environment": "TEXT PRIMARY KEY",
-            "data": "TEXT"
-            }
-        return TableDefinition('yum_repositories', columns=columns)
-
+        columns = OrderedDict([
+            ("environment", "TEXT"),
+            ("data", "TEXT")
+        ])
+        return TableDefinition('yum_repositories', columns=columns, primary_key='environment')
