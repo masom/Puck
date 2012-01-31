@@ -19,8 +19,9 @@ from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
 
 class YumRepository(Model):
-    def __init__(self):
-        pass
+    def __init__(self, environment=None, data=None):
+        self.environment = environment
+        self.data = data
 
 class YumRepositories(ModelCollection):
     _model = YumRepository
