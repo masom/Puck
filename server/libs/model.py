@@ -88,7 +88,9 @@ class ModelCollection(object):
 
     def new(self, **kwargs):
         ''' Creates a new entity '''
-        return self._model(**kwargs)
+        entity = self._model(**kwargs)
+        entity._collection = self
+        return entity
 
     def add(self, entity):
         ''' Add an entity to the collection '''
@@ -227,7 +229,12 @@ class ModelCollection(object):
 
 
 class Model(object):
-    pass
+    '''Represent an entity of a ModelCollection'''
+    _collection = None
+
+    def to_dict(self):
+        keys = self._collection.table_definition().columns.keys()
+        return OrderedDict([(k,getattr(self,k)) for k in keys])
 
 class Migration(object):
     ''' Handles migrating/creating the database. '''

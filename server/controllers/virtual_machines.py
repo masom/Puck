@@ -16,16 +16,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
-from controllers.base import *
-import models
+from libs.controller import *
 
 class VirtualMachines(Controller):
     crumbs = [
         Crumb("/", "Home"),
         Crumb("/virtual_machines", "Virtual Machines")
     ]
-
-    models = [models.VM, models.Image]
 
     @cherrypy.expose
     def index(self):

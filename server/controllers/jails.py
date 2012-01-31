@@ -16,14 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
-from controllers.base import *
-import models
+from libs.controller import *
 
 
 class Jails(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/jails", "Jails")]
-
-    models = [models.Jail, models.Environment]
 
     def hash(self):
         return self.Jail.jails()

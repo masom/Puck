@@ -16,12 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
-import models
-from controllers.base import *
+from libs.controller import *
 
 class Keys(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/keys", "Keys")]
-    models = [models.Key]
 
     @cherrypy.expose
     def index(self):

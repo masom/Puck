@@ -3,17 +3,31 @@ import unittest
 from collections import OrderedDict
 from libs.model import ModelCollection, Model, Migration, TableDefinition
 
-class ModelTest(unittest.TestCase):
-    pass
+class MockCollection(object):
+    def __init__(self, columns = []):
+        self.columns = OrderedDict()
+        for c in columns:
+            self.columns[c] = None
 
-class MockModel(object):
+    def table_definition(self):
+        return self
+
+class MockModel(Model):
     def __init__(self, **kwargs):
         for i in kwargs:
             setattr(self, i, kwargs[i])
 
 class ModelCollectionNoExecQuery(ModelCollection):
-        def _execute_query(self, query, data):
-            return True
+    def _execute_query(self, query, data):
+        return True
+
+class ModelTest(unittest.TestCase):
+    def testToDict(self):
+        e = MockModel(id="test", name="test")
+        e._collection = MockCollection(['id', 'name'])
+        data = e.to_dict()
+        expected = {'id': 'test', 'name': 'test'}
+        self.assertEqual(data,expected)
 
 class ModelCollectionTest(unittest.TestCase):
     def testInit(self):

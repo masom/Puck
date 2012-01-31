@@ -18,9 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os.path
 
 import cherrypy
-from controllers.base import *
+from libs.controller import *
 from libs.credentials import Credentials
-import models
 
 
 class Root(Controller):
