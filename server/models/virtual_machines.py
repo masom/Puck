@@ -19,7 +19,7 @@ from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict, deque
 
 class VirtualMachine(Model):
-    def __init__(self, name, ip, status, config):
+    def __init__(self, name=None, ip=None, status=None, config=None):
         self.name = name
         self.ip = ip
         self.status = status
@@ -28,7 +28,7 @@ class VirtualMachine(Model):
 class VirtualMachines(ModelCollection):
     _model = VirtualMachine
 
-    def _after_init():
+    def _after_init(self):
         # TODO: Move this to the config file.
         self._wordlist = deque([
             "apple", "banana", "carrot", "pepper", "salt", "orange",
@@ -48,5 +48,6 @@ class VirtualMachines(ModelCollection):
         return TableDefinition('virtual_machines', columns=columns, primary_key='name')
 
     def new(self, **kwargs):
-        kwargs['name'] = self._wordlist.pop()
-        ModelCollection.new(self, **kwargs)
+        if not 'name' in kwargs:
+            kwargs['name'] = self._wordlist.pop()
+        return ModelCollection.new(self, **kwargs)
