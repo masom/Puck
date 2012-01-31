@@ -28,7 +28,7 @@ class Environments(ModelCollection):
 
     def _generate_table_definition(self):
         columns = {
-            'id': "TEXT PRIMARY KEY",
+            'id': "TEXT",
             'name': "TEXT"
         }
 

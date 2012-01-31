@@ -51,7 +51,7 @@ class EnvironmentsTest(unittest.TestCase):
         expected = 'SELECT * FROM environments'
         self.assertEqual(envs._generate_select_query(), expected)
 
-    def test_GenerateInsertQuery(self):
+    def test_InsertQuery(self):
         envs = Environments()
         entity = envs.new()
 
@@ -64,5 +64,12 @@ class EnvironmentsTest(unittest.TestCase):
 
     def testTableDefinition(self):
         envs = Environments()
-        expected = '''CREATE TABLE environments (id TEXT PRIMARY KEY,name TEXT)'''
+        expected = 'CREATE TABLE environments (id TEXT PRIMARY KEY,name TEXT)'
         self.assertEqual(str(envs.table_definition()), expected)
+
+    def testDelete(self):
+        envs = Environments()
+        entity = envs.new()
+
+        expected = 'DELETE FROM environments WHERE id = ?'
+        self.assertEqual(envs._generate_delete_query(entity.id), expected)

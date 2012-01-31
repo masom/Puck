@@ -247,19 +247,22 @@ class MigrationTest(unittest.TestCase):
 
 class TableDefinitionTest(unittest.TestCase):
     def testInit(self):
-        td = TableDefinition("tests", {})
+        with self.assertRaises(KeyError):
+            TableDefinition("tests", {})
+
+        td = TableDefinition("tests", {'id': 'INTEGER'})
         attrs = ['primary_key', 'name', 'columns', '_string']
         for a in attrs:
             self.assertTrue(hasattr(td, a))
 
-        expected = "CREATE TABLE tests ()"
+        expected = "CREATE TABLE tests (id INTEGER PRIMARY KEY)"
         self.assertEqual(td._string, expected)
 
         td = TableDefinition("tests", {'id': 'integer'})
-        expected = "CREATE TABLE tests (id integer)"
+        expected = "CREATE TABLE tests (id integer PRIMARY KEY)"
         self.assertEqual(td._string, expected)
 
         td = TableDefinition("tests", {'id': 'integer', 'name': 'TEXT'})
-        expected = "CREATE TABLE tests (id integer,name TEXT)"
+        expected = "CREATE TABLE tests (id integer PRIMARY KEY,name TEXT)"
         self.assertEqual(td._string, expected)
         self.assertEqual("%s" % td, expected)

@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from collections import OrderedDict
 import uuid
+import cherrypy
+
 class ModelCollection(object):
     ''' Represents a collection of entities '''
 
@@ -90,6 +92,7 @@ class ModelCollection(object):
 
     def add(self, entity):
         ''' Add an entity to the collection '''
+
         if not self._before_add(entity):
             return False
 
@@ -98,8 +101,13 @@ class ModelCollection(object):
         return True
 
     def delete(self, entity):
-        ''' Delete the entity. '''
-        pass
+        ''' Delete an entity from the collection. '''
+
+        if not self._delete(entity):
+            return False
+
+        del self._items[entity]
+        return True
 
     def _build(self, items):
         ''' Build model entities out of SQL rows. '''
@@ -255,6 +263,9 @@ class TableDefinition(object):
         self.columns = columns
         self._string = ""
 
+        if not primary_key in columns:
+            raise KeyError('Primary key not set')
+        columns[primary_key] = "%s %s" % (columns[primary_key], "PRIMARY KEY")
         self._generate_string()
 
     def _generate_string(self):
