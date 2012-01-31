@@ -15,31 +15,31 @@ class JailTypeTest(unittest.TestCase):
 
 class JailTypesTest(unittest.TestCase):
     def testInit(self):
-        envs = JailTypes()
-        self.assertIsInstance(envs, ModelCollection)
-        self.assertGreater(envs._items, 0)
-        self.assertIsInstance(envs.all(), list)
+        jail_types = JailTypes()
+        self.assertIsInstance(jail_types, ModelCollection)
+        self.assertGreater(jail_types._items, 0)
+        self.assertIsInstance(jail_types.all(), list)
 
-        for i in envs.all():
+        for i in jail_types.all():
             self.assertIsInstance(i, JailType)
 
     def testFirst(self):
-        envs = JailTypes()
-        first =  envs._items[0]
-        self.assertEqual(envs.first(), first)
+        jail_types = JailTypes()
+        first =  jail_types._items[0]
+        self.assertEqual(jail_types.first(), first)
 
     def testNew(self):
-        envs = JailTypes()
-        self.assertIsInstance(envs.new(), JailType)
+        jail_types = JailTypes()
+        self.assertIsInstance(jail_types.new(), JailType)
 
-        e = envs.new(id="lol")
+        e = jail_types.new(id="lol")
         self.assertEqual(e.id, 'lol')
 
     def testAdd(self):
-        envs = JailTypes()
-        before_count = len(envs.all())
-        self.assertTrue(envs.add(envs.new()))
-        after_count = len(envs.all())
+        jail_types = JailTypes()
+        before_count = len(jail_types.all())
+        self.assertTrue(jail_types.add(jail_types.new()))
+        after_count = len(jail_types.all())
         self.assertGreater(after_count, before_count)
         self.assertEqual(before_count + 1, after_count)
 
@@ -47,30 +47,30 @@ class JailTypesTest(unittest.TestCase):
         pass
 
     def test_GenerateSelectQuery(self):
-        envs = JailTypes()
+        jail_types = JailTypes()
         expected = 'SELECT * FROM jail_types'
-        self.assertEqual(envs._generate_select_query(), expected)
+        self.assertEqual(jail_types._generate_select_query(), expected)
 
     def test_InsertQuery(self):
-        envs = JailTypes()
-        entity = envs.new()
+        jail_types = JailTypes()
+        entity = jail_types.new()
 
         expected = OrderedDict([('id', None), ('ip', None), ('netmask', None)])
-        data = envs._generate_query_data(entity)
+        data = jail_types._generate_query_data(entity)
         self.assertEqual(expected, data)
 
         expected = 'INSERT INTO jail_types(id,ip,netmask) VALUES (?,?,?)'
-        self.assertEqual(envs._generate_insert_query(data), expected)
+        self.assertEqual(jail_types._generate_insert_query(data), expected)
 
     def testTableDefinition(self):
-        envs = JailTypes()
+        jail_types = JailTypes()
         expected = 'CREATE TABLE jail_types (id TEXT PRIMARY KEY,ip TEXT,netmask TEXT)'
-        self.assertEqual(str(envs.table_definition()), expected)
+        self.assertEqual(str(jail_types.table_definition()), expected)
 
     def testDelete(self):
-        envs = JailTypes()
-        entity = envs.new()
+        jail_types = JailTypes()
+        entity = jail_types.new()
 
         expected = 'DELETE FROM jail_types WHERE id = ?'
-        self.assertEqual(envs._generate_delete_query(entity.id), expected)
+        self.assertEqual(jail_types._generate_delete_query(entity.id), expected)
 

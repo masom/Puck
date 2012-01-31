@@ -5,11 +5,15 @@ from libs.model import ModelCollection, Model
 class JailTest(unittest.TestCase):
 
     def testInit(self):
-        e = Jail(id="test", ip="127.0.0.1", netmask='255.255.255.0')
-        for a in ['id', 'ip', 'netmask']:
+        e = Jail(id="test",jail_type='omg', name='jail', ip="127.0.0.1", netmask='255.255.255.0', environment='lol')
+        for a in ['id', 'jail_type', 'name', 'ip', 'netmask', 'environment']:
             self.assertTrue(hasattr(e, a))
         self.assertEqual('test', e.id)
+        self.assertEqual('omg', e.jail_type)
+        self.assertEqual('jail', e.name)
         self.assertEqual('127.0.0.1', e.ip)
+        self.assertEqual('255.255.255.0', e.netmask)
+        self.assertEqual('lol', e.environment)
         self.assertFalse(hasattr(e, 'derp'))
         self.assertIsInstance(e, Model)
 
