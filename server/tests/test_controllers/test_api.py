@@ -1,7 +1,7 @@
 import unittest
 
 from controllers.api import *
-from models import Keys, Jails
+from models import Keys, Jails, YumRepositories
 from collections import OrderedDict
 
 class ApiTest(unittest.TestCase):
@@ -103,3 +103,19 @@ class ApiYumTest(unittest.TestCase):
     def testGET(self):
         ay = ApiYum()
         self.assertEqual(ay.GET(), None)
+        self.assertEqual(ay.GET('nope'), None)
+
+        YumRepositories.add(YumRepositories.new(environment='test'))
+        expected = OrderedDict([('environment', 'test'), ('data', None)])
+        self.assertEqual(ay.GET('test'), expected)
+
+class ApiTest(unittest.TestCase):
+    def testInit(self):
+        api = Api(None)
+        attrs = [
+            'registration', 'keys', 'status', 'config',
+            'environments', 'jails', 'yum_repo'
+        ]
+        for a in attrs:
+            self.assertTrue(hasattr(api, a))
+            self.assertIsInstance(getattr(api, a), ApiCall)

@@ -13,6 +13,25 @@ class KeyTest(unittest.TestCase):
         self.assertFalse(hasattr(e, 'derp'))
         self.assertIsInstance(e, Model)
 
+    def testValidates(self):
+        valid_key = [
+            "ssh-rsa",
+            "AAAAB3NzaC1yc2EAAAADAQABAAABAQC3lQT5LQIkdnraV/OKLzpx85PkbPLei1zK6OWX3eSkKX4g8QOZuV+91DBN8TjaBpAbZMav2wbARDFOmeisyvHnLpQLRlV9EXLXu8gLZ73nD8Q6k4VstV16HNfFA7PJhFisHVKbF6v5aq92eHuNdJS/s6msihf3S+gN9vQVS1eQqIELOvzlcuGDBUIs1dBsG2DcHbKBiyAeSj5j+ULBfZxKkxLpEeNnSAhpAxngik7MbRJITyzMg9sEukCjRhVL59GLkqxI96zuTxmlX7z1h+O9G6InyhcqeRUnrxEQ3mFLQMRXKFqSwOKEQk9SH4R3aWZ0VklfIrVEaqMNeIp9b+ap",
+            "masom@workstation"
+        ]
+
+        k = Key()
+        self.assertFalse(k.validates())
+
+        k = Key(name="hehe")
+        self.assertFalse(k.validates())
+
+        k = Key(name="nope", key="haha")
+        self.assertFalse(k.validates())
+
+        k = Key(name="yup", key=" ".join(valid_key))
+        self.assertTrue(k.validates())
+
 class KeysTest(unittest.TestCase):
     def testInit(self):
         keys = Keys()

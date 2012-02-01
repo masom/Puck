@@ -82,11 +82,10 @@ class ApiYum(ApiCall):
 
     @cherrypy.tools.json_out()
     def GET(self, environment=None):
-        repos = YumRepositories.all()
-        if not environment in repos:
-            # @TODO: API ERROR HANDLING
-            return
-        return {'environment': environment, 'data': repos[environment]}
+        repo = YumRepositories.first(environment=environment)
+        if not repo:
+            return None
+        return repo.to_dict()
 
 class Api(Controller):
     def __init__(self, lookup):

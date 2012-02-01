@@ -17,32 +17,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
 from libs.controller import *
+from models import Keys
 
 class Keys(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/keys", "Keys")]
 
     @cherrypy.expose
     def index(self):
-        env = dict(keys=self.Key.keys())
+        env = dict(keys=Keys.all())
         return self.render("keys/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
     def add(self, **post):
-        key = self.Key.Table(None, None)
-        if post:
-            keystr = post['key'].split()
-            if '\n' in post['key']:
-                cherrypy.session['flash'] = "Key is invalid"
-            elif len(keystr) not in (2,3):
-                cherrypy.session['flash'] = "Key is invalid"
-            else:
-                self.Key.new(post)
+        if 'key' in post:
+            key = Keys.new(post['name'], post['key'])
+            if key.validates():
+                Keys.add(key)
                 cherrypy.session['flash'] = "Key successfully added"
                 raise cherrypy.HTTPRedirect("/keys")
-            key = self.Key.Table(post['name'], post['key'])
+            cherrypy.session['flash'] = "Key is not a valid SSH-RSA"
+        else:
+            key = Keys.new()
 
-
-        env = dict(key=key, disabled=False)
+        env = dict(key=key)
         return self.render("keys/add.html", crumbs=self.crumbs, **env)
 
 
