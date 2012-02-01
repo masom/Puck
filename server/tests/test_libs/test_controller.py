@@ -1,5 +1,5 @@
 import unittest
-
+from libs.controller import Controller
 class ControllerTest(unittest.TestCase):
     def testInit(self):
         c = Controller(None)

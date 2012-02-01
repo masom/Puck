@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
 from libs.controller import *
-from models import VirtualMachines, Keys
+from models import VirtualMachines, Keys, Environments, Jails, YumRepositories
 
 class ApiCall(object):
     exposed = True
@@ -35,7 +35,7 @@ class ApiKeys(ApiCall):
     @cherrypy.tools.json_out()
     def GET(self):
         keys = Keys.all()
-        return dict((k.name, key.to_dict()) for k in keys)
+        return dict((k.name, k.to_dict()) for k in keys)
 
 
 class ApiStatus(ApiCall):
@@ -62,25 +62,27 @@ class ApiEnvironments(ApiCall):
 
     @cherrypy.tools.json_out()
     def GET(self):
-        return self.Environment.get()
+        envs = Environments.all()
+        return [e.to_dict() for e in envs]
 
 class ApiJails(ApiCall):
 
     @cherrypy.tools.json_out()
     def GET(self, environment=None):
-        jails = self.Jail.jails()[environment]
+        jails = Jails.find(environment=environment)
 
-        result = dict()
-        for typ, typJails in jails.iteritems():
-            result[typ] = dict((jailId, asdict(jailId, jail))
-                                    for jailId, jail in typJails)
+        result = {}
+        for jail in jails:
+            if not result.has_key(jail.jail_type):
+                result[jail.jail_type] = []
+            result[jail.jail_type].append(jail.to_dict())
         return result
 
 class ApiYum(ApiCall):
 
     @cherrypy.tools.json_out()
     def GET(self, environment=None):
-        repos = self.YumRepo.repos()
+        repos = YumRepositories.all()
         if not environment in repos:
             # @TODO: API ERROR HANDLING
             return
