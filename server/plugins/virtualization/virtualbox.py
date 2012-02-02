@@ -19,7 +19,7 @@ import shutil
 import os.path
 from subprocess import call, check_output
 
-from plugins.virtualization.launcher import Launcher
+from libs.launcher import Launcher
 
 ISO = "FreeBSD.iso"
 
@@ -65,14 +65,14 @@ class VirtualBox(Launcher):
                                 '/usr/local/share/puck/base.vdi',
                                 hda])
         else:
-            retcode = call([vm, "createhd", 
+            retcode = call([vm, "createhd",
                                 "--filename",  hda,
-                                "--size", "8096", 
+                                "--size", "8096",
                                 "--variant", "FIXED"])
-        retcode = call([vm, "storagectl", name, 
+        retcode = call([vm, "storagectl", name,
                             "--name", "IDE Controller",
                             "--add", "ide"])
-        retcode = call([vm, "modifyvm", name, 
+        retcode = call([vm, "modifyvm", name,
                             "--hda", hda])
         if not with_base:
             retcode = call([vm, "storageattach", name,

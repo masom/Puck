@@ -133,7 +133,7 @@ class JSONTransport(object):
         try:
             data = json.load(self._open(request))
         except HTTPError as e:
-            ''' TODO: Logging '''
+            # @TODO: Logging
             return None
         return data
 

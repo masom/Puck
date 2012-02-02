@@ -47,14 +47,14 @@ class Jails(Controller):
         return self.render("jails/add.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
-    def view(self, jailId):
-        jail = self.Jail.get(jailId)
+    def view(self, jail_id):
+        jail = self.Jail.get(jail_id)
         env = dict(jail=jail)
         return self.render("jails/view.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
-    def delete(self, jailId):
-        self.Jail.delete(jailId)
+    def delete(self, jail_id):
+        self.Jail.delete(jail_id)
 
         cherrypy.session['flash'] = "Jail successfully deleted"
         raise cherrypy.HTTPRedirect("/jails")

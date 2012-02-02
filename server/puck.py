@@ -33,11 +33,12 @@ def argparser():
 
 def connect(thread_index):
     cherrypy.thread_data.db = sqlite3.connect(root._db)
+    cherrypy.thread_data.db.row_factory = sqlite3.Row
 
 if __name__ == "__main__":
 
     if not sys.version_info >= (2,7):
-        sys.exit("Python 2.7 is required for Pixie.")
+        sys.exit("Python 2.7 is required for Puck.")
 
     parser = argparser()
     args = parser.parse_args()
@@ -76,10 +77,11 @@ if __name__ == "__main__":
     root.add('keys', controllers.Keys)
     root.add('api', controllers.Api)
     root.add('repos', controllers.Repos)
+    root.add('virtual_machines', controllers.VirtualMachines)
     root.load()
 
     conn = sqlite3.connect(root._db)
-    models.migrate(conn, [models.Key, models.Jail, models.VM, models.YumRepo])
+    models.migrate(conn, [models.Key, models.Jail, models.VM, models.YumRepo, models.Image])
     conn.commit()
     conn.close()
 

@@ -173,16 +173,6 @@ class SQLModel(Model):
 
 
 class Jail(SQLModel):
-    Table = sqltable("jails",
-                        "name" & Text,
-                        "url" & Text,
-                        "type" & Text,
-                        "ip" & Text,
-                        "environment" & Text,
-                        "netmask" & Text
-                    )
-    Type = namedtuple("Type", ["name", "ip", "netmask"])
-
     def jails(self):
         jails = self._select(orderBy=["environment", "type", "name"])
 
@@ -201,44 +191,7 @@ class Jail(SQLModel):
 
         return section
 
-    def types(self):
-        return [
-            self.Type("content", "10.0.0.10"),
-            self.Type("database", "10.0.0.11"),
-            self.Type("support", "10.0.0.12")
-            ]
-
-
-
-class Key(SQLModel):
-    Table = sqltable("keys",
-                        "name" & Text,
-                        "key" & Text
-                    )
-
-    def keys(self):
-        return list(self._select(orderBy=["name"]))
-
 class VM(SQLModel):
-    Table = sqltable("vms",
-                        "name" & (Text | "PRIMARY KEY"),
-                        "ip" & Text,
-                        "status" & Text,
-                        "config" & Text
-                    , primaryKey="name"
-                    )
-
-    def __init__(self, config):
-        Model.__init__(self, config)
-
-        ''' TODO: Move this to the config file.'''
-        wordlist = ["apple", "banana", "carrot", "pepper", "salt", "orange",
-        "eggplant", "squash", "melon", "peach", "kale", "swiss chard",
-        "tomato", "potato", "onion", "grapefruit", "radish", "broccoli",
-        "cilantro", "parsley", "plum", "scallion", "haberno", "strawberry",
-        "grape", "cranberry", "lemongrass", "sugarcane"]
-        self._wordlist = deque(wordlist)
-
 
     def _newId(self):
         word = self._wordlist.pop()
@@ -257,31 +210,7 @@ class VM(SQLModel):
         self._update(vmId, 'status', status)
 
 
-    def list(self):
-        return list(self._select())
-
-class Environment(Model):
-    def __init__(self, config):
-        Model.__init__(self, config)
-
-        ''' TODO: Move this to the config file.'''
-        self._envs = OrderedDict([
-            ('dev','Development'),
-            ('testing', 'Testing'),
-            ('qa', 'Quality Assurance'),
-            ('staging', 'Staging'),
-            ('prod', 'Production')
-        ])
-
-    def get(self):
-        return self._envs
-
 class YumRepo(SQLModel):
-    Table = sqltable("yum_repos",
-                        "environment" & (Text | "PRIMARY KEY"),
-                        "data" & Text,
-                        primaryKey="environment"
-                    )
 
     def get(self, env):
         query = "SELECT {fields} FROM {table} WHERE environment=?".format(
@@ -308,32 +237,6 @@ class YumRepo(SQLModel):
     def repos(self):
         _repos = self._select(orderBy=["environment"])
         return dict((repo.environment, repo.data) for id, repo in _repos)
-
-def migrate(conn, models):
-    crs = conn.cursor()
-
-    tables = [model.Table for model in models]
-    for table in tables:
-        crs.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-            (table._name,)
-        )
-        exists = crs.fetchone() is not None
-        if not exists:
-            cols = table._columns
-            if table._primaryKey not in table._fields:
-                cols = (table._primaryKey & (Text | "PRIMARY KEY"),) + table._columns
-
-            query = "CREATE TABLE {name} {fields}".format(
-                name=table._name,
-                fields="(%s)" % ','.join("%s %s" % (col.name, col.type.toVal())
-                                            for col in cols)
-            )
-            crs.execute(query)
-    conn.commit()
-
-
-
 
 if __name__ == "__main__":
     ''' THIS IS FOR TESTING ONLY '''

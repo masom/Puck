@@ -19,52 +19,33 @@ import os.path
 
 import cherrypy
 from controllers.base import *
+from libs.credentials import Credentials
 import models
 
 
 class Root(Controller):
     crumbs = [Crumb("/", "Home")]
-    models = [models.VM]
 
     def __init__(self, db, lookup):
         Controller.__init__(self, lookup, dict((m, None) for m in self.models))
         self._db = db
         self._routes = {}
-        
+
     @cherrypy.expose
     def index(self):
         return self.render("index.html", self.crumbs[:-1])
 
     @cherrypy.expose
-    def statuses(self, a=None):
-        vms = self.VM.list()
-        env = dict(vms=vms)
-        return self.render("statuses.html", self.crumbs, **env)
+    def login(self, **post):
+        if post:
+            # @TODO actually authenticate. This is a placeholder for now.
+            cherrypy.session['credentials'] = Credentials()
+            raise cherrypy.HTTPRedirect('/index')
+        return self.render("login.html", self.crumbs[:-1])
 
     @cherrypy.expose
-    def start(self):
-
-        args = dict(action="create", image_id='temp')
-        cherrypy.engine.publish("virtualization", **args)
-
-        cherrypy.session['flash'] = "VM started"
-        raise cherrypy.HTTPRedirect("/statuses")
-
+    def logout(self, **post):
+        cherrypy.session['credentials'] = None
+        raise cherrypy.HTTPRedirect("/login")
     def add(self, route, cls):
         self._routes[route] = cls
-
-    def load(self):
-        models = set(self.models)
-        for cls in self._routes.itervalues():
-            models.update(cls.models)
-            models.update(*(scls.models for scls in cls.sub))
-
-        models = dict((cls, cls({})) for cls in models)
-
-        for route, cls in self._routes.iteritems():
-            need = set(cls.models).union(*[scls.models for scls in cls.sub])
-            clsModels = dict((mcls, models[mcls]) for mcls in need)
-            setattr(self, route, cls(self._lookup, clsModels))
-
-        for model in self.models:
-            setattr(self, model.__name__, models[model])

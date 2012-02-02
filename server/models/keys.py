@@ -1,6 +1,6 @@
 '''
 Puck: FreeBSD virtualization guest configuration server
-Copyright (C) 2011  The Hotel Communication Network inc.
+Copyright (C) 2012  The Hotel Communication Network inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -15,13 +15,20 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-class Instance(object):
-    '''Generic instance object used by all backends to translate information upstream.'''
-    def __init__(self, id = None, backend = None, launch_time = None, ip = None, state = None):
-        
-        '''Generic attributes'''
-        self.id = id
-        self.backend = backend
-        self.launch_time = launch_time
-        self.ip = ip
-        self.state = state
+from libs.model import ModelCollection, Model, TableDefinition
+from collections import OrderedDict
+class Key(Model):
+    def __init__(self, name=None, key=None):
+        self.name = name
+        self.key = key
+
+class Keys(ModelCollection):
+    _model = Key
+    def _generate_table_definition(self):
+        columns = OrderedDict([
+            ('name', 'TEXT'),
+            ('key', 'TEXT')
+        ])
+        return TableDefinition('keys', columns=columns, primary_key='name')
+
+

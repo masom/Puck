@@ -61,7 +61,7 @@ def start_jail_launcher():
 
     pid = os.fork()
     if pid == 0:
-        '''Child here'''
+        # Child here
         launcher.run()
         print "Child process exiting."
         os._exit(0)
@@ -126,5 +126,6 @@ if __name__ == "__main__":
 
     ezjl_socket.sendall(json.dumps({'id': 'shutdown'}))
     ezjl_socket.close()
-    '''Wait for the child to terminate.'''
+
+    # Wait for the child to terminate.
     os.waitpid(pid, 0)

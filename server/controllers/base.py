@@ -30,9 +30,25 @@ class Controller(object):
 
         for model in self.models:
             setattr(self, model.__name__, models[model])
-            
+
     def render(self, template, crumbs=[], **variables):
         tmpl = self._lookup.get_template(template)
         variables['flash'] = cherrypy.session.pop('flash', None)
         variables['breadcrumbs'] = crumbs
         return tmpl.render(**variables)
+
+    def load(self):
+        models = set(self.models)
+        for cls in self._routes.itervalues():
+            models.update(cls.models)
+            models.update(*(scls.models for scls in cls.sub))
+
+        models = dict((cls, cls({})) for cls in models)
+
+        for route, cls in self._routes.iteritems():
+            need = set(cls.models).union(*[scls.models for scls in cls.sub])
+            clsModels = dict((mcls, models[mcls]) for mcls in need)
+            setattr(self, route, cls(self._lookup, clsModels))
+
+        for model in self.models:
+            etattr(self, model.__name__, models[model])

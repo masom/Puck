@@ -40,3 +40,13 @@ fi
 
 #Start sshd
 /etc/rc.d/sshd start
+
+#Overwrite rc.local to launch pixie
+#TODO: Proper launch options.
+( cat <<'EOF'
+#!/usr/local/bin/bash
+/usr/local/bin/pixie.py -d -c /usr/local/etc/pixie.conf
+EOF
+) > /etc/rc.local
+
+/usr/local/bin/pixie.py -d -c /usr/local/etc/pixie.conf

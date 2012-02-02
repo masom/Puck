@@ -15,20 +15,19 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-from plugins.virtualization.launcher import Launcher
+from libs.launcher import Launcher
 from euca2ools.commands.euca import RunInstances, RebootInstances, DescribeInstances, TerminateInstances
 class Euca2(Launcher):
     supported_api = ['create', 'delete', 'status', 'restart']
 
-    def _eucatool_init(self, cmd):
+    def _eucatool_init(self, credentials, cmd):
         '''Initialize the euca command.'''
 
-        '''TODO: Get this from db.'''
         settings = {
-            'ec2_user_access_key': 'derp',
-            'ec2_user_secret_key': 'derp',
-            'url': 'http://cloud.hcn',
-            'region': 'freebsd'
+            'ec2_user_access_key': credentials.access_key,
+            'ec2_user_secret_key': credentials.secret_key,
+            'url': credentials.cloud_url,
+            'region': credentials.region
         }
 
         cmd.handle_defaults()
@@ -67,9 +66,10 @@ class Euca2(Launcher):
     def create(self, **kwargs):
         image_id = kwargs['image_id']
         instance_type = kwargs['instance_type']
+        credentials = kwargs['credentials']
 
         cmd = euca2ools.commands.euca.runinstances.RunInstances()
-        self._eucatool_init(cmd)
+        self._eucatool_init(credentials, cmd)
         cmd.instance_type = instance_type
         cmd.image_id = image_id
 
@@ -97,15 +97,17 @@ class Euca2(Launcher):
 
     def status(self, **kwargs):
         id = kwargs['id']
+        credentials = kwargs['credentials']
+
         cmd = euca2ools.commands.euca.describeinstances.DescribeInstances()
         self._eucatool_init(cmd)
 
-        conn = self._euca_connect(cmd)
+        conn = self._euca_connect(credentials, cmd)
 
         options = dict(instance_ids=[id])
         reservations = self._euca_make_request(cmd, conn, 'get_all_instances', **options)
 
-        instances = [] 
+        instances = []
         for reservation in reservations:
             if len(reservation.instances) == 0:
                 continue
@@ -114,8 +116,10 @@ class Euca2(Launcher):
 
     def delete(self, **kwargs):
         id = kwargs['id']
+        credentials = kwargs['credentials']
+
         cmd = euca2ools.commands.euca.rebootinstances.TerminateInstances()
-        self._eucatool_init(cmd)
+        self._eucatool_init(credentials, cmd)
         cmd.instance_id = id
 
         conn = self._euca_connect(cmd)
@@ -126,9 +130,10 @@ class Euca2(Launcher):
 
     def restart(self, **kwargs):
         id = kwargs['id']
+        credentials = kwargs['credentials']
 
         cmd = euca2ools.commands.euca.rebootinstances.RebootInstances()
-        self._eucatool_init(cmd)
+        self._eucatool_init(credentials, cmd)
         cmd.instance_id = id
 
         conn = self._euca_connect(cmd)
@@ -140,4 +145,4 @@ class Euca2(Launcher):
             return self.instance_id
         else:
             return False
-        
+
