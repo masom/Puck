@@ -31,7 +31,7 @@ class JailsTest(unittest.TestCase):
         jails = Jails()
         self.assertEqual(jails.first(), None)
         entity = jails.new()
-        jails.add(entity)
+        jails.add(entity, persist=False)
         self.assertEqual(jails.first(), entity)
 
     def testNew(self):
@@ -44,7 +44,7 @@ class JailsTest(unittest.TestCase):
     def testAdd(self):
         jails = Jails()
         before_count = len(jails.all())
-        self.assertTrue(jails.add(jails.new()))
+        self.assertTrue(jails.add(jails.new(), persist=False))
         after_count = len(jails.all())
         self.assertGreater(after_count, before_count)
         self.assertEqual(before_count + 1, after_count)

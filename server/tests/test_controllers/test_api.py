@@ -31,12 +31,12 @@ class ApiKeysTest(unittest.TestCase):
         self.assertEqual(keys, {})
 
         key = Keys.new(name="test")
-        Keys.add(key)
+        Keys.add(key, persist=False)
         keys = ak.GET()
         self.assertEqual(keys, {'test': key.to_dict()})
 
         key = Keys.new(name='hello')
-        Keys.add(key)
+        Keys.add(key, persist=False)
         keys = ak.GET()
         expected = {
             'test': OrderedDict([
@@ -86,7 +86,7 @@ class ApiJailsTest(unittest.TestCase):
                     jails[e][t] = []
 
                 jail = Jails.new(jail_type=t, environment=e, name="test_%s" % i)
-                Jails.add(jail)
+                Jails.add(jail, persist=False)
                 jails[e][t].append(jail.to_dict())
                 i += 1
 
@@ -105,7 +105,7 @@ class ApiYumTest(unittest.TestCase):
         self.assertEqual(ay.GET(), None)
         self.assertEqual(ay.GET('nope'), None)
 
-        YumRepositories.add(YumRepositories.new(environment='test'))
+        YumRepositories.add(YumRepositories.new(environment='test'), persist=False)
         expected = OrderedDict([('environment', 'test'), ('data', None)])
         self.assertEqual(ay.GET('test'), expected)
 

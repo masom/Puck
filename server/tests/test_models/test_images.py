@@ -27,7 +27,7 @@ class ImagesTest(unittest.TestCase):
         envs = Images()
         self.assertEqual(envs.first(), None)
         entity = envs.new()
-        envs.add(entity)
+        envs.add(entity, persist=False)
         self.assertEqual(envs.first(), entity)
 
     def testNew(self):
@@ -40,7 +40,7 @@ class ImagesTest(unittest.TestCase):
     def testAdd(self):
         envs = Images()
         before_count = len(envs.all())
-        self.assertTrue(envs.add(envs.new()))
+        self.assertTrue(envs.add(envs.new(), persist=False))
         after_count = len(envs.all())
         self.assertGreater(after_count, before_count)
         self.assertEqual(before_count + 1, after_count)

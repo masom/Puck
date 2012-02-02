@@ -28,7 +28,7 @@ class UsersTest(unittest.TestCase):
         users = Users()
         self.assertEqual(users.first(), None)
         entity = users.new()
-        users.add(entity)
+        users.add(entity, persist=False)
         self.assertEqual(users.first(), entity)
 
     def testNew(self):
@@ -41,7 +41,7 @@ class UsersTest(unittest.TestCase):
     def testAdd(self):
         users = Users()
         before_count = len(users.all())
-        self.assertTrue(users.add(users.new()))
+        self.assertTrue(users.add(users.new(), persist=False))
         after_count = len(users.all())
         self.assertGreater(after_count, before_count)
         self.assertEqual(before_count + 1, after_count)

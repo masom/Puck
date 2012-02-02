@@ -92,14 +92,15 @@ class ModelCollection(object):
         entity._collection = self
         return entity
 
-    def add(self, entity):
+    def add(self, entity, persist=True):
         ''' Add an entity to the collection '''
 
         if not self._before_add(entity):
             return False
 
-        # TODO: Save to storage.
         self._items.append(entity)
+        if persist:
+            self._insert(entity)
         return True
 
     def delete(self, entity):
@@ -143,7 +144,7 @@ class ModelCollection(object):
         query = self._generate_insert_query(insert_data)
         return self._execute_query(query, insert_data.values())
 
-    def _update(self, entity, fields):
+    def update(self, entity, fields):
         '''Update the persistent value(s) of an entity'''
 
         data = self._generate_query_data(entity, fields)

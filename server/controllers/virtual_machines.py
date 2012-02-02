@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
 from libs.controller import *
+from models import VirtualMachines, Images
 
 class VirtualMachines(Controller):
     crumbs = [
@@ -26,14 +27,14 @@ class VirtualMachines(Controller):
 
     @cherrypy.expose
     def index(self):
-        vms = self.VM.list()
+        vms = VirtualMachines.all()
         env = dict(vms=vms)
         return self.render("virtual_machines/index.html", self.crumbs, **env)
 
     @cherrypy.expose
     def running(self):
-        vms = self.VM.list()
-        images = self.Image.all()
+        vms = VirtualMachines.all()
+        images = Images.all()
         args = dict(
             action="status",
             credentials=cherrypy.session.get('credentials')

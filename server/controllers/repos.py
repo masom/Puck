@@ -53,23 +53,27 @@ class Repos(Controller):
         if not repo:
             raise cherrypy.HTTPRedirect('/repos')
 
-        if post:
-            for k in post:
-                setattr(repo, k, post[k])
-            if repo.validates():
-
-            raise cherrypy.HTTPRedirect('/repos/view/%s' % id)
+        if 'repo' in post:
+            if repo.validates(post['repo']):
+                for k in post['repo']:
+                    setattr(repo, k, post['repo'][k])
+                YumRepositories.update(repo, ['data'])
+                raise cherrypy.HTTPRedirect('/repos/view/%s' % id)
 
         env = dict(
             repo=repo,
-            env=self.Environment.get()[repo.environment]
+            env=Environments.first(id=repo.environment]
         )
         return self.render("/repos/edit.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
     def view(self, id):
+        repo = YumRepositories.first(id=id)
+        if not repo:
+            cherrypy.session['flash'] = '404 Repository Not Found'
+            raise cherrypy.HTTPRedirect('/repos/index')
         env = dict(
-            repo=self.YumRepo.get(id),
-            env=self.Environment.get()[id]
+            repo=repo,
+            env=Environments.first(id=repo.environment)
         )
         return self.render("/repos/view.html", crumbs=self.crumbs, **env)

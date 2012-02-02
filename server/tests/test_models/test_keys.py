@@ -52,7 +52,7 @@ class KeysTest(unittest.TestCase):
         keys = Keys()
         self.assertEqual(keys.first(), None)
         entity = keys.new()
-        keys.add(entity)
+        keys.add(entity, persist=False)
         self.assertEqual(keys.first(), entity)
 
     def testNew(self):
@@ -65,7 +65,7 @@ class KeysTest(unittest.TestCase):
     def testAdd(self):
         keys = Keys()
         before_count = len(keys.all())
-        self.assertTrue(keys.add(keys.new()))
+        self.assertTrue(keys.add(keys.new(), persist=False))
         after_count = len(keys.all())
         self.assertGreater(after_count, before_count)
         self.assertEqual(before_count + 1, after_count)

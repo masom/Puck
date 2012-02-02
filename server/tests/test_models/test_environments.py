@@ -2,6 +2,7 @@ import unittest
 from collections import OrderedDict
 from models.environments import Environment, Environments
 from libs.model import ModelCollection, Model
+
 class EnvironmentTest(unittest.TestCase):
 
     def testInit(self):
@@ -38,7 +39,7 @@ class EnvironmentsTest(unittest.TestCase):
     def testAdd(self):
         envs = Environments()
         before_count = len(envs.all())
-        self.assertTrue(envs.add(envs.new()))
+        self.assertTrue(envs.add(envs.new(), persist=False))
         after_count = len(envs.all())
         self.assertGreater(after_count, before_count)
         self.assertEqual(before_count + 1, after_count)

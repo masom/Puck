@@ -121,10 +121,10 @@ class ModelCollectionTest(unittest.TestCase):
 
         entity = MockModel()
         mc._before_add = lambda x: False
-        self.assertFalse(mc.add(entity))
+        self.assertFalse(mc.add(entity, persist=False))
 
         mc._before_add = lambda x: True
-        self.assertTrue(mc.add(entity))
+        self.assertTrue(mc.add(entity, persist=False))
         self.assertEqual(mc._items, [entity])
 
     def testDelete(self):
@@ -220,15 +220,15 @@ class ModelCollectionTest(unittest.TestCase):
         self.assertEqual(query, expected)
 
 
-    def test_Update(self):
+    def testUpdate(self):
         mc = ModelCollectionNoExecQuery()
         mc._table_name = 'test'
         mc._table_definition = TableDefinition('test', {'id': 'TEXT', 'name': 'TEXT'})
 
         entity = MockModel(id='test', name='lol')
-        self.assertTrue(mc._update(entity, ['name']))
-        self.assertFalse(mc._update(entity, ['id']))
-        self.assertTrue(mc._update(entity, ['name', 'id']))
+        self.assertTrue(mc.update(entity, ['name']))
+        self.assertFalse(mc.update(entity, ['id']))
+        self.assertTrue(mc.update(entity, ['name', 'id']))
 
     def test_Insert(self):
         mc = ModelCollectionNoExecQuery()
