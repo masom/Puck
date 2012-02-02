@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from collections import OrderedDict
 import uuid
 import cherrypy
+from sqlite3 import IntegrityError
 
 class ModelCollection(object):
     ''' Represents a collection of entities '''
@@ -108,9 +109,11 @@ class ModelCollection(object):
         if not self._before_add(entity):
             return False
 
-        self._items.append(entity)
         if persist:
-            self._insert(entity)
+            if not self._insert(entity):
+                return False
+
+        self._items.append(entity)
         return True
 
     def delete(self, entity):
@@ -156,7 +159,11 @@ class ModelCollection(object):
             setattr(entity, key, insert_data[key])
 
         query = self._generate_insert_query(insert_data)
-        return self._execute_query(query, insert_data.values())
+        try:
+            return self._execute_query(query, insert_data.values())
+        except IntegrityError as e:
+            entity.addError(key, str(e))
+            return False
 
     def update(self, entity, fields):
         '''Update the persistent value(s) of an entity'''
@@ -165,7 +172,7 @@ class ModelCollection(object):
 
         #Prevent updating the primary key
         key = self._table_definition.primary_key
-        if key in data:
+        if key in data and self.override_pk:
             del(data[key])
 
         if not len(data):
@@ -174,7 +181,11 @@ class ModelCollection(object):
             return False
 
         query = self._generate_update_query([getattr(entity, key)], data)
-        return self._execute_query(query, data.values())
+        try:
+            return self._execute_query(query, data.values())
+        except IntegrityError as e:
+            entity.addError(key, str(e))
+            return False
 
     def _update_all(self, entities, data):
         '''Update the persistent value(s) of a group of entities.'''
@@ -245,7 +256,14 @@ class ModelCollection(object):
 
 class Model(object):
     '''Represent an entity of a ModelCollection'''
+
     _collection = None
+    _errors = []
+    def addError(self, field, error):
+        self._errors.append("%s: %s" % (field, error))
+
+    def errors(self):
+        return self._errors
 
     def to_dict(self):
         keys = self._collection.table_definition().columns.keys()

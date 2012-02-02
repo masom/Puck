@@ -29,14 +29,11 @@ class JailTypesController(Controller):
 
     @cherrypy.expose
     def add(self, **post):
-        jail_type = JailTypes.new()
+        jail_type = JailTypes.new(id="", ip="", netmask="")
         if post:
-            data = dict((k.split(".", 1)[1], post[k]) for k in post if k.startswith('jail_type.'))
-            for k in data:
-                setattr(jail_type, k, data[k])
+            self._setData(jail_type, post)
 
-            if jail_type.validates():
-                JailTypes.add(jail_type)
+            if jail_type.validates() and JailTypes.add(jail_type):
                 cherrypy.session['flash'] = "Jail Type successfully added."
                 raise cherrypy.HTTPRedirect("/jail_types")
 
@@ -48,10 +45,23 @@ class JailTypesController(Controller):
         return self.render("/jail_types/add.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
-    def view(self, id):
+    def edit(self, id, **post):
         jail_type = JailTypes.first(id=id)
+        if not jail_type:
+            cherrypy.session['flash'] = "404 Jail Type Not Found"
+            raise cherrypy.HTTPRedirect('/jail_types')
+
+        if post:
+            tmp = JailTypes.new()
+            self._setData(tmp, post)
+            if tmp.validates():
+                self._setData(jail_type, post)
+                JailTypes.update(jail_type, ['id', 'ip', 'netmask'])
+                cherrypy.session['flash'] = "Jail Type successfully updated."
+                raise cherrypy.HTTPRedirect('/jail_types')
+
         env=dict(jail_type = jail_type)
-        return self.render("/jail_types/view.html", crumbs=self.crumbs, **env)
+        return self.render("/jail_types/edit.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
     def delete(self, id):
@@ -64,6 +74,11 @@ class JailTypesController(Controller):
         cherrypy.session['flash'] = msg
 
         raise cherrypy.HTTPRedirect('/jail_types')
+
+    def _setData(self, jail_type, post):
+        data = dict((k.split(".", 1)[1], post[k]) for k in post if k.startswith('jail_type.'))
+        for k in data:
+            setattr(jail_type, k, data[k])
 
     def _validatePost(self, post):
         attrs = ['id', 'name', 'ip']

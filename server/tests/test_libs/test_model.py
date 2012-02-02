@@ -28,6 +28,10 @@ class ModelTest(unittest.TestCase):
         data = e.to_dict()
         expected = {'id': 'test', 'name': 'test'}
         self.assertEqual(data,expected)
+    def testErrors(self):
+        e = MockModel(id="test")
+        e.addError("id", "test")
+        self.assertEqual(e.errors(), ["id: test"])
 
 class ModelCollectionTest(unittest.TestCase):
     def testInit(self):
