@@ -52,11 +52,9 @@ class JailTypesController(Controller):
             raise cherrypy.HTTPRedirect('/jail_types')
 
         if post:
-            tmp = JailTypes.new()
-            self._setData(tmp, post)
-            if tmp.validates():
-                self._setData(jail_type, post)
-                JailTypes.update(jail_type, ['id', 'ip', 'netmask'])
+            fields = ['ip', 'netmask']
+            data = self._get_data('jail_type', fields, post)
+            if jail_type.update(data, fields):
                 cherrypy.session['flash'] = "Jail Type successfully updated."
                 raise cherrypy.HTTPRedirect('/jail_types')
 
@@ -75,8 +73,7 @@ class JailTypesController(Controller):
 
         raise cherrypy.HTTPRedirect('/jail_types')
 
-    def _setData(self, jail_type, post):
-        data = dict((k.split(".", 1)[1], post[k]) for k in post if k.startswith('jail_type.'))
+    def _setData(self, entity, data):
         for k in data:
             setattr(jail_type, k, data[k])
 

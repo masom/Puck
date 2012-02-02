@@ -177,12 +177,15 @@ class ModelCollection(object):
 
         if not len(data):
             return False
+
         if not hasattr(entity, key):
             return False
 
         query = self._generate_update_query([getattr(entity, key)], data)
+        values = data.values()
+        values.append(getattr(entity, key))
         try:
-            return self._execute_query(query, data.values())
+            return self._execute_query(query, values)
         except IntegrityError as e:
             entity.addError(key, str(e))
             return False
@@ -264,6 +267,26 @@ class Model(object):
 
     def errors(self):
         return self._errors
+
+    def update(self, data, fields):
+        ''' Updates the entity with the provided data and fields. '''
+
+        persisted = True
+        shadow = dict([(k, data[k]) for k in fields])
+
+        for k in fields:
+            if not k in data:
+                continue
+            setattr(self, k, data[k])
+
+        if self._collection.persist:
+            persisted = self._collection.update(self, fields)
+
+        if not persisted:
+            for k in shadow:
+                setattr(self, k, shadow[k])
+            return False
+        return True
 
     def to_dict(self):
         keys = self._collection.table_definition().columns.keys()

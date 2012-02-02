@@ -26,6 +26,10 @@ class Controller(object):
     def __init__(self, lookup):
         self._lookup = lookup
 
+    def _get_data(self, prefix, fields, post):
+        data = dict((k.split(".", 1)[1], post[k]) for k in post if k.startswith('jail_type.'))
+        return dict((k, data[k]) for k in data if k in fields)
+
     def render(self, template, crumbs=[], **variables):
         tmpl = self._lookup.get_template(template)
         variables['flash'] = cherrypy.session.pop('flash', None)

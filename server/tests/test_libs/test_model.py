@@ -3,14 +3,15 @@ import unittest
 from collections import OrderedDict
 from libs.model import ModelCollection, Model, Migration, TableDefinition
 
-class MockCollection(object):
+class MockCollection(ModelCollection):
     def __init__(self, columns = []):
-        self.columns = OrderedDict()
+        cols = OrderedDict()
+        cols['id'] = 'TEXT'
         for c in columns:
-            self.columns[c] = None
+            cols[c] = 'TEXT'
 
-    def table_definition(self):
-        return self
+        self.persist = False
+        self._table_definition = TableDefinition('test', cols, primary_key='id')
 
 class MockModel(Model):
     def __init__(self, **kwargs):
@@ -28,10 +29,22 @@ class ModelTest(unittest.TestCase):
         data = e.to_dict()
         expected = {'id': 'test', 'name': 'test'}
         self.assertEqual(data,expected)
+
     def testErrors(self):
         e = MockModel(id="test")
         e.addError("id", "test")
         self.assertEqual(e.errors(), ["id: test"])
+
+    def testUpdate(self):
+        c = MockCollection()
+        m = MockModel(id=None, name=None)
+        m._collection = c
+
+        m.update({'id': 'test'}, [])
+        self.assertIsNone(m.id)
+        m.update({'id': 'test'}, ['id'])
+        self.assertEqual(m.id, 'test')
+
 
 class ModelCollectionTest(unittest.TestCase):
     def testInit(self):
