@@ -29,6 +29,7 @@ def argparser():
     parser.add_argument("-c", "--config", default="/etc/puck.conf")
     parser.add_argument("-d", "--daemonize", action="store_true")
     parser.add_argument("-t", "--templatedir", default=os.getcwd())
+    parser.add_argument("-i", "--init", action="store_true")
     return parser
 
 def connect(thread_index):
@@ -80,6 +81,13 @@ if __name__ == "__main__":
     root.add('virtual_machines', controllers.VirtualMachinesController)
     root.add('jail_types', controllers.JailTypesController)
     root.load()
+
+    if args.init:
+        connect(None)
+        from libs.model import Migration
+        m = Migration(cherrypy.thread_data.db, [])
+        m.init()
+        os._exit(0)
 
     cherrypy.engine.subscribe('start_thread', connect)
     cherrypy.quickstart(root, '/', conf)

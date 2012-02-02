@@ -244,6 +244,18 @@ class Migration(object):
         self._connection = connection
         self._tables = tables
 
+    def init(self):
+        import models
+        tables = []
+        ''' Initialize the database. '''
+        collections = [
+            'Jails', 'Environments', 'Images', 'JailTypes', 'Keys',
+            'Users', 'VirtualMachines', 'YumRepositories'
+        ]
+        for c in collections:
+            self._tables.append(getattr(models, c).table_definition())
+        self.migrate()
+
     def migrate(self):
         crs = self._connection.cursor()
         for table in self._tables:
