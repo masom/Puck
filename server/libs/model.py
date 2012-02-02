@@ -38,7 +38,7 @@ class ModelCollection(object):
         self._items = []
         self._after_init()
 
-        if self.persist:
+        if self.persist and hasattr(cherrypy.thread_data, 'db') and self._table_definition:
             self._items = self._select_all()
 
     def _after_init(self):
