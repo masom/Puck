@@ -1,7 +1,9 @@
 import unittest
 from collections import OrderedDict
 from models.jails import Jail, Jails
+
 from libs.model import ModelCollection, Model
+
 class JailTest(unittest.TestCase):
 
     def testInit(self):

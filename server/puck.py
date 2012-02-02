@@ -80,10 +80,5 @@ if __name__ == "__main__":
     root.add('virtual_machines', controllers.VirtualMachines)
     root.load()
 
-    conn = sqlite3.connect(root._db)
-    models.migrate(conn, [models.Key, models.Jail, models.VM, models.YumRepo, models.Image])
-    conn.commit()
-    conn.close()
-
     cherrypy.engine.subscribe('start_thread', connect)
     cherrypy.quickstart(root, '/', conf)

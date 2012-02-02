@@ -26,6 +26,9 @@ class EnvironmentsTest(unittest.TestCase):
 
     def testFirst(self):
         envs = Environments()
+        self.assertIsNone(envs.first())
+
+        envs.add(envs.new(), persist=False)
         first =  envs._items[0]
         self.assertEqual(envs.first(), first)
 

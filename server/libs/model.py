@@ -178,7 +178,7 @@ class ModelCollection(object):
         crs = cherrypy.thread_data.db.cursor()
         crs.execute(query, data)
         cherrypy.thread_data.db.commit()
-        crs.cursor.close()
+        crs.close()
         return True
 
     def _generate_query_data(self, entity, fields = []):
@@ -249,7 +249,7 @@ class Migration(object):
         for table in self._tables:
             if self._table_exists(table.name):
                 continue
-            crs.execute(table)
+            crs.execute(str(table))
         self._connection.commit()
 
     def _table_exists(self, table_name):

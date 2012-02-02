@@ -2,8 +2,8 @@ import unittest
 
 from controllers.jails import Jails
 from libs.controller import Controller
-
-class JailsControllerTest(unittest.TestCase):
+from tests.base import PuckTestCase
+class JailsControllerTest(PuckTestCase):
     def testInit(self):
         j = Jails(None)
         self.assertIsInstance(j, Controller)

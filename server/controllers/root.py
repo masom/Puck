@@ -26,7 +26,8 @@ class Root(Controller):
     crumbs = [Crumb("/", "Home")]
 
     def __init__(self, db, lookup):
-        Controller.__init__(self, lookup, dict((m, None) for m in self.models))
+        Controller.__init__(self, lookup)
+        self._lookup = lookup
         self._db = db
         self._routes = {}
 
@@ -46,5 +47,9 @@ class Root(Controller):
     def logout(self, **post):
         cherrypy.session['credentials'] = None
         raise cherrypy.HTTPRedirect("/login")
+
     def add(self, route, cls):
         self._routes[route] = cls
+
+    def load(self):
+        [setattr(self, route, self._routes[route](self._lookup)) for route in self._routes]

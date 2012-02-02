@@ -3,8 +3,9 @@ import unittest
 from controllers.api import *
 from models import Keys, Jails, YumRepositories
 from collections import OrderedDict
+from tests.base import PuckTestCase
 
-class ApiTest(unittest.TestCase):
+class ApiTest(PuckTestCase):
     def testInit(self):
         api = Api(None)
         attrs = [
@@ -14,7 +15,7 @@ class ApiTest(unittest.TestCase):
         for a in attrs:
             self.assertTrue(hasattr(api, a))
 
-class ApiRegistrationTest(unittest.TestCase):
+class ApiRegistrationTest(PuckTestCase):
     def testPOST(self):
         ar = ApiRegistration()
         vm = ar.POST()
@@ -23,7 +24,7 @@ class ApiRegistrationTest(unittest.TestCase):
         for k in expected:
             self.assertTrue(vm.has_key(k))
 
-class ApiKeysTest(unittest.TestCase):
+class ApiKeysTest(PuckTestCase):
 
     def testGET(self):
         ak = ApiKeys()
@@ -50,13 +51,13 @@ class ApiKeysTest(unittest.TestCase):
         }
         self.assertEqual(keys, expected)
 
-class ApiConfigTest(unittest.TestCase):
+class ApiConfigTest(PuckTestCase):
     def testPOST(self):
         pass
     def testGET(self):
         pass
 
-class ApiEnvironmentsTest(unittest.TestCase):
+class ApiEnvironmentsTest(PuckTestCase):
     def testGET(self):
         ae = ApiEnvironments()
         data = ae.GET()
@@ -65,7 +66,7 @@ class ApiEnvironmentsTest(unittest.TestCase):
         fields = ['id', 'name']
         [[self.assertTrue(e.has_key(f)) for f in fields] for e in data]
 
-class ApiJailsTest(unittest.TestCase):
+class ApiJailsTest(PuckTestCase):
     def testGET(self):
         aj = ApiJails()
         data = aj.GET()
@@ -99,7 +100,7 @@ class ApiJailsTest(unittest.TestCase):
         self.assertEqual(data, jails['production'])
         self.assertEqual(aj.GET('test'), jails['test'])
 
-class ApiYumTest(unittest.TestCase):
+class ApiYumTest(PuckTestCase):
     def testGET(self):
         ay = ApiYum()
         self.assertEqual(ay.GET(), None)
@@ -109,7 +110,7 @@ class ApiYumTest(unittest.TestCase):
         expected = OrderedDict([('environment', 'test'), ('data', None)])
         self.assertEqual(ay.GET('test'), expected)
 
-class ApiTest(unittest.TestCase):
+class ApiTest(PuckTestCase):
     def testInit(self):
         api = Api(None)
         attrs = [

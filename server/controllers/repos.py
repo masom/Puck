@@ -62,7 +62,7 @@ class Repos(Controller):
 
         env = dict(
             repo=repo,
-            env=Environments.first(id=repo.environment]
+            env=Environments.first(id=repo.environment)
         )
         return self.render("/repos/edit.html", crumbs=self.crumbs, **env)
 
