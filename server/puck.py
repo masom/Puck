@@ -78,6 +78,7 @@ if __name__ == "__main__":
     root.add('api', controllers.Api)
     root.add('repos', controllers.ReposController)
     root.add('virtual_machines', controllers.VirtualMachinesController)
+    root.add('jail_types', controllers.JailTypesController)
     root.load()
 
     cherrypy.engine.subscribe('start_thread', connect)

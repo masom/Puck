@@ -1,0 +1,31 @@
+<%inherit file="/layouts/default.html" />
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/form.css">
+</%block>
+
+<%block name="header">
+    Jails Management
+</%block>
+
+<form class="basic" method="post" action="/jail_types/add">
+    <fieldset>
+        <legend>Jail Type</legend>
+        <ol>
+            <li>
+                <label for="id">ID</label>
+                <input id="id" name="jail_type.id" type="text" required />
+            </li>
+            <li>
+                <label for="ip">IP</label>
+                <input id="ip" name="jail_type.ip" type="text" required />
+            </li>
+            <li>
+                <label for="netmask">Netmask</label>
+                <input id="netmask" name="jail_type.netmask" type="text" required />
+            </li>
+        </ol>
+    </fieldset>
+    <button type="submit">Add</button>
+</form>
+

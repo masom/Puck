@@ -17,11 +17,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
+import re
 class JailType(Model):
     def __init__(self, id=None, ip=None, netmask=None):
         self.id = id
         self.ip = ip
         self.netmask = netmask
+
+    def validates(self):
+        valid_jail_id = "^[a-zA-Z0-9_\-]+$"
+        if not re.match(valid_jail_id, self.id):
+            return False
+        return True
 
 class JailTypes(ModelCollection):
     _model = JailType

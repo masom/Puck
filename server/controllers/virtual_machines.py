@@ -53,7 +53,7 @@ class VirtualMachinesController(Controller):
             cherrypy.engine.publish("virtualization", **args)
             cherrypy.session['flash'] = "VM started"
         else:
-            cherrypy.sessino['flash'] = 'Missing image id.'
+            cherrypy.session['flash'] = 'Missing image id.'
 
         raise cherrypy.HTTPRedirect("/virtual_machines")
 

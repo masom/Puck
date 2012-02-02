@@ -25,30 +25,43 @@ class JailTypesController(Controller):
     @cherrypy.expose
     def index(self):
         env = dict(jail_types=JailTypes.all())
-        return self.render("jail_types/index.html", crumbs=self.crumbs[:-1], **env)
+        return self.render("/jail_types/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
     def add(self, **post):
-        if 'jail_type' in post:
-            jail_type = JailTypes.new(post)
+        jail_type = JailTypes.new()
+        if post:
+            data = dict((k.split(".", 1)[1], post[k]) for k in post if k.startswith('jail_type.'))
+            for k in data:
+                setattr(jail_type, k, data[k])
+
             if jail_type.validates():
                 JailTypes.add(jail_type)
                 cherrypy.session['flash'] = "Jail Type successfully added."
                 raise cherrypy.HTTPRedirect("/jail_types")
+
             cherrypy.session['flash'] = "Invalid data."
+
         env = dict(
-            jail_types = JailTypes.all()
+            jail_type = jail_type
         )
-        return self.render("jail_types/add.html", crumbs=self.crumbs, **env)
+        return self.render("/jail_types/add.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
     def view(self, id):
         jail_type = JailTypes.first(id=id)
         env=dict(jail_type = jail_type)
-        return self.render("jail_types/view.html", crumbs=self.crumbs, **env)
+        return self.render("/jail_types/view.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
     def delete(self, id):
         JailTypes.delete(id)
         cherrypy.session['flash'] = "Jail Type deleted."
         raise cherrypy.HTTPRedirect('/jail_types')
+    def _validatePost(self, post):
+        attrs = ['id', 'name', 'ip']
+        for a in attrs:
+            if not a in post:
+                return False
+        return True
+

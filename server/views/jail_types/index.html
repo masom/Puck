@@ -1,0 +1,33 @@
+<%inherit file="/layouts/default.html" />
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/index.css">
+</%block>
+<%block name="header">
+    Jails Management
+</%block>
+
+<h2>Jail Types <a href="/jail_types/add">Add a new jail type</a></h2>
+% if not len(jail_types):
+    <div>No data.</div>
+% else:
+    <div class="index">
+        <table cellspacing="0" colspan="0">
+            <tr><th>ID</th><th>IP</th><th>Netmask</th></tr>
+            % for type in jail_types:
+                <tr>
+                    <td>%{type.id}</td>
+                    <td>%{type.ip}</td>
+                    <td>%{type.netmask}</td>
+                    <td>
+                        <a href="/jail_types/view/${type.id}">View</a>
+                        &nbsp;|&nbsp;
+                        <a href="/jail_types/edit/${type.id}">Edit</a>
+                        &nbsp;|&nbsp;
+                        <a href="/jail_types/delete/${type.id}">Delete</a>
+                    </td>
+                </tr>
+            % endfor
+        </table>
+    </div>
+% endif
