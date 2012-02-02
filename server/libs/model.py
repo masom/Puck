@@ -26,10 +26,20 @@ class ModelCollection(object):
     _table_name = None
     _table_definition = None
 
+    # If set to true, will generate UUID for the pk
+    override_pk = True
+
+    # If set to true, will load persistent data on init
+    persist = True
+
     def __init__(self):
+
         self._table_definition = self._generate_table_definition()
         self._items = []
         self._after_init()
+
+        if self.persist:
+            self._items = self._select_all()
 
     def _after_init(self):
         ''' Executed after the object has initialized.'''
@@ -106,10 +116,14 @@ class ModelCollection(object):
     def delete(self, entity):
         ''' Delete an entity from the collection. '''
 
+        pos = self._items.index(entity)
+        if pos is None:
+            return False
+
         if not self._delete(entity):
             return False
 
-        del self._items[entity]
+        del(self._items[pos])
         return True
 
     def _build(self, items):
@@ -137,7 +151,7 @@ class ModelCollection(object):
             return False
 
         key = self._table_definition.primary_key
-        if key:
+        if key and self.override_pk:
             insert_data[key] = str(uuid.uuid1())
             setattr(entity, key, insert_data[key])
 
@@ -171,7 +185,7 @@ class ModelCollection(object):
         if not hasattr(entity, key):
             return False
         query = self._generate_delete_query(key)
-        return self._execute_query(query, getattr(entity,key))
+        return self._execute_query(query, (getattr(entity, key),))
 
     def _execute_query(self, query, data):
         '''Execute a query.'''

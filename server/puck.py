@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os, sys
 import cherrypy, sqlite3
 from mako.lookup import TemplateLookup
-import models, controllers
 
 from plugins.virtualization import VirtualizationPlugin
 
@@ -33,7 +32,7 @@ def argparser():
     return parser
 
 def connect(thread_index):
-    cherrypy.thread_data.db = sqlite3.connect(root._db)
+    cherrypy.thread_data.db = sqlite3.connect(cherrypy.config.get('database.file'))
     cherrypy.thread_data.db.row_factory = sqlite3.Row
 
 if __name__ == "__main__":
@@ -73,7 +72,10 @@ if __name__ == "__main__":
     cherrypy.engine.virtualization = VirtualizationPlugin(cherrypy.engine)
     cherrypy.engine.virtualization.subscribe()
 
-    root = controllers.RootController(cherrypy.config.get('database.file'), lookup)
+    connect(None)
+
+    import models, controllers
+    root = controllers.RootController(lookup)
     root.add('jails', controllers.JailsController)
     root.add('keys', controllers.KeysController)
     root.add('api', controllers.Api)
@@ -83,7 +85,6 @@ if __name__ == "__main__":
     root.load()
 
     if args.init:
-        connect(None)
         from libs.model import Migration
         m = Migration(cherrypy.thread_data.db, [])
         m.init()

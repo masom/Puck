@@ -25,10 +25,9 @@ from libs.credentials import Credentials
 class RootController(Controller):
     crumbs = [Crumb("/", "Home")]
 
-    def __init__(self, db, lookup):
+    def __init__(self, lookup):
         Controller.__init__(self, lookup)
         self._lookup = lookup
-        self._db = db
         self._routes = {}
 
     @cherrypy.expose

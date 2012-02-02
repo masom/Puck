@@ -32,6 +32,7 @@ class JailType(Model):
 
 class JailTypes(ModelCollection):
     _model = JailType
+    override_pk = False
 
     def _generate_table_definition(self):
         columns = OrderedDict([

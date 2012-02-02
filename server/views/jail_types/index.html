@@ -16,9 +16,9 @@
             <tr><th>ID</th><th>IP</th><th>Netmask</th></tr>
             % for type in jail_types:
                 <tr>
-                    <td>%{type.id}</td>
-                    <td>%{type.ip}</td>
-                    <td>%{type.netmask}</td>
+                    <td>${type.id}</td>
+                    <td>${type.ip}</td>
+                    <td>${type.netmask}</td>
                     <td>
                         <a href="/jail_types/view/${type.id}">View</a>
                         &nbsp;|&nbsp;

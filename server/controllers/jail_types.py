@@ -55,9 +55,16 @@ class JailTypesController(Controller):
 
     @cherrypy.expose
     def delete(self, id):
-        JailTypes.delete(id)
-        cherrypy.session['flash'] = "Jail Type deleted."
+        jail = JailTypes.first(id=id)
+        msg = "The jail could not be deleted."
+        if jail:
+            if JailTypes.delete(jail):
+                msg = "Jail Type deleted."
+
+        cherrypy.session['flash'] = msg
+
         raise cherrypy.HTTPRedirect('/jail_types')
+
     def _validatePost(self, post):
         attrs = ['id', 'name', 'ip']
         for a in attrs:
