@@ -22,7 +22,7 @@ from libs.controller import *
 from libs.credentials import Credentials
 
 
-class Root(Controller):
+class RootController(Controller):
     crumbs = [Crumb("/", "Home")]
 
     def __init__(self, db, lookup):

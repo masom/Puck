@@ -72,12 +72,12 @@ if __name__ == "__main__":
     cherrypy.engine.virtualization = VirtualizationPlugin(cherrypy.engine)
     cherrypy.engine.virtualization.subscribe()
 
-    root = controllers.Root(cherrypy.config.get('database.file'), lookup)
-    root.add('jails', controllers.Jails)
-    root.add('keys', controllers.Keys)
+    root = controllers.RootController(cherrypy.config.get('database.file'), lookup)
+    root.add('jails', controllers.JailsController)
+    root.add('keys', controllers.KeysController)
     root.add('api', controllers.Api)
-    root.add('repos', controllers.Repos)
-    root.add('virtual_machines', controllers.VirtualMachines)
+    root.add('repos', controllers.ReposController)
+    root.add('virtual_machines', controllers.VirtualMachinesController)
     root.load()
 
     cherrypy.engine.subscribe('start_thread', connect)

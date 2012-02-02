@@ -19,7 +19,7 @@ import cherrypy
 from libs.controller import *
 from models import Keys
 
-class Keys(Controller):
+class KeysController(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/keys", "Keys")]
 
     @cherrypy.expose

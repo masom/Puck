@@ -19,7 +19,7 @@ import cherrypy
 from libs.controller import *
 from models import VirtualMachines, Images
 
-class VirtualMachines(Controller):
+class VirtualMachinesController(Controller):
     crumbs = [
         Crumb("/", "Home"),
         Crumb("/virtual_machines", "Virtual Machines")

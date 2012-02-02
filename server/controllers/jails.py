@@ -17,9 +17,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
 from libs.controller import *
-from models import Jails, JailTypes
+from models import Jails, JailTypes, Environments
 
-class Jails(Controller):
+class JailsController(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/jails", "Jails")]
 
     @cherrypy.expose

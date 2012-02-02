@@ -14,9 +14,9 @@
         <ol>
             <li>
                 <label for="environment">Environment:</label>
-                <select id="environment" name="environment" >
-                % for env, name in environments:
-                    <option value="${env}">${name}</option>
+                <select id="environment" name="jail.environment" >
+                % for env in environments:
+                    <option value="${env.id}">${env.name}</option>
                 % endfor
                 </select>
             </li>
@@ -32,23 +32,23 @@
             </li>
             <li>
                 <label for="name">Name:</label>
-                <input id="name" name="name" type="text" required />
+                <input id="name" name="jail.name" type="text" required />
             </li>
             <li>
                 <label for="url">Url:</label>
-                <input id="url" name="url" type="url" required />
+                <input id="url" name="jail.url" type="url" required />
             </li>
             <li>
                 <label for="ip">Ip:</label>
-                <input id="ip" name="ip" type="text" required />
+                <input id="ip" name="jail.ip" type="text" required />
             </li>
             <li>
                 <label for="netmask">Netmask:</label>
-                <input id="netmask" name="netmask" type="text" required />
+                <input id="netmask" name="jail.netmask" type="text" required />
             </li>
         </ol>
     </fieldset>
-    <input type="submit" value="Add" />
+    <button type="submit">Add</button>
 </form>
 <script type="text/javascript">
     var select = document.getElementById("type")

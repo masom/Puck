@@ -19,7 +19,7 @@ import cherrypy
 from libs.controller import *
 from models import YumRepositories, Environments
 
-class Repos(Controller):
+class ReposController(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/repos", "Repos")]
 
     @cherrypy.expose
