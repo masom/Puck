@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
 from libs.controller import *
+from models import YumRepositories, Environments
 
 class Repos(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/repos", "Repos")]
@@ -24,36 +25,39 @@ class Repos(Controller):
     @cherrypy.expose
     def index(self):
         env = dict(
-            repos=self.YumRepo.repos(),
-            environments=self.Environment.get()
+            repos=YumRepositories.all(),
+            environments=Environments.all()
         )
         return self.render("/repos/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
     def add(self, **post):
-        if post:
-            try:
-                self.YumRepo.create(post)
+        if 'yum_repository' in post:
+            repo = YumRepositories.new(**post)
+            if repo.validates():
+                YumRepositories.add(repo)
                 cherrypy.session['flash'] = "Repo successfully added"
                 raise cherrypy.HTTPRedirect("/repos/index")
-            except KeyError as e:
-                cherrypy.session['flash'] = "There was a problem adding the new repository: %s" % e
+            cherrypy.session['flash'] = "The repository data contains errors."
 
         # Only list environments not having a repo.
-        repos = self.YumRepo.repos()
-        environments = self.Environment.get()
-        available = set(self.Environment.get().keys()) - set(repos.keys())
+        repos = YumRepositories.all()
+        environments = Environments.all()
+        available = set(Environments.all().keys()) - set(repos.keys())
         return self.render("/repos/add.html", crumbs=self.crumbs, environments=environments, available=available)
 
     @cherrypy.expose
     def edit(self, id, **post):
 
-        repo = self.YumRepo.get(id)
+        repo = YumRepositories.first(id=id)
         if not repo:
             raise cherrypy.HTTPRedirect('/repos')
 
         if post:
-            self.YumRepo.update(post)
+            for k in post:
+                setattr(repo, k, post[k])
+            if repo.validates():
+
             raise cherrypy.HTTPRedirect('/repos/view/%s' % id)
 
         env = dict(

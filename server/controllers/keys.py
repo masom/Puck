@@ -44,8 +44,9 @@ class Keys(Controller):
 
 
     @cherrypy.expose
-    def view(self, key_id):
-        key = self.Key.get(key_id)
-        env = dict(key=key, disabled=True)
+    def view(self, name):
+        key = Keys.first(name=name)
+        env = dict(key=key)
         return self.render("keys/add.html", crumbs=self.crumbs, **env)
 
+    #TODO delete

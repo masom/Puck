@@ -32,6 +32,12 @@ class KeyTest(unittest.TestCase):
         k = Key(name="yup", key=" ".join(valid_key))
         self.assertTrue(k.validates())
 
+        k = Key(name="yup", key=" ".join(valid_key[:2]))
+        self.assertTrue(k.validates())
+
+        k = Key(name="nope", key=" ".join(valid_key[1:3]))
+        self.assertFalse(k.validates())
+
 class KeysTest(unittest.TestCase):
     def testInit(self):
         keys = Keys()
