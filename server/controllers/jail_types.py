@@ -75,7 +75,7 @@ class JailTypesController(Controller):
 
     def _setData(self, entity, data):
         for k in data:
-            setattr(jail_type, k, data[k])
+            setattr(entity, k, data[k])
 
     def _validatePost(self, post):
         attrs = ['id', 'name', 'ip']
