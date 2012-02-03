@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os, sys
 import cherrypy, sqlite3
 from mako.lookup import TemplateLookup
-import models, controllers
 
 from plugins.virtualization import VirtualizationPlugin
 
@@ -29,10 +28,11 @@ def argparser():
     parser.add_argument("-c", "--config", default="/etc/puck.conf")
     parser.add_argument("-d", "--daemonize", action="store_true")
     parser.add_argument("-t", "--templatedir", default=os.getcwd())
+    parser.add_argument("-i", "--init", action="store_true")
     return parser
 
 def connect(thread_index):
-    cherrypy.thread_data.db = sqlite3.connect(root._db)
+    cherrypy.thread_data.db = sqlite3.connect(cherrypy.config.get('database.file'))
     cherrypy.thread_data.db.row_factory = sqlite3.Row
 
 if __name__ == "__main__":
@@ -72,18 +72,23 @@ if __name__ == "__main__":
     cherrypy.engine.virtualization = VirtualizationPlugin(cherrypy.engine)
     cherrypy.engine.virtualization.subscribe()
 
-    root = controllers.Root(cherrypy.config.get('database.file'), lookup)
-    root.add('jails', controllers.Jails)
-    root.add('keys', controllers.Keys)
+    connect(None)
+
+    import models, controllers
+    root = controllers.RootController(lookup)
+    root.add('jails', controllers.JailsController)
+    root.add('keys', controllers.KeysController)
     root.add('api', controllers.Api)
-    root.add('repos', controllers.Repos)
-    root.add('virtual_machines', controllers.VirtualMachines)
+    root.add('repos', controllers.ReposController)
+    root.add('virtual_machines', controllers.VirtualMachinesController)
+    root.add('jail_types', controllers.JailTypesController)
     root.load()
 
-    conn = sqlite3.connect(root._db)
-    models.migrate(conn, [models.Key, models.Jail, models.VM, models.YumRepo, models.Image])
-    conn.commit()
-    conn.close()
+    if args.init:
+        from libs.model import Migration
+        m = Migration(cherrypy.thread_data.db, [])
+        m.init()
+        os._exit(0)
 
     cherrypy.engine.subscribe('start_thread', connect)
     cherrypy.quickstart(root, '/', conf)

@@ -17,10 +17,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
+import base64, struct
+
 class Key(Model):
     def __init__(self, name=None, key=None):
         self.name = name
         self.key = key
+
+    def validates(self):
+        ''' Validates if the entity holds a valid SSH-RSA key
+        See http://stackoverflow.com/questions/2494450/ssh-rsa-public-key-validation-using-a-regular-expression
+        '''
+
+        if not self.key:
+            return False
+
+        if len(self.key) == 0:
+            return False
+
+        if "\n" in self.key:
+            return False
+
+        raw = self.key.split()
+        if len(raw) not in (2, 3):
+            return False
+
+        type = raw[0]
+        key = raw[1]
+
+        int_len = 4
+
+        try:
+            data = base64.decodestring(key)
+            str_len = struct.unpack('>I', data[:int_len])[0]
+        except TypeError:
+            return False
+
+        return data[int_len:int_len+str_len] == type
 
 class Keys(ModelCollection):
     _model = Key

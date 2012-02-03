@@ -25,7 +25,10 @@ class JailTypesTest(unittest.TestCase):
 
     def testFirst(self):
         jail_types = JailTypes()
-        first =  jail_types._items[0]
+        self.assertIsNone(jail_types.first())
+
+        jail_types.add(jail_types.new(), persist=False)
+        first = jail_types._items[0]
         self.assertEqual(jail_types.first(), first)
 
     def testNew(self):
@@ -38,7 +41,7 @@ class JailTypesTest(unittest.TestCase):
     def testAdd(self):
         jail_types = JailTypes()
         before_count = len(jail_types.all())
-        self.assertTrue(jail_types.add(jail_types.new()))
+        self.assertTrue(jail_types.add(jail_types.new(), persist=False))
         after_count = len(jail_types.all())
         self.assertGreater(after_count, before_count)
         self.assertEqual(before_count + 1, after_count)

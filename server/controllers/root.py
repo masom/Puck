@@ -18,17 +18,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os.path
 
 import cherrypy
-from controllers.base import *
+from libs.controller import *
 from libs.credentials import Credentials
-import models
 
 
-class Root(Controller):
+class RootController(Controller):
     crumbs = [Crumb("/", "Home")]
 
-    def __init__(self, db, lookup):
-        Controller.__init__(self, lookup, dict((m, None) for m in self.models))
-        self._db = db
+    def __init__(self, lookup):
+        Controller.__init__(self, lookup)
+        self._lookup = lookup
         self._routes = {}
 
     @cherrypy.expose
@@ -47,5 +46,9 @@ class Root(Controller):
     def logout(self, **post):
         cherrypy.session['credentials'] = None
         raise cherrypy.HTTPRedirect("/login")
+
     def add(self, route, cls):
         self._routes[route] = cls
+
+    def load(self):
+        [setattr(self, route, self._routes[route](self._lookup)) for route in self._routes]

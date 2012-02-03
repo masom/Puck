@@ -36,6 +36,7 @@ class Environments(ModelCollection):
         return TableDefinition('environments', columns=columns)
 
     def _after_init(self):
+        return
         ''' TODO: Move this to the config/seed file.'''
         items = [
             self.new(id='dev',name='Development'),

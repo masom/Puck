@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from collections import OrderedDict
 import uuid
 import cherrypy
+from sqlite3 import IntegrityError
 
 class ModelCollection(object):
     ''' Represents a collection of entities '''
@@ -26,10 +27,20 @@ class ModelCollection(object):
     _table_name = None
     _table_definition = None
 
+    # If set to true, will generate UUID for the pk
+    override_pk = True
+
+    # If set to true, will load persistent data on init
+    persist = True
+
     def __init__(self):
+
         self._table_definition = self._generate_table_definition()
         self._items = []
         self._after_init()
+
+        if self.persist and hasattr(cherrypy.thread_data, 'db') and self._table_definition:
+            self._items = self._select_all()
 
     def _after_init(self):
         ''' Executed after the object has initialized.'''
@@ -88,25 +99,34 @@ class ModelCollection(object):
 
     def new(self, **kwargs):
         ''' Creates a new entity '''
-        return self._model(**kwargs)
+        entity = self._model(**kwargs)
+        entity._collection = self
+        return entity
 
-    def add(self, entity):
+    def add(self, entity, persist=True):
         ''' Add an entity to the collection '''
 
         if not self._before_add(entity):
             return False
 
-        # TODO: Save to storage.
+        if persist:
+            if not self._insert(entity):
+                return False
+
         self._items.append(entity)
         return True
 
     def delete(self, entity):
         ''' Delete an entity from the collection. '''
 
+        pos = self._items.index(entity)
+        if pos is None:
+            return False
+
         if not self._delete(entity):
             return False
 
-        del self._items[entity]
+        del(self._items[pos])
         return True
 
     def _build(self, items):
@@ -134,30 +154,41 @@ class ModelCollection(object):
             return False
 
         key = self._table_definition.primary_key
-        if key:
+        if key and self.override_pk:
             insert_data[key] = str(uuid.uuid1())
             setattr(entity, key, insert_data[key])
 
         query = self._generate_insert_query(insert_data)
-        return self._execute_query(query, insert_data.values())
+        try:
+            return self._execute_query(query, insert_data.values())
+        except IntegrityError as e:
+            entity.addError(key, str(e))
+            return False
 
-    def _update(self, entity, fields):
+    def update(self, entity, fields):
         '''Update the persistent value(s) of an entity'''
 
         data = self._generate_query_data(entity, fields)
 
         #Prevent updating the primary key
         key = self._table_definition.primary_key
-        if key in data:
+        if key in data and self.override_pk:
             del(data[key])
 
         if not len(data):
             return False
+
         if not hasattr(entity, key):
             return False
 
         query = self._generate_update_query([getattr(entity, key)], data)
-        return self._execute_query(query, data.values())
+        values = data.values()
+        values.append(getattr(entity, key))
+        try:
+            return self._execute_query(query, values)
+        except IntegrityError as e:
+            entity.addError(key, str(e))
+            return False
 
     def _update_all(self, entities, data):
         '''Update the persistent value(s) of a group of entities.'''
@@ -168,14 +199,14 @@ class ModelCollection(object):
         if not hasattr(entity, key):
             return False
         query = self._generate_delete_query(key)
-        return self._execute_query(query, getattr(entity,key))
+        return self._execute_query(query, (getattr(entity, key),))
 
     def _execute_query(self, query, data):
         '''Execute a query.'''
         crs = cherrypy.thread_data.db.cursor()
         crs.execute(query, data)
         cherrypy.thread_data.db.commit()
-        crs.cursor.close()
+        crs.close()
         return True
 
     def _generate_query_data(self, entity, fields = []):
@@ -227,7 +258,39 @@ class ModelCollection(object):
 
 
 class Model(object):
-    pass
+    '''Represent an entity of a ModelCollection'''
+
+    _collection = None
+    _errors = []
+    def addError(self, field, error):
+        self._errors.append("%s: %s" % (field, error))
+
+    def errors(self):
+        return self._errors
+
+    def update(self, data, fields):
+        ''' Updates the entity with the provided data and fields. '''
+
+        persisted = True
+        shadow = dict([(k, data[k]) for k in fields])
+
+        for k in fields:
+            if not k in data:
+                continue
+            setattr(self, k, data[k])
+
+        if self._collection.persist:
+            persisted = self._collection.update(self, fields)
+
+        if not persisted:
+            for k in shadow:
+                setattr(self, k, shadow[k])
+            return False
+        return True
+
+    def to_dict(self):
+        keys = self._collection.table_definition().columns.keys()
+        return OrderedDict([(k,getattr(self,k)) for k in keys])
 
 class Migration(object):
     ''' Handles migrating/creating the database. '''
@@ -236,12 +299,24 @@ class Migration(object):
         self._connection = connection
         self._tables = tables
 
+    def init(self):
+        import models
+        tables = []
+        ''' Initialize the database. '''
+        collections = [
+            'Jails', 'Environments', 'Images', 'JailTypes', 'Keys',
+            'Users', 'VirtualMachines', 'YumRepositories'
+        ]
+        for c in collections:
+            self._tables.append(getattr(models, c).table_definition())
+        self.migrate()
+
     def migrate(self):
         crs = self._connection.cursor()
         for table in self._tables:
             if self._table_exists(table.name):
                 continue
-            crs.execute(table)
+            crs.execute(str(table))
         self._connection.commit()
 
     def _table_exists(self, table_name):

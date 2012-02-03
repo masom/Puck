@@ -14,9 +14,7 @@
     <ul>
         % for keyId, key in keys:
             <li>
-                <a href="/keys/view/${keyId}">
-                    ${key.name}
-                </a>
+                <a href="/keys/view/${keyId}">${key.name}</a>
             </li>
         % endfor
     </ul>

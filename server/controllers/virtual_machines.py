@@ -16,27 +16,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
-from controllers.base import *
-import models
+from libs.controller import *
+from models import VirtualMachines, Images
 
-class VirtualMachines(Controller):
+class VirtualMachinesController(Controller):
     crumbs = [
         Crumb("/", "Home"),
         Crumb("/virtual_machines", "Virtual Machines")
     ]
 
-    models = [models.VM, models.Image]
-
     @cherrypy.expose
     def index(self):
-        vms = self.VM.list()
+        vms = VirtualMachines.all()
         env = dict(vms=vms)
         return self.render("virtual_machines/index.html", self.crumbs, **env)
 
     @cherrypy.expose
     def running(self):
-        vms = self.VM.list()
-        images = self.Image.all()
+        vms = VirtualMachines.all()
+        images = Images.all()
         args = dict(
             action="status",
             credentials=cherrypy.session.get('credentials')
@@ -55,7 +53,7 @@ class VirtualMachines(Controller):
             cherrypy.engine.publish("virtualization", **args)
             cherrypy.session['flash'] = "VM started"
         else:
-            cherrypy.sessino['flash'] = 'Missing image id.'
+            cherrypy.session['flash'] = 'Missing image id.'
 
         raise cherrypy.HTTPRedirect("/virtual_machines")
 

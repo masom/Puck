@@ -17,14 +17,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
+import re
 class JailType(Model):
     def __init__(self, id=None, ip=None, netmask=None):
         self.id = id
         self.ip = ip
         self.netmask = netmask
 
+    def validates(self):
+        valid_jail_id = "^[a-zA-Z0-9_\-]+$"
+        if not re.match(valid_jail_id, self.id):
+            return False
+        return True
+
 class JailTypes(ModelCollection):
     _model = JailType
+    override_pk = False
 
     def _generate_table_definition(self):
         columns = OrderedDict([
@@ -35,6 +43,7 @@ class JailTypes(ModelCollection):
         return TableDefinition('jail_types', columns=columns)
 
     def _after_init(self):
+        return
         # TODO Move this to database instead of hard coded
         netmask='255.255.255.0'
         self.add(self.new(id='content', ip='10.0.0.10', netmask=netmask))

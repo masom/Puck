@@ -29,7 +29,7 @@ class VirtualMachinesTest(unittest.TestCase):
         vms = VirtualMachines()
         self.assertEqual(vms.first(), None)
         entity = vms.new()
-        vms.add(entity)
+        vms.add(entity, persist=False)
         self.assertEqual(vms.first(), entity)
 
     def testNew(self):
@@ -47,7 +47,7 @@ class VirtualMachinesTest(unittest.TestCase):
     def testAdd(self):
         vms = VirtualMachines()
         before_count = len(vms.all())
-        self.assertTrue(vms.add(vms.new()))
+        self.assertTrue(vms.add(vms.new(), persist=False))
         after_count = len(vms.all())
         self.assertGreater(after_count, before_count)
         self.assertEqual(before_count + 1, after_count)

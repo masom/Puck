@@ -27,7 +27,7 @@ class YumRepositoriesTest(unittest.TestCase):
         yr = YumRepositories()
         self.assertEqual(yr.first(), None)
         entity = yr.new()
-        yr.add(entity)
+        yr.add(entity, persist=False)
         self.assertEqual(yr.first(), entity)
 
     def testNew(self):
@@ -41,7 +41,7 @@ class YumRepositoriesTest(unittest.TestCase):
     def testAdd(self):
         yr = YumRepositories()
         before_count = len(yr.all())
-        self.assertTrue(yr.add(yr.new()))
+        self.assertTrue(yr.add(yr.new(), persist=False))
         after_count = len(yr.all())
         self.assertGreater(after_count, before_count)
         self.assertEqual(before_count + 1, after_count)

@@ -16,45 +16,40 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
-from controllers.base import *
-import models
+from libs.controller import *
+from models import Jails, JailTypes, Environments
 
-
-class Jails(Controller):
+class JailsController(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/jails", "Jails")]
-
-    models = [models.Jail, models.Environment]
-
-    def hash(self):
-        return self.Jail.jails()
 
     @cherrypy.expose
     def index(self):
-        env = dict(jails=self.Jail.jails())
+        env = dict(jails=Jails.all())
         return self.render("jails/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
     def add(self, **post):
         if post:
-            self.Jail.new(post)
+            jail = Jails.new(post)
+            Jails.add(jail)
             cherrypy.session['flash'] = "Jail successfully added"
             raise cherrypy.HTTPRedirect("/jails")
 
         env = dict(
-                environments=self.Environment.get().items(),
-                jailTypes=self.Jail.types()
+                environments=Environments.all(),
+                jailTypes=JailTypes.all()
         )
+
         return self.render("jails/add.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
-    def view(self, jail_id):
-        jail = self.Jail.get(jail_id)
+    def view(self, id):
+        jail = Jails.first(id=id)
         env = dict(jail=jail)
         return self.render("jails/view.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
-    def delete(self, jail_id):
-        self.Jail.delete(jail_id)
-
+    def delete(self, id):
+        Jails.delete(id)
         cherrypy.session['flash'] = "Jail successfully deleted"
         raise cherrypy.HTTPRedirect("/jails")
