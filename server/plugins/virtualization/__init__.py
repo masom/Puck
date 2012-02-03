@@ -42,8 +42,8 @@ class VirtualizationPlugin(plugins.SimplePlugin):
 
         '''Super ugly hack for now.'''
         plugin_name = cherrypy.config.get('virtualization.plugin')
-        filename = './plugins/virtualization/%s.py' % plugin_name.lower()
-        plugin = load_from_file(filename, plugin_name)
+        self._plugin_filename = './plugins/virtualization/%s.py' % plugin_name.lower()
+        plugin = load_from_file(self._plugin_filename, plugin_name)
         self.api = plugin()
         self.switchboard = {}
 
@@ -56,6 +56,10 @@ class VirtualizationPlugin(plugins.SimplePlugin):
         self.bus.log('Starting up virtualization task')
         self.bus.subscribe('virtualization', self.switch)
     start.priority = 70
+
+    def get_credential_class(self):
+        name = cherrypy.config.get('virtualization.credentials')
+        return load_from_file(self._plugin_filename, name)
 
     def switch(self, *args, **kwargs):
         '''

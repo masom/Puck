@@ -36,6 +36,9 @@ class Launcher(object):
     def restart(self, **kwargs):
         raise NotImplementedError()
 
+    def instance_types(self, **kwargs):
+        raise NotImplementedError()
+
     def _generate_instances(self, items = []):
         '''Instance generator.'''
 

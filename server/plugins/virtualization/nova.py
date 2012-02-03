@@ -18,18 +18,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from libs.launcher import Launcher
 from libs.credentials import Credentials
-import novaclient
+from novaclient.v1_0 import Client as NovaClient
 import cherrypy
 
 class NovaCredentials(Credentials):
     def _post_init(self):
-        params = ['nova_url', 'nova_user', 'nova_password']
+        params = ['nova_url', 'nova_username', 'nova_api_key', 'nova_project_id']
+        for k in params:
+            if k in self._data:
+                setattr(self, k, self._data[k])
+            else:
+                setattr(self, k, None)
 
 class Nova(Launcher):
-    supported_api = ['create','delete','status','restart']
+    supported_api = ['create','delete','status','restart', 'instance_types']
 
     def _client(self, credentials):
-        return novaclient.OpenStack(credentials.nova_user, credentials.nova_password, credentials.nova_project, credentials.nova_url)
+        if credentials is None:
+            raise RuntimeError("Invalid credential object.")
+
+        return NovaClient(credentials.nova_username, credentials.nova_api_key, credentials.nova_project_id, credentials.nova_url)
 
     def create(self, **kwargs):
         image_id = kwargs['image_id']
@@ -68,4 +76,8 @@ class Nova(Launcher):
         print server
         print server.reboot()
 
-
+    def instance_types(self, **kwargs):
+        credentials = kwargs['credentials']
+        nova = self._client(credentials)
+        instance_types = nova.flavors.list()
+        print instance_types

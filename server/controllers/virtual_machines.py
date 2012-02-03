@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import cherrypy
 from libs.controller import *
 from models import VirtualMachines, Images
-
+import models,pickle
 class VirtualMachinesController(Controller):
     crumbs = [
         Crumb("/", "Home"),
@@ -27,8 +27,12 @@ class VirtualMachinesController(Controller):
 
     @cherrypy.expose
     def index(self):
-        vms = VirtualMachines.all()
-        env = dict(vms=vms)
+        #Images.add(Images.new(id="test", name="test"))
+        env = dict(
+            virtual_machines=VirtualMachines.all(),
+            images=Images.all(),
+            instance_types=self._get_instance_types()
+        )
         return self.render("virtual_machines/index.html", self.crumbs, **env)
 
     @cherrypy.expose
@@ -44,10 +48,15 @@ class VirtualMachinesController(Controller):
 
     @cherrypy.expose
     def start(self, **post):
-        if 'image_id' in post:
+        if post:
+            image = Images.find(id=post['image.id'])
+            if not image:
+                cherrypy.session['flash'] = 'Missing image id.'
+                raise cherrypy.HTTPRedirect("/virtual_machines")
+
             args = dict(
                 action="create",
-                image_id=post['image_id'],
+                image_id=post['image.id'],
                 credentials=cherrypy.session.get('credentials')
             )
             cherrypy.engine.publish("virtualization", **args)
@@ -68,3 +77,24 @@ class VirtualMachinesController(Controller):
 
         cherrypy.session['flash'] = "VM Stopped"
         raise cherrypy.HTTPRedirect("/virtual_machines")
+
+    def _get_instance_types(self):
+        data={
+                'nova_url':"http://10.0.254.100:8774/v1.0/",
+                'nova_username':"msamson",
+                'nova_api_key':"e39caef5-f357-40d9-9a43-21cbe969a07b",
+                'nova_project_id':"mproj"
+            }
+        cred = models.Credential(
+            id="test",
+            name="martin samson",
+            data = pickle.dumps(data)
+        )
+        cherrypy.session['credentials'] = cred
+        args = dict(
+            action = "instance_types",
+            credentials=cherrypy.session.get('credentials')
+        )
+        instance_types = cherrypy.engine.publish("virtualization", **args).pop()
+
+        print instance_types

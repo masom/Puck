@@ -1,39 +1,44 @@
 <%inherit file="/layouts/default.html" />
 <%block name="css">
-    <link type="text/css" rel="stylesheet" href="/static/css/view.css">
+    <link type="text/css" rel="stylesheet" href="/static/css/index.css">
 </%block>
 <%block name="header">
-    Statuses
+    My Virtual Machines
 </%block>
 
-<div class="info">
-    <div>
-        <h3>Name</h3>
-        <ol>
-            % for vmId, vm in vms:
-                <li>${vm.name}</li>
-            % endfor
-        </ol>
-    </div>
-    <div>
-        <h3>IP</h3>
-        <ol>
-            % for vmId, vm in vms:
-                <li>
-                    <a href="http://${vm.ip}:8080">
-                        ${vm.ip}
-                    </a>
-                </li>
-            % endfor
-        <ol>
-    </div>
-    <div>
-        <h3>Status</h3>
-        <ol>
-            % for vmId, vm in vms:
-                <li>${vm.status}</li>
-            % endfor
-        </ol>
-    </div>
-</div>
-
+<h2>My Virtual Machines</h2>
+<form action="/virtual_machines/start" method="POST">
+    <select name="image.id">
+        % for image in images:
+            <option value="${image.id}">${image.name}</option>
+        % endfor
+    </select>
+    <select name="instance_type.id">
+        % for instance_type in instance_types:
+            <option value="${instance_type.id}">${instance_type.name}</option>
+        % endfor
+    </select>
+    <button type="submit">Start a new virtual machine</button>
+</form>
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <th>Name</th>
+        <th>IP</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+    % for vm in virtual_machines:
+        <tr>
+            <td>${vm.name}</td>
+            <td>${vm.ip}</td>
+            <td>${vm.status}</td>
+            <td>
+                <ul>
+                    <li><a href="http://${vm.ip}:8080">Manage</a></li>
+                    <li><a href="/virtual_machines/restart/${vm.id}">Reboot</a></li>
+                    <li><a href="/virtual_machines/delete/${vm.id}">Delete</a></li>
+                </ul>
+            </td>
+        </tr>
+    % endfor
+</table>
