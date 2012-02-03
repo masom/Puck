@@ -21,8 +21,21 @@ This is the euca2ools version 1.3 launcher
 '''
 
 from libs.launcher import Launcher
+from libs.credentials import Credentials
 
 import euca2ools
+class EucaCredentials(Credentials):
+
+    def _post_init(self):
+        params = ['ec2_url', 's3_url', 'ec2_user_access_key',
+            'ec2_user_secret_key', 'ec2_cert', 'ec2_private_key',
+            'eucalyptus_cert', 'ec2_user_id'
+        ]
+        for k in params:
+            if k in self._data:
+                setattr(self, k, self._data[k])
+            else:
+                setattr(self, k, None)
 
 class Euca1(Launcher):
     class Euca(euca2ools.Euca2ool):

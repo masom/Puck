@@ -43,19 +43,3 @@ class Credentials(object):
         '''Intended to be overloaded.'''
         pass
 
-#TODO Probably should be moved within the virtualization plugin.
-# Each plugin could respond to a get-credentials call or something similar that
-# returns the class to be used for authentication
-class EucaCredentials(Credentials):
-
-    def _post_init(self):
-        params = ['ec2_url', 's3_url', 'ec2_user_access_key',
-            'ec2_user_secret_key', 'ec2_cert', 'ec2_private_key',
-            'eucalyptus_cert', 'ec2_user_id'
-        ]
-        for k in params:
-            if k in self._data:
-                setattr(self, k, self._data[k])
-            else:
-                setattr(self, k, None)
-
