@@ -40,6 +40,7 @@ class EucaCredentials(Credentials):
     def ec2_private_key_generate(self):
         location = 'tmp/credentials/%s' % self.id
         if not os.path.exists(location):
+            pass
 
 class Euca1(Launcher):
     class Euca(euca2ools.Euca2ool):

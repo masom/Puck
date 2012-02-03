@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os, sys
 import cherrypy, sqlite3
 from mako.lookup import TemplateLookup
-
+import models, controllers
 from plugins.virtualization import VirtualizationPlugin
 
 def argparser():
@@ -78,7 +78,8 @@ if __name__ == "__main__":
         m.init()
         os._exit(0)
 
-    import models, controllers
+    models.load()
+
     root = controllers.RootController(lookup)
     root.add('jails', controllers.JailsController)
     root.add('keys', controllers.KeysController)
