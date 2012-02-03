@@ -69,10 +69,14 @@ if __name__ == "__main__":
         }
     }
 
-    cherrypy.engine.virtualization = VirtualizationPlugin(cherrypy.engine)
-    cherrypy.engine.virtualization.subscribe()
 
     connect(None)
+
+    if args.init:
+        from libs.model import Migration
+        m = Migration(cherrypy.thread_data.db, [])
+        m.init()
+        os._exit(0)
 
     import models, controllers
     root = controllers.RootController(lookup)
@@ -84,11 +88,8 @@ if __name__ == "__main__":
     root.add('jail_types', controllers.JailTypesController)
     root.load()
 
-    if args.init:
-        from libs.model import Migration
-        m = Migration(cherrypy.thread_data.db, [])
-        m.init()
-        os._exit(0)
 
+    cherrypy.engine.virtualization = VirtualizationPlugin(cherrypy.engine)
+    cherrypy.engine.virtualization.subscribe()
     cherrypy.engine.subscribe('start_thread', connect)
     cherrypy.quickstart(root, '/', conf)

@@ -21,7 +21,8 @@ import cherrypy
 class Credentials(object):
     ''' User credentials abstraction object. '''
 
-    def __init__(self, name=None, email=None, password=None, data=None):
+    def __init__(self, id=None, name=None, email=None, password=None, data=None):
+        self.id = id
         self.name = name
         self.email = email
         self.password = password

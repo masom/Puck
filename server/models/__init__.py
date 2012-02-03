@@ -15,3 +15,11 @@ Keys = keys.Keys()
 Users = users.Users()
 VirtualMachines = virtual_machines.VirtualMachines()
 YumRepositories = yum_repositories.YumRepositories()
+
+def load():
+    collections = [
+        Environments, Images,Jails,JailTypes,Keys,Users,
+        VirtualMachines,YumRepositories
+    ]
+    [c.load() for c in collections]
+

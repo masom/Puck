@@ -22,7 +22,7 @@ This is the euca2ools version 1.3 launcher
 
 from libs.launcher import Launcher
 from libs.credentials import Credentials
-
+import os, sys
 import euca2ools
 class EucaCredentials(Credentials):
 
@@ -36,6 +36,10 @@ class EucaCredentials(Credentials):
                 setattr(self, k, self._data[k])
             else:
                 setattr(self, k, None)
+
+    def ec2_private_key_generate(self):
+        location = 'tmp/credentials/%s' % self.id
+        if not os.path.exists(location):
 
 class Euca1(Launcher):
     class Euca(euca2ools.Euca2ool):
@@ -54,7 +58,7 @@ class Euca1(Launcher):
                 'S3_URL': credentials.s3_url,
                 'EC2_URL': credentials.ec2_url,
                 'EC2_CERT': credentials.ec2_cert,
-                'EC2_PRIVATE_KEY': credentials.ec2_private_key,
+                'EC2_PRIVATE_KEY': credentials.ec2_private_key_generate(),
                 'EUCALYPTUS_CERT': credentials.eucalyptus_cert,
                 'EC2_USER_ID': credentials.ec2_user_id
             }
@@ -104,7 +108,7 @@ class Euca1(Launcher):
         image_id = kwargs['image_id']
         instance_type = kwargs['instance_type']
 
-        credentials = kwargs['credientials']
+        credentials = kwargs['credentials']
 
         args = [
             'key=',
