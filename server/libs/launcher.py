@@ -46,7 +46,7 @@ class Launcher(object):
     def _generate_instances(self, items = []):
         '''Instance generator.'''
 
-        return [Instance(id=item.id) for item in items]
+        return [Instance(item) for item in items]
 
     def _generate_instance_types(self, items = []):
         '''Instance Type generator.'''

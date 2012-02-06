@@ -38,6 +38,15 @@ We plan to open source our base flavour and the tool to sync the installed ports
 - A machine to run puck
 - A FreeBSD virtual machine image
 
+# Notes on using FreeBSD images
+## Virtio
+There is a FreeBSD patch to be applied on images for VirtIO to work. Otherwise, nova-compute libvirt configuration must be updated to use normal hard drives (hd) instead of virtio.
+## Uploading Images
+If an image is uploaded with euca2ools, the glance entry must be updated to reflect  the following:
+
+container_type: bare
+image_type: qcow2
+
 # Installation
 Configure `setup/bootstrap.sh` to match your environment (mostly just change the url of the package site).
 

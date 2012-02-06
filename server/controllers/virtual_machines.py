@@ -39,33 +39,56 @@ class VirtualMachinesController(Controller):
     def running(self):
         vms = VirtualMachines.all()
         images = Images.all()
+        virtual_machines = VirtualMachines.all()
         args = dict(
             action="status",
             credentials=cherrypy.session.get('credentials')
         )
-        instances = cherrypy.engine.publish("virtualization", **args)
-        return self.render("virtual_machines/running.html", self.crumbs, vms=vms, instances=instances, images=images)
+        instances = cherrypy.engine.publish("virtualization", **args).pop()
+        env = dict(
+                vms=vms,
+                instances=instances,
+                images=images,
+                virtual_machines=virtual_machines
+        )
+        return self.render("virtual_machines/running.html", self.crumbs,**env)
 
     @cherrypy.expose
     def start(self, **post):
         if post:
             self._validate_start_post_data(post)
+            creds = cherrypy.session.get('credentials')
 
             image = Images.first(id=post['image.id'])
             instance_type = self._get_instance_type(post)
+
             self._validate_start_args(image, instance_type)
+
+            vm = VirtualMachines.new(
+                    image_id = image.id,
+                    instance_type_id = instance_type.id,
+                    status="new"
+            )
 
             args = dict(
                 action="create",
                 image_id=image.backend_id,
                 instance_type=instance_type.id,
-                credentials=cherrypy.session.get('credentials')
+                credentials=creds
             )
-            result = cherrypy.engine.publish("virtualization", **args).pop()
-            if result is False:
+
+            instance = cherrypy.engine.publish("virtualization", **args).pop()
+
+            if instance is False:
                 cherrypy.session['flash'] = 'The virtual machine could not be started.'
             else:
                 cherrypy.session['flash'] = "VM started"
+
+            vm.instance_id = instance.id
+            vm.user = creds.name
+            if not VirtualMachines.add(vm):
+                cherrypy.session['flash'] = "VM Started but an error occured while saving virtual machine."
+
         else:
             cherrypy.session['flash'] = 'Missing image id.'
 
@@ -73,10 +96,10 @@ class VirtualMachinesController(Controller):
 
     def _get_instance_type(self, post):
         if post['instance_type.id'].isdigit():
-            instance_id = int(post['instance_type.id'])
+            id = int(post['instance_type.id'])
         else:
-            instance_id = post['instance_type.id']
-        return InstanceTypes.first(id=instance_id)
+            id = post['instance_type.id']
+        return InstanceTypes.first(id=id)
 
     def _validate_start_post_data(self, post):
         for r in ['image.id', 'instance_type.id']:

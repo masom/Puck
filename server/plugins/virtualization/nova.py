@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from libs.launcher import Launcher
+from libs.instance import Instance
 from libs.credentials import Credentials
 from novaclient.v1_1 import Client as NovaClient
 from novaclient import exceptions
@@ -56,9 +57,7 @@ class Nova(Launcher):
         except exceptions.BadRequest as e:
             print e
             return False
-
-        print instance
-        print dir(instance)
+        return Instance(instance)
 
     def delete(self, **kwargs):
         credentials = kwargs['credentials']
@@ -74,7 +73,7 @@ class Nova(Launcher):
         credentials = kwargs['credentials']
         nova = self._client(credentials)
         servers = nova.servers.list(detailed=True)
-        print servers
+        return self._generate_instances(servers)
 
     def restart(self, **kwargs):
         credentials = kwargs['credentials']

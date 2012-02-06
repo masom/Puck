@@ -1,0 +1,32 @@
+<%inherit file="/layouts/default.html" />
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/index.css">
+</%block>
+<%block name="header">
+    Images Management
+</%block>
+
+<h2>Images <a href="/images/add">Add a new image</a></h2>
+% if not len(images):
+    <div>No data.</div>
+% else:
+    <div class="index">
+        <table cellspacing="0" colspan="0">
+            <tr><th>Backend ID</th><th>Name</th><th>Description</th></tr>
+            % for image in images:
+                <tr>
+                    <td>${image.backend_id}</td>
+                    <td>${image.name}</td>
+                    <td>${image.description}</td>
+                    <td>
+                        <a href="/images/edit/${image.id}">Edit</a>
+                        &nbsp;|&nbsp;
+                        <a href="/images/delete/${image.id}">Delete</a>
+                    </td>
+                </tr>
+            % endfor
+        </table>
+    </div>
+% endif
+

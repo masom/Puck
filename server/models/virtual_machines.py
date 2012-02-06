@@ -19,11 +19,18 @@ from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict, deque
 
 class VirtualMachine(Model):
-    def __init__(self, name=None, ip=None, status=None, config=None):
+    def __init__(self, id=None,name=None, ip=None, status=None, config=None,
+            instance_type_id=None, image_id=None, instance_id = None,
+            user=None):
+        self.id = id
         self.name = name
+        self.instance_type_id = instance_type_id
+        self.instance_id = instance_id
+        self.image_id = image_id
         self.ip = ip
         self.status = status
         self.config = config
+        self.user = user
 
 class VirtualMachines(ModelCollection):
     _model = VirtualMachine
@@ -40,12 +47,17 @@ class VirtualMachines(ModelCollection):
 
     def _generate_table_definition(self):
         columns = OrderedDict([
+            ('id', 'TEXT'),
             ('name', 'TEXT'),
             ('ip', 'TEXT'),
             ('status', 'TEXT'),
+            ('image_id', 'TEXT'),
+            ('instance_type_id', 'TEXT'),
+            ('instance_id', 'TEXT'),
+            ('user', 'TEXT'),
             ('config', 'TEXT')
         ])
-        return TableDefinition('virtual_machines', columns=columns, primary_key='name')
+        return TableDefinition('virtual_machines', columns=columns)
 
     def new(self, **kwargs):
         if not 'name' in kwargs:

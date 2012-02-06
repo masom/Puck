@@ -1,0 +1,32 @@
+<%inherit file="/layouts/default.html" />
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/index.css">
+</%block>
+<%block name="header">
+    My Current Virtual Machines
+</%block>
+
+<h2>My Current Virtual Machines</h2>
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <th>Name</th>
+        <th>IP</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+    % for i in instances:
+        <tr>
+            <td>${i.name}</td>
+            <td>${i.addresses}</td>
+            <td>${i.status}</td>
+            <td>
+                <ul>
+                    <li><a href="http://${i.addresses}:8080">Manage</a></li>
+                    <li><a href="/virtual_machines/restart/${i.id}">Reboot</a></li>
+                    <li><a href="/virtual_machines/delete/${i.id}">Delete</a></li>
+                </ul>
+            </td>
+        </tr>
+    % endfor
+</table>
+
