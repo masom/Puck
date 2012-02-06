@@ -26,3 +26,8 @@ class Instance(object):
         self.launch_time = launch_time
         self.ip = ip
         self.state = state
+
+class InstanceType(object):
+    def __init__(self, id=None, name=None):
+        self.id = id
+        self.name = name

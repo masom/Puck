@@ -49,6 +49,11 @@ class VirtualMachinesController(Controller):
     @cherrypy.expose
     def start(self, **post):
         if post:
+            for r in ['image.id', 'instance_type.id']:
+                if not r in post:
+                    cherrypy.session['flash'] = 'Missing image or instance id.'
+                    raise cherrypy.HTTPRedirect("/virtual_machines")
+
             image = Images.find(id=post['image.id'])
             if not image:
                 cherrypy.session['flash'] = 'Missing image id.'
@@ -56,11 +61,15 @@ class VirtualMachinesController(Controller):
 
             args = dict(
                 action="create",
-                image_id=post['image.id'],
+                image_id=image.backend_id,
+                instance_type=post['instance_type.id'],
                 credentials=cherrypy.session.get('credentials')
             )
-            cherrypy.engine.publish("virtualization", **args)
-            cherrypy.session['flash'] = "VM started"
+            result = cherrypy.engine.publish("virtualization", **args).pop()
+            if result is False:
+                cherrypy.session['flash'] = 'The virtual machine could not be started.'
+            else:
+                cherrypy.session['flash'] = "VM started"
         else:
             cherrypy.session['flash'] = 'Missing image id.'
 
@@ -79,22 +88,10 @@ class VirtualMachinesController(Controller):
         raise cherrypy.HTTPRedirect("/virtual_machines")
 
     def _get_instance_types(self):
-        data={
-                'nova_url':"http://10.0.254.100:8774/v1.0/",
-                'nova_username':"msamson",
-                'nova_api_key':"e39caef5-f357-40d9-9a43-21cbe969a07b",
-                'nova_project_id':"mproj"
-            }
-        cred = models.Credential(
-            id="test",
-            name="martin samson",
-            data = pickle.dumps(data)
-        )
-        cherrypy.session['credentials'] = cred
+        cherrypy.session['credentials'] = cherrypy.session.get('credentials')
         args = dict(
             action = "instance_types",
             credentials=cherrypy.session.get('credentials')
         )
-        instance_types = cherrypy.engine.publish("virtualization", **args).pop()
+        return cherrypy.engine.publish("virtualization", **args).pop()
 
-        print instance_types

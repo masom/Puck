@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-from libs.instance import Instance
+from libs.instance import Instance, InstanceType
 class Launcher(object):
 
     def create(self, **kwargs):
@@ -43,3 +43,8 @@ class Launcher(object):
         '''Instance generator.'''
 
         return [Instance(id=item.id) for item in items]
+
+    def _generate_instance_types(self, items = []):
+        '''Instance Type generator.'''
+
+        return [InstanceType(id=item.id, name=item.name) for item in items]

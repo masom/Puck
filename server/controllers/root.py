@@ -20,7 +20,9 @@ import os.path
 import cherrypy
 from libs.controller import *
 from libs.credentials import Credentials
+import models
 
+import pickle #TODO TO BE REMOVED ONCE WE GET REAL AUTH
 
 class RootController(Controller):
     crumbs = [Crumb("/", "Home")]
@@ -38,7 +40,18 @@ class RootController(Controller):
     def login(self, **post):
         if post:
             # @TODO actually authenticate. This is a placeholder for now.
-            cherrypy.session['credentials'] = Credentials()
+            data={
+                    'nova_url':"http://10.0.254.100:8774/v1.0/",
+                    'nova_username':"msamson",
+                    'nova_api_key':"e39caef5-f357-40d9-9a43-21cbe969a07b",
+                    'nova_project_id':"mproj"
+                }
+            creds = models.Credential(
+                id="test",
+                name="martin samson",
+                data = pickle.dumps(data)
+            )
+            cherrypy.session['credentials'] = creds
             raise cherrypy.HTTPRedirect('/index')
         return self.render("login.html", self.crumbs[:-1])
 

@@ -87,7 +87,6 @@ if __name__ == "__main__":
     cherrypy.engine.virtualization = VirtualizationPlugin(cherrypy.engine)
     cherrypy.engine.virtualization.subscribe()
     models.Credential = cherrypy.engine.virtualization.get_credential_class()
-    print models.Credential
 
     print "Loading controllers."
     root = controllers.RootController(lookup)

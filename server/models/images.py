@@ -19,9 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
 class Image(Model):
-    def __init__(self, id=None, name=None):
+    def __init__(self, id=None, name=None, backend_id=None):
         self.id = id
         self.name = name
+        self.backend_id = backend_id
 
 class Images(ModelCollection):
     _model = Image
@@ -29,6 +30,7 @@ class Images(ModelCollection):
     def _generate_table_definition(self):
         columns = OrderedDict([
             ('id', "TEXT"),
-            ('name', "TEXT")
+            ('name', "TEXT"),
+            ('backend_id', 'TEXT')
         ])
         return TableDefinition('images', columns=columns)
