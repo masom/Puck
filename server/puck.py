@@ -96,6 +96,7 @@ if __name__ == "__main__":
     root.add('repos', controllers.ReposController)
     root.add('virtual_machines', controllers.VirtualMachinesController)
     root.add('jail_types', controllers.JailTypesController)
+    root.add('images', controllers.ImagesController)
     root.load()
 
     print "Starting application."

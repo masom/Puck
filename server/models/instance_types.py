@@ -18,13 +18,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
-class InstanceType(Model):
-    def __init__(self, id=None, name=None):
-        self.id = id
-        self.name = name
+import cherrypy
 
 class InstanceTypes(ModelCollection):
     '''Represent instance types available to launch virtual machines. '''
 
-    _model = InstanceType
+    _model = None
     persist = False
+
+    def load(self):
+        pass
+
+    def new(self, *args, **kwargs):
+        raise RuntimeError('Cannot create new instance types.')
+
+    def all(self):
+        cherrypy.session['credentials'] = cherrypy.session.get('credentials')
+        args = dict(
+            action = "instance_types",
+            credentials=cherrypy.session.get('credentials')
+        )
+        return cherrypy.engine.publish("virtualization", **args).pop()
+
+    def find(self, **kwargs):
+        self._items = self.all()
+        return ModelCollection.find(self, **kwargs)
+
+    def first(self, **kwargs):
+        self._items = self.all()
+        return ModelCollection.first(self, **kwargs)
+

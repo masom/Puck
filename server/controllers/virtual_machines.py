@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
 from libs.controller import *
-from models import VirtualMachines, Images
+from models import VirtualMachines, Images, InstanceTypes
 import models,pickle
 class VirtualMachinesController(Controller):
     crumbs = [
@@ -31,7 +31,7 @@ class VirtualMachinesController(Controller):
         env = dict(
             virtual_machines=VirtualMachines.all(),
             images=Images.all(),
-            instance_types=self._get_instance_types()
+            instance_types=InstanceTypes.all()
         )
         return self.render("virtual_machines/index.html", self.crumbs, **env)
 
@@ -49,20 +49,16 @@ class VirtualMachinesController(Controller):
     @cherrypy.expose
     def start(self, **post):
         if post:
-            for r in ['image.id', 'instance_type.id']:
-                if not r in post:
-                    cherrypy.session['flash'] = 'Missing image or instance id.'
-                    raise cherrypy.HTTPRedirect("/virtual_machines")
+            self._validate_start_post_data(post)
 
-            image = Images.find(id=post['image.id'])
-            if not image:
-                cherrypy.session['flash'] = 'Missing image id.'
-                raise cherrypy.HTTPRedirect("/virtual_machines")
+            image = Images.first(id=post['image.id'])
+            instance_type = self._get_instance_type(post)
+            self._validate_start_args(image, instance_type)
 
             args = dict(
                 action="create",
                 image_id=image.backend_id,
-                instance_type=post['instance_type.id'],
+                instance_type=instance_type.id,
                 credentials=cherrypy.session.get('credentials')
             )
             result = cherrypy.engine.publish("virtualization", **args).pop()
@@ -75,6 +71,28 @@ class VirtualMachinesController(Controller):
 
         raise cherrypy.HTTPRedirect("/virtual_machines")
 
+    def _get_instance_type(self, post):
+        if post['instance_type.id'].isdigit():
+            instance_id = int(post['instance_type.id'])
+        else:
+            instance_id = post['instance_type.id']
+        return InstanceTypes.first(id=instance_id)
+
+    def _validate_start_post_data(self, post):
+        for r in ['image.id', 'instance_type.id']:
+            if not r in post:
+                cherrypy.session['flash'] = 'Missing image or instance id.'
+                raise cherrypy.HTTPRedirect("/virtual_machines")
+
+    def _validate_start_args(self, image, instance_type):
+        if not image or not instance_type:
+            cherrypy.session['flash'] = 'Invalid image or instance type.'
+            raise cherrypy.HTTPRedirect("/virtual_machines")
+
+        if not image.backend_id:
+            cherrypy.session['flash'] = 'Invalid image record.'
+            raise cherrypy.HTTPRedirect("/virtual_machines")
+
     @cherrypy.expose
     def stop(self, vm_id=None):
         args = dict(
@@ -86,12 +104,4 @@ class VirtualMachinesController(Controller):
 
         cherrypy.session['flash'] = "VM Stopped"
         raise cherrypy.HTTPRedirect("/virtual_machines")
-
-    def _get_instance_types(self):
-        cherrypy.session['credentials'] = cherrypy.session.get('credentials')
-        args = dict(
-            action = "instance_types",
-            credentials=cherrypy.session.get('credentials')
-        )
-        return cherrypy.engine.publish("virtualization", **args).pop()
 

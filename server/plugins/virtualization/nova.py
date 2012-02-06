@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from libs.launcher import Launcher
 from libs.credentials import Credentials
-from novaclient.v1_0 import Client as NovaClient
+from novaclient.v1_1 import Client as NovaClient
 from novaclient import exceptions
 import cherrypy
 
@@ -32,7 +32,7 @@ class NovaCredentials(Credentials):
                 setattr(self, k, None)
 
 class Nova(Launcher):
-    supported_api = ['create','delete','status','restart', 'instance_types']
+    supported_api = ['create','delete','status','restart', 'instance_types', 'images']
 
     def _client(self, credentials):
         if credentials is None:
@@ -91,3 +91,8 @@ class Nova(Launcher):
         instance_types = nova.flavors.list()
         return self._generate_instance_types(instance_types)
 
+    def images(self, **kwargs):
+        credentials = kwargs['credentials']
+        nova = self._client(credentials)
+        images = nova.images.list()
+        return self._generate_images(images)

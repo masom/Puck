@@ -18,11 +18,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
+import cherrypy
+
 class Image(Model):
-    def __init__(self, id=None, name=None, backend_id=None):
+    def __init__(self, id=None, name=None, backend_id=None, description=None):
         self.id = id
         self.name = name
         self.backend_id = backend_id
+        self.description = description
+
+    def validates(self):
+        backend_ids = [i.id for i in self._collection.get_backend_images()]
+        if not self.backend_id in backend_ids:
+            return False
+        return True
 
 class Images(ModelCollection):
     _model = Image
@@ -31,6 +40,15 @@ class Images(ModelCollection):
         columns = OrderedDict([
             ('id', "TEXT"),
             ('name', "TEXT"),
-            ('backend_id', 'TEXT')
+            ('backend_id', 'TEXT'),
+            ('description', 'TEXT')
         ])
         return TableDefinition('images', columns=columns)
+
+    def get_backend_images(self):
+        cherrypy.session['credentials'] = cherrypy.session.get('credentials')
+        args = dict(
+            action = "images",
+            credentials=cherrypy.session.get('credentials')
+        )
+        return cherrypy.engine.publish("virtualization", **args).pop()

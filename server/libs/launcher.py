@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from libs.instance import Instance, InstanceType
+from libs.image import Image
 class Launcher(object):
 
     def create(self, **kwargs):
@@ -39,6 +40,9 @@ class Launcher(object):
     def instance_types(self, **kwargs):
         raise NotImplementedError()
 
+    def images(self, **kwargs):
+        raise NotImplementedError()
+
     def _generate_instances(self, items = []):
         '''Instance generator.'''
 
@@ -48,3 +52,8 @@ class Launcher(object):
         '''Instance Type generator.'''
 
         return [InstanceType(id=item.id, name=item.name) for item in items]
+
+    def _generate_images(self, items=[]):
+        ''' Image generator. '''
+
+        return [Image(id=item.id, name=item.name) for item in items]

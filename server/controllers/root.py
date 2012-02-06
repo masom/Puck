@@ -41,7 +41,7 @@ class RootController(Controller):
         if post:
             # @TODO actually authenticate. This is a placeholder for now.
             data={
-                    'nova_url':"http://10.0.254.100:8774/v1.0/",
+                    'nova_url':"http://10.0.254.100:8774/v1.1/",
                     'nova_username':"msamson",
                     'nova_api_key':"e39caef5-f357-40d9-9a43-21cbe969a07b",
                     'nova_project_id':"mproj"
