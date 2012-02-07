@@ -63,22 +63,26 @@ class VirtualMachinesTest(unittest.TestCase):
     def test_InsertQuery(self):
         vms = VirtualMachines()
         entity = vms.new(name=None)
-        expected = OrderedDict([('name', None), ('ip', None), ('status', None), ('config', None)])
+        expected = OrderedDict([
+            ('id', None), ('name', None), ('ip', None), ('status', None),
+            ('image_id', None), ('image_id', None), ('instance_type_id', None),
+            ('instance_id', None),('user', None), ('config', None)
+        ])
         data = vms._generate_query_data(entity)
         self.assertEqual(expected, data)
 
-        expected = 'INSERT INTO virtual_machines(name,ip,status,config) VALUES (?,?,?,?)'
+        expected = 'INSERT INTO virtual_machines(id,name,ip,status,image_id,instance_type_id,instance_id,user,config) VALUES (?,?,?,?,?,?,?,?,?)'
         self.assertEqual(vms._generate_insert_query(data), expected)
 
     def testTableDefinition(self):
         vms = VirtualMachines()
-        expected = 'CREATE TABLE virtual_machines (name TEXT PRIMARY KEY,ip TEXT,status TEXT,config TEXT)'
+        expected = 'CREATE TABLE virtual_machines (id TEXT PRIMARY KEY,name TEXT,ip TEXT,status TEXT,image_id TEXT,instance_type_id TEXT,instance_id TEXT,user TEXT,config TEXT)'
         self.assertEqual(str(vms.table_definition()), expected)
 
     def testDelete(self):
         vms = VirtualMachines()
         entity = vms.new()
 
-        expected = 'DELETE FROM virtual_machines WHERE name = ?'
+        expected = 'DELETE FROM virtual_machines WHERE id = ?'
         self.assertEqual(vms._generate_delete_query(entity.name), expected)
 

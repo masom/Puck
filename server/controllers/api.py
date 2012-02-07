@@ -32,6 +32,13 @@ class ApiRegistration(ApiCall):
         vm = VirtualMachines.new(ip=cherrypy.request.remote.ip)
         VirtualMachines.add(vm)
         return vm.to_dict()
+    @cherrypy.tools.json_out()
+    def GET(self, id):
+        vm = VirtualMachines.first(id=id)
+        if not vm:
+            raise cherrypy.HTTPError(status=404)
+
+        return vm.to_dict()
 
 class ApiKeys(ApiCall):
 
@@ -43,12 +50,14 @@ class ApiKeys(ApiCall):
 
 class ApiStatus(ApiCall):
 
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.json_in()
     def PUT(self, id):
         vm = VirtualMachines.first(id=id)
         if not vm:
             raise cherrypy.HTTPError(status=404)
 
-        data = json.loads(cherrypy.request.body.read())
+        data = cherrypy.request.json
         for k in ['id', 'status']:
             if not data.has_key(k):
                 raise cherrypy.HTTPError(status=400)
@@ -59,19 +68,45 @@ class ApiStatus(ApiCall):
         if not vm.update(data, ['status']):
             raise cherrypy.HTTPError(status=500)
 
-        response = {'status': 200, 'message': 'Status updated.'}
-        return json.dumps(response)
+        return {'status': 200, 'message': 'Status updated.'}
 
 class ApiConfig(ApiCall):
 
     @cherrypy.tools.json_in()
-    def POST(self):
-        print(cherrypy.request.json)
-        print(cherrypy.request.remote)
+    @cherrypy.tools.json_out()
+    def POST(self, id, **post):
+
+        vm = VirtualMachines.first(id=id)
+        if not vm:
+            raise cherrypy.HTTPError(status=404)
+
+        try:
+            config = json.loads(vm.config)
+        except (ValueError,TypeError):
+            config = {}
+
+        for k in cherrypy.request.json:
+            value = cherrypy.request.json[k]
+            if value is None:
+                del config[k]
+                continue
+            config[k] = value
+
+        data = {'config': json.dumps(config)}
+        vm.update(data, ['config'])
+        return {'status': 200, 'message': 'Configuration updated.'}
 
     @cherrypy.tools.json_out()
-    def GET(self):
-        return self._vm.config
+    def GET(self, id):
+        vm = VirtualMachines.first(id=id)
+        if not vm:
+            raise cherrypy.HTTPError(status=404)
+
+        try:
+            config = json.loads(vm.config)
+        except (ValueError,TypeError):
+            return None
+        return config
 
 class ApiEnvironments(ApiCall):
 

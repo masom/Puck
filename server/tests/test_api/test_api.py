@@ -7,10 +7,14 @@ class Requester(object):
         opener = urllib2.build_opener(urllib2.HTTPHandler)
         self._open = opener.open
 
-    def post(self, resource, data=''):
+    def post(self, resource, id=None, data=''):
+        if id:
+            resource += '/%s' % id
         return self._request('POST', resource, data=data)
 
-    def get(self, resource, **params):
+    def get(self, resource, id=None, **params):
+        if id:
+            resource += '/%s' % id
         if params:
             resource += '?' + urllib.urlencode(params)
         return self._request('GET', resource)
@@ -75,3 +79,61 @@ class ApiTest(unittest.TestCase):
         status = requester.put('status', registration['id'], data)
         expected = {'status': 200, 'message': 'Status updated.'}
         self.assertEqual(status, expected)
+
+        updated_reg = requester.get('registration', registration['id'])
+        self.assertEqual(updated_reg['id'], registration['id'])
+        self.assertNotEqual(updated_reg['status'], registration['status'])
+        self.assertEqual(updated_reg['status'], 'lol')
+
+    def testConfig(self):
+        requester = Requester()
+        registration = requester.post('registration')
+        config = requester.get('config', registration['id'])
+        self.assertIsNone(config)
+
+        config = {'test': 'lol'}
+        response = requester.post('config', registration['id'], config)
+        expected = {'status': 200, 'message': 'Configuration updated.'}
+        self.assertEqual(response, expected)
+
+        config = {'second': 'yup'}
+        response = requester.post('config', registration['id'], config)
+        expected = {'status': 200, 'message': 'Configuration updated.'}
+        self.assertEqual(response, expected)
+
+        config = requester.get('config', registration['id'])
+        expected = {'test': 'lol', 'second': 'yup'}
+        self.assertEqual(config, expected)
+
+        config = {'test': 'mmm'}
+        response = requester.post('config', registration['id'], config)
+        expected = {'status': 200, 'message': 'Configuration updated.'}
+        self.assertEqual(response, expected)
+
+        config = requester.get('config', registration['id'])
+        expected = {'test': 'mmm', 'second': 'yup'}
+        self.assertEqual(config, expected)
+
+        config = {'test': None}
+        response = requester.post('config', registration['id'], config)
+        expected = {'status': 200, 'message': 'Configuration updated.'}
+        self.assertEqual(response, expected)
+
+        config = requester.get('config', registration['id'])
+        expected = {'second': 'yup'}
+        self.assertEqual(config, expected)
+
+    def testEnvironments(self):
+        requester = Requester()
+        envs = requester.get('environments')
+        self.assertIsInstance(envs, list)
+
+        #TODO Need further development on environments.
+
+    def testJails(self):
+        #TODO Need further development on environments.
+        pass
+
+    def testYum(self):
+        #TODO Need fruther development on environments.
+        pass

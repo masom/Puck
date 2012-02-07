@@ -61,16 +61,16 @@ class ImagesTest(unittest.TestCase):
         envs = Images()
         entity = envs.new()
 
-        expected = OrderedDict([('id', None), ('name', None), ('backend_id', None)])
+        expected = OrderedDict([('id', None), ('name', None), ('backend_id', None), ('description', None)])
         data = envs._generate_query_data(entity)
         self.assertEqual(expected, data)
 
-        expected = 'INSERT INTO images(id,name,backend_id) VALUES (?,?,?)'
+        expected = 'INSERT INTO images(id,name,backend_id,description) VALUES (?,?,?,?)'
         self.assertEqual(envs._generate_insert_query(data), expected)
 
     def testTableDefinition(self):
         envs = Images()
-        expected = 'CREATE TABLE images (id TEXT PRIMARY KEY,name TEXT,backend_id TEXT)'
+        expected = 'CREATE TABLE images (id TEXT PRIMARY KEY,name TEXT,backend_id TEXT,description TEXT)'
         self.assertEqual(str(envs.table_definition()), expected)
 
     def testDelete(self):

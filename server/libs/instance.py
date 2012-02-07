@@ -18,11 +18,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class Instance(object):
     '''Generic instance object used by all backends to translate information upstream.'''
 
-    def __init__(self, item):
+    def __init__(self, item=None, **kwargs):
 
         '''Generic attributes'''
         attrs =  ['id', 'backend', 'name', 'addresses', 'status']
-        [setattr(self, k, getattr(item, k)) for k in attrs if hasattr(item, k)]
+        [setattr(self, k, None) for k in attrs]
+        if item:
+            [setattr(self, k, getattr(item, k)) for k in attrs if hasattr(item, k)]
+        elif kwargs:
+            [setattr(self, k, kwargs[k]) for k in kwargs if k in attrs]
 
 class InstanceType(object):
     def __init__(self, id=None, name=None):

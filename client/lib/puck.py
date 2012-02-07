@@ -110,10 +110,14 @@ class JSONTransport(object):
         self._open = opener.open
 
 
-    def post(self, resource, data=''):
+    def post(self, resource, id=None, data=''):
+        if id:
+            resource += '/%s' % id
         return self._request('POST', resource, data=data)
 
-    def get(self, resource, **params):
+    def get(self, resource, id=None, **params):
+        if id:
+            resource += '/%s' % id
         if params:
             resource += '?' + urllib.urlencode(params)
         return self._request('GET', resource)
@@ -126,14 +130,18 @@ class JSONTransport(object):
         return '/'.join((self._base,) + args)
 
     def _request(self, method, resource, data=None):
+        if data:
+            data = json.dumps(data)
         request = urllib2.Request(self._resource(resource), data=data)
         request.add_header('Content-Type', 'application/json')
         request.get_method = lambda : method
 
         try:
             data = json.load(self._open(request))
-        except HTTPError as e:
+        except urllib2.HTTPError as e:
             # @TODO: Logging
+            return None
+        except ValueError as e:
             return None
         return data
 
