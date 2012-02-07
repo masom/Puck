@@ -7,19 +7,25 @@
 </%block>
 
 <h2>My Virtual Machines</h2>
-<form action="/virtual_machines/start" method="POST">
-    <select name="image.id">
-        % for image in images:
-            <option value="${image.id}">${image.name}</option>
-        % endfor
-    </select>
-    <select name="instance_type.id">
-        % for instance_type in instance_types:
-            <option value="${instance_type.id}">${instance_type.name}</option>
-        % endfor
-    </select>
-    <button type="submit">Start a new virtual machine</button>
-</form>
+<div style="margin: 5px;background-color: #eeeeee;">
+    <form action="/virtual_machines/start" method="POST">
+        <h4>Start a new instance</h4>
+        <select name="image.id">
+            % for image in images:
+                <option value="${image.id}">${image.name}</option>
+            % endfor
+        </select>
+        <select name="instance_type.id">
+            % for instance_type in instance_types:
+                <option value="${instance_type.id}">${instance_type.name}</option>
+            % endfor
+        </select>
+        <button type="submit">Start a new virtual machine</button>
+    </form>
+</div>
+<div style="font-size: 12px;">
+    <a href="/virtual_machines/running">View running instances</a>
+</div>
 <table cellspacing="0" cellpadding="0">
     <tr>
         <th>Name</th>

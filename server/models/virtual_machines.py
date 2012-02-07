@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict, deque
+import cherrypy
 
 class VirtualMachine(Model):
     def __init__(self, id=None,name=None, ip=None, status=None, config=None,
@@ -31,6 +32,51 @@ class VirtualMachine(Model):
         self.status = status
         self.config = config
         self.user = user
+
+    def start_instance(self, image, instance_type, creds):
+        ''' Starts an instance and updates itself with the relational details.'''
+
+        self.image_id = image.id
+        self.instance_type_id = instance_type.id
+
+        args = dict(
+            action="create",
+            image_id=image.backend_id,
+            instance_type=instance_type.id,
+            credentials=creds
+        )
+
+        instance = cherrypy.engine.publish("virtualization", **args).pop()
+        if not instance:
+            return False
+
+        self.instance_id = instance.id
+        self.user = creds.name
+        return True
+
+    def stop_instance(self, creds):
+        ''' Stops the attached instance. '''
+        if not self.instance_id:
+            return False
+
+        args = dict(
+            action="stop",
+            id=self.instance_id,
+            credentials=creds
+        )
+        return cherrypy.engine.publish("virtualization", **args).pop()
+
+    def stop_instance(self, creds):
+        ''' Restart the attached instance. '''
+        if not self.instance_id:
+            return False
+
+        args = dict(
+            action="restart",
+            id=self.instance_id,
+            credentials=creds
+        )
+        return cherrypy.engine.publish("virtualization", **args).pop()
 
 class VirtualMachines(ModelCollection):
     _model = VirtualMachine
@@ -58,6 +104,15 @@ class VirtualMachines(ModelCollection):
             ('config', 'TEXT')
         ])
         return TableDefinition('virtual_machines', columns=columns)
+
+
+    def get_instances(self, creds):
+        args = dict(
+            action="status",
+            credentials=creds
+        )
+        instances = cherrypy.engine.publish("virtualization", **args).pop()
+        return instances
 
     def new(self, **kwargs):
         if not 'name' in kwargs:

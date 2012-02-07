@@ -15,15 +15,28 @@
         <th>Actions</th>
     </tr>
     % for i in instances:
+        <%
+            vm_id = None
+            for k in virtual_machines:
+                if not k.instance_id == i.id:
+                    continue
+                vm_id = k.id
+        %>
         <tr>
             <td>${i.name}</td>
             <td>${i.addresses}</td>
             <td>${i.status}</td>
             <td>
                 <ul>
-                    <li><a href="http://${i.addresses}:8080">Manage</a></li>
-                    <li><a href="/virtual_machines/restart/${i.id}">Reboot</a></li>
-                    <li><a href="/virtual_machines/delete/${i.id}">Delete</a></li>
+                    % if 'public' in i.addresses:
+                        <li><a href="http://${i.addresses['public'][0]['addr']}:8080">Manage</a></li>
+                    % elif vm_id:
+                        <li><a href="/virtual_machines/add_public_ip/${vm_id}">Add Public IP</a></li>
+                    % endif
+                    % if vm_id:
+                        <li><a href="/virtual_machines/restart/${vm_id}">Reboot</a></li>
+                        <li><a href="/virtual_machines/delete/${vm_id}">Delete</a></li>
+                    % endif
                 </ul>
             </td>
         </tr>

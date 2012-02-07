@@ -65,8 +65,6 @@ class Nova(Launcher):
 
         instance_id = kwargs['id']
         server = nova.servers.get(instance_id)
-        print server
-        print dir(server)
         print server.delete()
 
     def status(self, **kwargs):
@@ -81,7 +79,6 @@ class Nova(Launcher):
         instance_id = kwargs['id']
 
         server = nova.servers.get(id)
-        print server
         print server.reboot()
 
     def instance_types(self, **kwargs):
