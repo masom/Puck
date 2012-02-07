@@ -15,28 +15,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-from collections import namedtuple
+class Image(object):
+    '''Generic instance object used by all backends to translate information upstream.'''
 
-import cherrypy
+    def __init__(self, id = None, name = None):
 
-Crumb = namedtuple("Crumb", ["url", "name"])
-
-class Controller(object):
-
-    def __init__(self, lookup):
-        self._lookup = lookup
-
-    def _set_data(self, entity, data):
-        for k in data:
-            setattr(entity, k, data[k])
-
-    def _get_data(self, prefix, fields, post):
-        data = dict((k.split(".", 1)[1], post[k]) for k in post if k.startswith('%s.' % prefix))
-        return dict((k, data[k]) for k in data if k in fields)
-
-    def render(self, template, crumbs=[], **variables):
-        tmpl = self._lookup.get_template(template)
-        variables['flash'] = cherrypy.session.pop('flash', None)
-        variables['breadcrumbs'] = crumbs
-        return tmpl.render(**variables)
-
+        '''Generic attributes'''
+        self.id = id
+        self.name = name

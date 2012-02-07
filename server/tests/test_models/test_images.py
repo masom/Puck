@@ -6,12 +6,16 @@ class ImageTest(unittest.TestCase):
 
     def testInit(self):
         e = Image(id="test", name="Test")
-        for a in ['id', 'name']:
+        for a in ['id', 'name', 'backend_id']:
             self.assertTrue(hasattr(e, a))
         self.assertEqual('test', e.id)
         self.assertEqual('Test', e.name)
+        self.assertEqual(None, e.backend_id)
         self.assertFalse(hasattr(e, 'derp'))
         self.assertIsInstance(e, Model)
+
+        e = Image(id='test', name="Test", backend_id=2)
+        self.assertEqual(2, e.backend_id)
 
 class ImagesTest(unittest.TestCase):
     def testInit(self):
@@ -57,16 +61,16 @@ class ImagesTest(unittest.TestCase):
         envs = Images()
         entity = envs.new()
 
-        expected = OrderedDict([('id', None), ('name', None)])
+        expected = OrderedDict([('id', None), ('name', None), ('backend_id', None)])
         data = envs._generate_query_data(entity)
         self.assertEqual(expected, data)
 
-        expected = 'INSERT INTO images(id,name) VALUES (?,?)'
+        expected = 'INSERT INTO images(id,name,backend_id) VALUES (?,?,?)'
         self.assertEqual(envs._generate_insert_query(data), expected)
 
     def testTableDefinition(self):
         envs = Images()
-        expected = 'CREATE TABLE images (id TEXT PRIMARY KEY,name TEXT)'
+        expected = 'CREATE TABLE images (id TEXT PRIMARY KEY,name TEXT,backend_id TEXT)'
         self.assertEqual(str(envs.table_definition()), expected)
 
     def testDelete(self):

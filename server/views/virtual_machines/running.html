@@ -1,0 +1,49 @@
+<%inherit file="/layouts/default.html" />
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/index.css">
+</%block>
+<%block name="header">
+    My Current Virtual Machines
+</%block>
+
+<h2>My Current Virtual Machines</h2>
+<table cellspacing="0" cellpadding="0">
+    <tr>
+        <th>Name</th>
+        <th>IP</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+    % for i in instances:
+        <%
+            vm_id = None
+            for k in virtual_machines:
+                if not k.instance_id == i.id:
+                    continue
+                vm_id = k.id
+        %>
+        <tr>
+            <td>${i.name}</td>
+            <td>
+                % if 'public' in i.addresses:
+                    ${i.addresses['public'][0]['addr']}
+                % endif
+            </td>
+            <td>${i.status}</td>
+            <td>
+                <ul>
+                    % if 'public' in i.addresses:
+                        <li><a href="http://${i.addresses['public'][0]['addr']}:8080">Manage</a></li>
+                    % elif vm_id:
+                        <li><a href="/virtual_machines/add_public_ip/${vm_id}">Add Public IP</a></li>
+                    % endif
+                    % if vm_id:
+                        <li><a href="/virtual_machines/restart/${vm_id}">Reboot</a></li>
+                        <li><a href="/virtual_machines/delete/${vm_id}">Delete</a></li>
+                    % endif
+                </ul>
+            </td>
+        </tr>
+    % endfor
+</table>
+

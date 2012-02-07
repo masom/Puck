@@ -20,35 +20,31 @@ from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
 import cherrypy
 
-class Image(Model):
-    def __init__(self, id=None, name=None, backend_id=None, description=None):
-        self.id = id
-        self.name = name
-        self.backend_id = backend_id
-        self.description = description
+class InstanceTypes(ModelCollection):
+    '''Represent instance types available to launch virtual machines. '''
 
-    def validates(self):
-        backend_ids = [i.id for i in self._collection.get_backend_images()]
-        if not self.backend_id in backend_ids:
-            return False
-        return True
+    _model = None
+    persist = False
 
-class Images(ModelCollection):
-    _model = Image
+    def load(self):
+        pass
 
-    def _generate_table_definition(self):
-        columns = OrderedDict([
-            ('id', "TEXT"),
-            ('name', "TEXT"),
-            ('backend_id', 'TEXT'),
-            ('description', 'TEXT')
-        ])
-        return TableDefinition('images', columns=columns)
+    def new(self, *args, **kwargs):
+        raise RuntimeError('Cannot create new instance types.')
 
-    def get_backend_images(self):
+    def all(self):
         cherrypy.session['credentials'] = cherrypy.session.get('credentials')
         args = dict(
-            action = "images",
+            action = "instance_types",
             credentials=cherrypy.session.get('credentials')
         )
         return cherrypy.engine.publish("virtualization", **args).pop()
+
+    def find(self, **kwargs):
+        self._items = self.all()
+        return ModelCollection.find(self, **kwargs)
+
+    def first(self, **kwargs):
+        self._items = self.all()
+        return ModelCollection.first(self, **kwargs)
+

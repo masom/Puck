@@ -17,19 +17,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from libs.launcher import Launcher
+from libs.instance import Instance
 from libs.credentials import Credentials
-import novaclient
+from novaclient.v1_1 import Client as NovaClient
+from novaclient import exceptions
 import cherrypy
 
 class NovaCredentials(Credentials):
     def _post_init(self):
-        params = ['nova_url', 'nova_user', 'nova_password']
+        params = ['nova_url', 'nova_username', 'nova_api_key', 'nova_project_id']
+        for k in params:
+            if k in self._data:
+                setattr(self, k, self._data[k])
+            else:
+                setattr(self, k, None)
 
 class Nova(Launcher):
-    supported_api = ['create','delete','status','restart']
+    supported_api = ['create','delete','status','restart', 'instance_types', 'images', 'exists']
 
     def _client(self, credentials):
-        return novaclient.OpenStack(credentials.nova_user, credentials.nova_password, credentials.nova_project, credentials.nova_url)
+        if credentials is None:
+            raise RuntimeError("Invalid credential object.")
+
+        return NovaClient(credentials.nova_username, credentials.nova_api_key, credentials.nova_project_id, credentials.nova_url)
 
     def create(self, **kwargs):
         image_id = kwargs['image_id']
@@ -37,35 +47,66 @@ class Nova(Launcher):
         credentials = kwargs['credentials']
 
         nova = self._client(credentials)
-        name = "%s-%s" % (credentials.username, len(nova.servers.list()))
-        fl = nova.flavors.find(name=instance_type)
-        instance = nova.servers.create(name=name, image=image_id, flavor=fl)
-        print instance
-        print dir(instance)
+        name = "%s-%s" % (credentials.nova_username, len(nova.servers.list()))
+        try:
+            fl = nova.flavors.get(instance_type)
+            instance = nova.servers.create(name=name, image=image_id, flavor=fl)
+        except exceptions.NotFound as e:
+            print e
+            return False
+        except exceptions.BadRequest as e:
+            print e
+            return False
+        return Instance(instance)
 
     def delete(self, **kwargs):
         credentials = kwargs['credentials']
         nova = self._client(credentials)
 
         instance_id = kwargs['id']
-        server = nova.servers.get(instance_id)
-        print server
-        print dir(server)
-        print server.delete()
+        try:
+            server = nova.servers.get(instance_id)
+            server.delete()
+        except exceptions.NotFound:
+            return False
+        return True
+
+    def exists(self, **kwargs):
+        credentials = kwargs['credentials']
+        instance_id = kwargs['id']
+        nova = self._client(credentials)
+        try:
+            instance = nova.servers.get(instance_id)
+        except exceptions.NotFound:
+            return False
+        return True
 
     def status(self, **kwargs):
         credentials = kwargs['credentials']
         nova = self._client(credentials)
         servers = nova.servers.list(detailed=True)
-        print servers
+        return self._generate_instances(servers)
 
     def restart(self, **kwargs):
         credentials = kwargs['credentials']
         nova = self._client(credentials)
         instance_id = kwargs['id']
 
-        server = nova.servers.get(id)
-        print server
-        print server.reboot()
+        try:
+            server = nova.servers.get(instance_id)
+            server.reboot()
+        except exceptions.NotFound:
+            return False
+        return True
 
+    def instance_types(self, **kwargs):
+        credentials = kwargs['credentials']
+        nova = self._client(credentials)
+        instance_types = nova.flavors.list()
+        return self._generate_instance_types(instance_types)
 
+    def images(self, **kwargs):
+        credentials = kwargs['credentials']
+        nova = self._client(credentials)
+        images = nova.images.list()
+        return self._generate_images(images)

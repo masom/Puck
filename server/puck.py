@@ -73,13 +73,22 @@ if __name__ == "__main__":
     connect(None)
 
     if args.init:
+        print "Initializing persistent storage."
         from libs.model import Migration
         m = Migration(cherrypy.thread_data.db, [])
         m.init()
+        print "Done."
         os._exit(0)
 
+    print "Loading models from persistent storage."
     models.load()
 
+    print "Loading virtualization plugin."
+    cherrypy.engine.virtualization = VirtualizationPlugin(cherrypy.engine)
+    cherrypy.engine.virtualization.subscribe()
+    models.Credential = cherrypy.engine.virtualization.get_credential_class()
+
+    print "Loading controllers."
     root = controllers.RootController(lookup)
     root.add('jails', controllers.JailsController)
     root.add('keys', controllers.KeysController)
@@ -87,10 +96,9 @@ if __name__ == "__main__":
     root.add('repos', controllers.ReposController)
     root.add('virtual_machines', controllers.VirtualMachinesController)
     root.add('jail_types', controllers.JailTypesController)
+    root.add('images', controllers.ImagesController)
     root.load()
 
-
-    cherrypy.engine.virtualization = VirtualizationPlugin(cherrypy.engine)
-    cherrypy.engine.virtualization.subscribe()
+    print "Starting application."
     cherrypy.engine.subscribe('start_thread', connect)
     cherrypy.quickstart(root, '/', conf)

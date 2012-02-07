@@ -31,7 +31,8 @@ class JailTypesController(Controller):
     def add(self, **post):
         jail_type = JailTypes.new(id="", ip="", netmask="")
         if post:
-            self._setData(jail_type, post)
+            data = self._get_data('jail_type', fields, post)
+            self._set_data(jail_type, data)
 
             if jail_type.validates() and JailTypes.add(jail_type):
                 cherrypy.session['flash'] = "Jail Type successfully added."
@@ -72,10 +73,6 @@ class JailTypesController(Controller):
         cherrypy.session['flash'] = msg
 
         raise cherrypy.HTTPRedirect('/jail_types')
-
-    def _setData(self, entity, data):
-        for k in data:
-            setattr(entity, k, data[k])
 
     def _validatePost(self, post):
         attrs = ['id', 'name', 'ip']

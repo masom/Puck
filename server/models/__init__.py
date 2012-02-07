@@ -6,9 +6,11 @@ import users
 import virtual_machines
 import yum_repositories
 import jail_types
+import instance_types
 
 Environments = environments.Environments()
 Images = images.Images()
+InstanceTypes = instance_types.InstanceTypes()
 Jails = jails.Jails()
 JailTypes = jail_types.JailTypes()
 Keys = keys.Keys()
@@ -16,10 +18,12 @@ Users = users.Users()
 VirtualMachines = virtual_machines.VirtualMachines()
 YumRepositories = yum_repositories.YumRepositories()
 
+Credential=None
+
 def load():
     collections = [
         Environments, Images,Jails,JailTypes,Keys,Users,
-        VirtualMachines,YumRepositories
+        VirtualMachines,YumRepositories,InstanceTypes
     ]
     [c.load() for c in collections]
 
