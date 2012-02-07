@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import cherrypy
 from libs.controller import *
 from models import VirtualMachines, Keys, Environments, Jails, YumRepositories
+import json
 
 class ApiCall(object):
     exposed = True
@@ -26,6 +27,8 @@ class ApiRegistration(ApiCall):
 
     @cherrypy.tools.json_out()
     def POST(self):
+        # TODO Check if the ip already has an assigned VM
+        # We might have to figure a way to generate a unique id on the VM side
         vm = VirtualMachines.new(ip=cherrypy.request.remote.ip)
         VirtualMachines.add(vm)
         return vm.to_dict()
@@ -40,12 +43,24 @@ class ApiKeys(ApiCall):
 
 class ApiStatus(ApiCall):
 
-    def PUT(self):
-        self._vm.status = cherrypy.request.body.read()
+    def PUT(self, id):
+        vm = VirtualMachines.first(id=id)
+        if not vm:
+            raise cherrypy.HTTPError(status=404)
 
-    def GET(self):
-        return self._vm.status
+        data = json.loads(cherrypy.request.body.read())
+        for k in ['id', 'status']:
+            if not data.has_key(k):
+                raise cherrypy.HTTPError(status=400)
 
+        if not id == data['id']:
+            raise cherrypy.HTTPError(status=400)
+
+        if not vm.update(data, ['status']):
+            raise cherrypy.HTTPError(status=500)
+
+        response = {'status': 200, 'message': 'Status updated.'}
+        return json.dumps(response)
 
 class ApiConfig(ApiCall):
 

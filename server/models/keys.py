@@ -57,6 +57,7 @@ class Key(Model):
 
 class Keys(ModelCollection):
     _model = Key
+    override_pk = False
     def _generate_table_definition(self):
         columns = OrderedDict([
             ('name', 'TEXT'),

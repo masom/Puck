@@ -12,10 +12,8 @@
     <div>No keys are set</div>
 % else:
     <ul>
-        % for keyId, key in keys:
-            <li>
-                <a href="/keys/view/${keyId}">${key.name}</a>
-            </li>
+        % for key in keys:
+            <li><a href="/keys/view/${key.name}">${key.name}</a></li>
         % endfor
     </ul>
 % endif

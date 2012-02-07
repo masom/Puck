@@ -30,7 +30,7 @@ class KeysController(Controller):
     @cherrypy.expose
     def add(self, **post):
         if 'key' in post:
-            key = Keys.new(post['name'], post['key'])
+            key = Keys.new(name=post['name'],key=post['key'])
             if key.validates():
                 Keys.add(key)
                 cherrypy.session['flash'] = "Key successfully added"
