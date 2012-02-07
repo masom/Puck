@@ -33,7 +33,7 @@ class NovaCredentials(Credentials):
                 setattr(self, k, None)
 
 class Nova(Launcher):
-    supported_api = ['create','delete','status','restart', 'instance_types', 'images']
+    supported_api = ['create','delete','status','restart', 'instance_types', 'images', 'exists']
 
     def _client(self, credentials):
         if credentials is None:
@@ -64,8 +64,22 @@ class Nova(Launcher):
         nova = self._client(credentials)
 
         instance_id = kwargs['id']
-        server = nova.servers.get(instance_id)
-        print server.delete()
+        try:
+            server = nova.servers.get(instance_id)
+            server.delete()
+        except exceptions.NotFound:
+            return False
+        return True
+
+    def exists(self, **kwargs):
+        credentials = kwargs['credentials']
+        instance_id = kwargs['id']
+        nova = self._client(credentials)
+        try:
+            instance = nova.servers.get(instance_id)
+        except exceptions.NotFound:
+            return False
+        return True
 
     def status(self, **kwargs):
         credentials = kwargs['credentials']
@@ -78,8 +92,12 @@ class Nova(Launcher):
         nova = self._client(credentials)
         instance_id = kwargs['id']
 
-        server = nova.servers.get(id)
-        print server.reboot()
+        try:
+            server = nova.servers.get(instance_id)
+            server.reboot()
+        except exceptions.NotFound:
+            return False
+        return True
 
     def instance_types(self, **kwargs):
         credentials = kwargs['credentials']

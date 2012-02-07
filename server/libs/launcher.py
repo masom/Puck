@@ -22,6 +22,9 @@ class Launcher(object):
     def create(self, **kwargs):
         raise NotImplementedError()
 
+    def exists(self, **kwargs):
+        raise NotImplementedError()
+
     def status(self, **kwargs):
         raise NotImplementedError()
 

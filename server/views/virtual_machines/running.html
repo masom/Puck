@@ -24,7 +24,11 @@
         %>
         <tr>
             <td>${i.name}</td>
-            <td>${i.addresses}</td>
+            <td>
+                % if 'public' in i.addresses:
+                    ${i.addresses['public'][0]['addr']}
+                % endif
+            </td>
             <td>${i.status}</td>
             <td>
                 <ul>

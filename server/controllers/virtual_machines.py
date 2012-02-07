@@ -78,12 +78,9 @@ class VirtualMachinesController(Controller):
     @cherrypy.expose
     def restart(self, id=None):
         creds=cherrypy.session.get('credentials')
-        vm = VirtualMachines.first(id=id)
-        if not vm:
-            cherrypy.session['flash'] = 'Invalid virtual machine.'
-            raise cherrypy.HTTPRedirect('/virtual_machines')
+        vm = self._get_vm(id)
 
-        if vm.restart_instance():
+        if vm.restart_instance(creds):
             cherrypy.session['flash'] = 'VM restarting'
         else:
             cherrypy.session['flash'] = 'The vm could not be restarted.'
@@ -92,10 +89,7 @@ class VirtualMachinesController(Controller):
     @cherrypy.expose
     def stop(self, id=None):
         creds = cherrypy.session.get('credentials')
-        vm = VirtualMachines.first(id=id)
-        if not vm:
-            cherrypy.session['flash'] = 'Invalid virtual machine.'
-            raise cherrypy.HTTPRedirect('/virtual_machines')
+        vm = self._get_vm(id)
 
         if vm.stop_instance():
             cherrypy.session['flash'] = "VM Stopped"
@@ -103,6 +97,30 @@ class VirtualMachinesController(Controller):
             cherrypy.session['flash'] = 'The vm could not be stopped.'
         raise cherrypy.HTTPRedirect("/virtual_machines")
 
+    @cherrypy.expose
+    def delete(self, id=None):
+        creds = cherrypy.session.get('credentials')
+
+        vm = self._get_vm(id)
+        if not vm.instance_id is None:
+            try:
+                if not vm.delete_instance(creds):
+                    msg = 'The virtual machine instance could not be deleted.'
+                    cherrypy.session['flash'] = msg
+                    raise cherrypy.HTTPRedirect('/virtual_machines')
+            except KeyError, e:
+                pass
+
+        VirtualMachines.delete(vm)
+        cherrypy.session['flash'] = 'Virtual machine deleted.'
+        raise cherrypy.HTTPRedirect('/virtual_machines')
+
+    def _get_vm(self, id):
+        vm = VirtualMachines.first(id=id)
+        if not vm:
+            cherrypy.session['flash'] = "Invalid virtual machine."
+            raise cherrypy.HTTPRedirect('/virtual_machines')
+        return vm
 
     def _get_instance_type(self, post):
         if post['instance_type.id'].isdigit():

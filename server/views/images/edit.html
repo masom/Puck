@@ -7,7 +7,7 @@
 <%block name="header">
     Images Management
 </%block>
-% if len(jail_type.errors()):
+% if len(image.errors()):
     <h3>Errors:</h3>
     <ul>
         % for e in image.errors():

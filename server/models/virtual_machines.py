@@ -66,13 +66,40 @@ class VirtualMachine(Model):
         )
         return cherrypy.engine.publish("virtualization", **args).pop()
 
-    def stop_instance(self, creds):
+    def restart_instance(self, creds):
         ''' Restart the attached instance. '''
         if not self.instance_id:
             return False
 
         args = dict(
             action="restart",
+            id=self.instance_id,
+            credentials=creds
+        )
+        return cherrypy.engine.publish("virtualization", **args).pop()
+
+    def instance_exists(self, creds):
+        ''' Determine if an instance exists. '''
+        if not self.instance_id:
+            return False
+
+        args = dict(
+            action="exists",
+            id=self.instance_id,
+            credentials=creds
+        )
+        return cherrypy.engine.publish("virtualization", **args).pop()
+
+    def delete_instance(self, creds):
+        ''' Restart the attached instance. '''
+        if not self.instance_id:
+            return False
+
+        if not self.instance_exists(creds):
+            raise KeyError('Instance %s does not exists.' % self.instance_id)
+
+        args = dict(
+            action="delete",
             id=self.instance_id,
             credentials=creds
         )

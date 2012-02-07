@@ -40,8 +40,10 @@
             <td>${vm.status}</td>
             <td>
                 <ul>
-                    <li><a href="http://${vm.ip}:8080">Manage</a></li>
-                    <li><a href="/virtual_machines/restart/${vm.id}">Reboot</a></li>
+                    % if vm.instance_id:
+                        <li><a href="http://${vm.ip}:8080">Manage</a></li>
+                        <li><a href="/virtual_machines/restart/${vm.id}">Reboot</a></li>
+                    % endif
                     <li><a href="/virtual_machines/delete/${vm.id}">Delete</a></li>
                 </ul>
             </td>
