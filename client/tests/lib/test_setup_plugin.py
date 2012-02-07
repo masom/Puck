@@ -16,9 +16,9 @@ class MockPuck(object):
         return MockVM()
 
 class InterfacesSetupTaskTest(unittest.TestCase):
-    
-    def test_add_rc_ip(self):      
-        task = InterfacesSetupTask(MockPuck(), None)
+
+    def test_add_rc_ip(self):
+        task = InterfacesSetupTask(MockPuck(), queue.Queue())
 
         rc_addresses = []
         file = StringIO.StringIO()

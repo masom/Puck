@@ -13,7 +13,8 @@ def getJail():
         'type': 'default',
         'name': 'test_%s' % jailCount,
         'ip': '10.0.0.%s' % jailCount,
-        'url': 'http://localhost'
+        'url': 'http://localhost',
+        'netmask': '255.255.255.0'
     }
 
 class JailTest(unittest.TestCase):
@@ -96,13 +97,13 @@ class JailsTest(unittest.TestCase):
         jails = []
         for i in range(10):
             jails.append(getJail())
-        
+
         jls.load(jails)
         self.assertEqual(jls.count(), 10, "The number of imported jails does not match generated count")
 
     def testExport(self):
         jls = Jails()
-        
+
         expected = []
         self.assertEqual(jls.export(), expected, "The exported data does not match the expected value (empty list).")
 
