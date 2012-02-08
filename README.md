@@ -42,10 +42,11 @@ We plan to open source our base flavour and the tool to sync the installed ports
 ## Virtio
 There is a FreeBSD patch to be applied on images for VirtIO to work. Otherwise, nova-compute libvirt configuration must be updated to use normal hard drives (hd) instead of virtio.
 ## Uploading Images
-If an image is uploaded with euca2ools, the glance entry must be updated to reflect  the following:
 
-container_type: bare
-image_type: qcow2
+If an image is uploaded with euca2ools, the glance entry must be updated to reflect the following:
+
+    container_type: bare
+    image_type: qcow2
 
 # Installation
 Configure `setup/bootstrap.sh` to match your environment (mostly just change the url of the package site).
@@ -56,7 +57,7 @@ The RPM packages required for Pixie to run are CherryPy and Mako. These should b
 
 More to come.
 
-## Creating a package site
+## How to create a package site
 A package site is essentially just a repository of freebsd pkg tarballs. Here's an example one:
 
     autoconf-2.68.tbz			help2man-1.40.4.tbz			perl-5.12.4_3.tbz			screen-4.0.3_13.tbz
@@ -77,9 +78,30 @@ A package site is essentially just a repository of freebsd pkg tarballs. Here's 
 
 The index file is used by the bootstrap script to download the appropriate packages.
 
-## Generating the package index
+## The package index
 
 `rm index; for file in *; do echo $file >> index; done;`
+
+## How to create a jail flavor
+Copy the template located at `/flavour`. The new folder should be named exactly the same as the flavor.
+
+Add all the required FreeBSD packages in `[flavor name]/pkg/All`.
+Add your RPM packages in `[flavor name]/pkg/rpm`.
+
+Edit `[flavor name]/ezjail.flavour` as required (Add users, custom config, etc.). Most of the changes should probably be in a RPM or FreeBSD package.
+
+Tar up the folder: `tar -cf [flavor name].tar [flavor name]`
+
+The tar structure should be like this:
+    [flavor name]/
+        ezjail.flavour
+        pkg/
+            All/
+                ...
+            rpm/
+                ...
+            registerports.py
+            spectemplate
 
 # License
 LGPL v3
