@@ -6,3 +6,4 @@ from repos import ReposController
 from virtual_machines import VirtualMachinesController
 from jail_types import JailTypesController
 from images import ImagesController
+from environments import EnvironmentsController

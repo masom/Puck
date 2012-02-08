@@ -23,9 +23,14 @@ class Environment(Model):
         self.id = id
         self.name = name
 
+
+    def validates(self):
+        return True
+
 class Environments(ModelCollection):
 
     _model = Environment
+
 
     def _generate_table_definition(self):
         columns = OrderedDict([
@@ -48,3 +53,4 @@ class Environments(ModelCollection):
 
         for i in items:
             self.add(i)
+
