@@ -12,7 +12,7 @@ DEST=$(mktemp -d pkg.XXX)
 cd $DEST
 fetch "$PACKAGESITE/pkg/hypervisor/index"
 PKGCOUNT=$(wc -l index)
-print "$PKGCOUNT packages to be installed."
+echo "$PKGCOUNT packages to be installed."
 while read file; do
     fetch "$PACKAGESITE/pkg/hypervisor/$file"
 done < index
@@ -27,8 +27,27 @@ while read file; do
 done < index
 rm index
 
+##########################
+#
+#    RPM REGISTRATION
+#
+#    TODO: Find a better way to do this... this requires too much stuff.
+##########################
+for d in BUILD BUILDROOT RPMS SOURCES SRPMS SPECS; do
+    mkdir -p /root/rpmbuild/$d
+done
+
+mkdir /usr/local/share/hcn/
+cp spectemplate /usr/local/share/hcn
+
+HOME=/root
+PATH=$PATH:/usr/local/bin
+export HOME
+export PATH
+pkg_info | /usr/local/bin/python registerports.py
+
 rpm --initdb
-rpm -i *.rpm
+rpm -ivh *.rpm
 
 cd $START
 rm -rf $DEST
