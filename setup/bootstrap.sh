@@ -10,9 +10,11 @@ PACKAGESITE="http://10.0.254.23/pkgsite/current/"
 DEST=$(mktemp -d pkg.XXX)
 
 cd $DEST
-fetch "$PACKAGESITE/pkg/index"
+fetch "$PACKAGESITE/pkg/hypervisor/index"
+PKGCOUNT=$(wc -l index)
+print "$PKGCOUNT packages to be installed."
 while read file; do
-    fetch "$PACKAGESITE/pkg/$file"
+    fetch "$PACKAGESITE/pkg/hypervisor/$file"
 done < index
 rm index
 
