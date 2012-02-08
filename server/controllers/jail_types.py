@@ -31,6 +31,7 @@ class JailTypesController(Controller):
     def add(self, **post):
         jail_type = JailTypes.new(id="", ip="", netmask="")
         if post:
+            fields = ['id', 'ip', 'netmask' ]
             data = self._get_data('jail_type', fields, post)
             self._set_data(jail_type, data)
 
