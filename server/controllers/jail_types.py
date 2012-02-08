@@ -29,14 +29,18 @@ class JailTypesController(Controller):
 
     @cherrypy.expose
     def add(self, **post):
-        jail_type = JailTypes.new(id="", ip="", netmask="")
+        jail_type = JailTypes.new(
+            id=post['jail_type.id'], 
+            ip=post['jail_type.ip'], 
+            netmask=post['jail_type.netmask']
+        )
         if post:
             self._setData(jail_type, post)
 
             if jail_type.validates() and JailTypes.add(jail_type):
                 cherrypy.session['flash'] = "Jail Type successfully added."
                 raise cherrypy.HTTPRedirect("/jail_types")
-
+                
             cherrypy.session['flash'] = "Invalid data."
 
         env = dict(
