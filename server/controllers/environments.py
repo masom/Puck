@@ -31,9 +31,9 @@ class EnvironmentsController(Controller):
     
     @cherrypy.expose
     def add(self, **post):
-        environment = Environments.new(id="", name="")
+        environment = Environments.new(id="", code="", name="")
         if post:
-            fields = ['id', 'name' ]
+            fields = ['code', 'name' ]
             data = self._get_data('environment', fields, post)
             self._set_data(environment, data)
 
@@ -56,7 +56,7 @@ class EnvironmentsController(Controller):
             raise cherrypy.HTTPRedirect('/environments')
 
         if post:
-            fields = ['name']
+            fields = ['name', 'code']
             data = self._get_data('environment', fields, post)
             if environment.update(data, fields):
                 cherrypy.session['flash'] = "Environment successfully updated."
@@ -78,7 +78,7 @@ class EnvironmentsController(Controller):
         raise cherrypy.HTTPRedirect('/environments')
 
     def _validatePost(self, post):
-        attrs = ['id', 'name', 'ip']
+        attrs = ['id', 'name', 'code']
         for a in attrs:
             if not a in post:
                 return False

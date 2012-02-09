@@ -13,10 +13,10 @@
 % else:
     <div class="index">
         <table cellspacing="0" colspan="0">
-            <tr><th>ID</th><th>Name</th></tr>
+            <tr><th>Code</th><th>Name</th></tr>
             % for type in environments:
                 <tr>
-                    <td>${type.id}</td>
+                    <td>${type.code}</td>
                     <td>${type.name}</td>
                     <td>
                         <a href="/environments/edit/${type.id}">Edit</a>
