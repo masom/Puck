@@ -20,7 +20,6 @@ from libs.controller import *
 from models import Environments
 
 class EnvironmentsController(Controller):
-    #coppied this from the environments controller
     crumbs = [Crumb("/", "Home"), Crumb('/environments', 'Environments')]
     
     @cherrypy.expose
