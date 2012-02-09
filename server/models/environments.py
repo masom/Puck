@@ -19,17 +19,24 @@ from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
 
 class Environment(Model):
-    def __init__(self, id=None, name=None):
-        self.id = id
+    def __init__(self, id=None,code=None, name=None):
+        self.code = code
         self.name = name
+        self.id = id
+
+
+    def validates(self):
+        return True
 
 class Environments(ModelCollection):
 
     _model = Environment
 
+
     def _generate_table_definition(self):
         columns = OrderedDict([
             ('id', "TEXT"),
+            ('code', "TEXT"),
             ('name', "TEXT")
         ])
 
@@ -39,12 +46,13 @@ class Environments(ModelCollection):
         return
         ''' TODO: Move this to the config/seed file.'''
         items = [
-            self.new(id='dev',name='Development'),
-            self.new(id='testing', name='Testing'),
-            self.new(id='qa', name='Quality Assurance'),
-            self.new(id='staging', name='Staging'),
-            self.new(id='prod', name='Production')
+            self.new(code='dev',name='Development'),
+            self.new(code='testing', name='Testing'),
+            self.new(code='qa', name='Quality Assurance'),
+            self.new(code='staging', name='Staging'),
+            self.new(code='prod', name='Production')
         ]
 
         for i in items:
             self.add(i)
+

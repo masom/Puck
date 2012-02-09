@@ -1,0 +1,34 @@
+<%inherit file="/layouts/default.html" />
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/form.css">
+</%block>
+
+<%block name="header">
+    Environment Management
+</%block>
+% if len(environment.errors()):
+    <h3>Errors:</h3>
+    <ul>
+        % for e in environment.errors():
+            <li>${e}</li>
+        % endfor
+    </ul>
+% endif
+<form class="basic" method="post" action="/environments/add">
+    <fieldset>
+        <legend>Jail Type</legend>
+        <ol>
+            <li>
+                <label for="code">Code</label>
+                <input code="code" name="environment.code" type="text" value="${environment.code}" required />
+            </li>
+            <li>
+                <label for="name">Name</label>
+                <input id="name" name="environment.name" type="text" value="${environment.name}" required />
+            </li>
+        </ol>
+    </fieldset>
+    <button type="submit">Add</button>
+</form>
+
