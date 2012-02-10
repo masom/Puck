@@ -24,9 +24,10 @@ from novaclient import exceptions
 import cherrypy
 
 class NovaCredentials(Credentials):
+    attributes = ['nova_url', 'nova_username', 'nova_api_key', 'nova_project_id']
+
     def _post_init(self):
-        params = ['nova_url', 'nova_username', 'nova_api_key', 'nova_project_id']
-        for k in params:
+        for k in attributes:
             if k in self._data:
                 setattr(self, k, self._data[k])
             else:

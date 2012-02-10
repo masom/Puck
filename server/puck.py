@@ -98,6 +98,7 @@ if __name__ == "__main__":
     root.add('jail_types', controllers.JailTypesController)
     root.add('images', controllers.ImagesController)
     root.add('environments', controllers.EnvironmentsController)
+    root.add('users', controllers.UsersController)
     root.load()
 
     print "Starting application."

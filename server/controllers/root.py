@@ -39,20 +39,7 @@ class RootController(Controller):
     @cherrypy.expose
     def login(self, **post):
         if post:
-            # @TODO actually authenticate. This is a placeholder for now.
-            data={
-                    'nova_url':"http://10.0.254.100:8774/v1.1/",
-                    'nova_username':"msamson",
-                    'nova_api_key':"e39caef5-f357-40d9-9a43-21cbe969a07b",
-                    'nova_project_id':"mproj"
-                }
-            creds = models.Credential(
-                id="test",
-                name="martin samson",
-                data = pickle.dumps(data)
-            )
-            cherrypy.session['credentials'] = creds
-            raise cherrypy.HTTPRedirect('/index')
+            self._login(post)
         return self.render("login.html", self.crumbs[:-1])
 
     @cherrypy.expose
@@ -65,3 +52,19 @@ class RootController(Controller):
 
     def load(self):
         [setattr(self, route, self._routes[route](self._lookup)) for route in self._routes]
+
+    def _login(self, post):
+            fields = ['user.username', 'user.password']
+            for f in fields:
+                if not f in post:
+                    cherrypy.session['flash'] = "Invalid form data."
+                    return False
+
+            user = Users.first(username=post['user.username'], password=post['user.password'])
+            if not user:
+                return False
+            meta = AuthInformations.all(user_id=self.id)
+            cred = user.generate_auth(meta)
+
+            cherrypy.session['credentials'] = creds
+            raise cherrypy.HTTPRedirect('/index')
