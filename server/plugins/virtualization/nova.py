@@ -102,7 +102,12 @@ class Nova(Launcher):
     def instance_types(self, **kwargs):
         credentials = kwargs['credentials']
         nova = self._client(credentials)
-        instance_types = nova.flavors.list()
+        try:
+            instance_types = nova.flavors.list()
+        except exceptions.BadRequest as e:
+            print e
+            return False
+
         return self._generate_instance_types(instance_types)
 
     def images(self, **kwargs):
