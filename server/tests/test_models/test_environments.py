@@ -59,16 +59,16 @@ class EnvironmentsTest(unittest.TestCase):
         envs = Environments()
         entity = envs.new()
 
-        expected = OrderedDict([('id', None), ('name', None)])
+        expected = OrderedDict([('id', None), ('code', None), ('name', None)])
         data = envs._generate_query_data(entity)
         self.assertEqual(expected, data)
 
-        expected = 'INSERT INTO environments(id,name) VALUES (?,?)'
+        expected = 'INSERT INTO environments(id,code,name) VALUES (?,?,?)'
         self.assertEqual(envs._generate_insert_query(data), expected)
 
     def testTableDefinition(self):
         envs = Environments()
-        expected = 'CREATE TABLE environments (id TEXT PRIMARY KEY,name TEXT)'
+        expected = 'CREATE TABLE environments (id TEXT PRIMARY KEY,code TEXT,name TEXT)'
         self.assertEqual(str(envs.table_definition()), expected)
 
     def testDelete(self):
