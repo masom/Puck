@@ -17,6 +17,7 @@
     % for i in instances:
         <%
             vm_id = None
+            public_ip = False
             for k in virtual_machines:
                 if not k.instance_id == i.id:
                     continue
@@ -25,15 +26,22 @@
         <tr>
             <td>${i.name}</td>
             <td>
-                % if 'public' in i.addresses:
-                    ${i.addresses['public'][0]['addr']}
-                % endif
+                <ul>
+                    % for addr in i.addresses['private']:
+                        % if not addr['fixed']:
+                            <%
+                                public_ip = addr['addr']
+                            %>
+                            <li>${addr['addr']}</li>
+                        % endif
+                    % endfor
+                </ul>
             </td>
             <td>${i.status}</td>
             <td>
                 <ul>
-                    % if 'public' in i.addresses:
-                        <li><a href="http://${i.addresses['public'][0]['addr']}:8080">Manage</a></li>
+                    % if public_ip:
+                        <li><a href="http://${public_ip}:8080">Manage</a></li>
                     % elif vm_id:
                         <li><a href="/virtual_machines/add_public_ip/${vm_id}">Add Public IP</a></li>
                     % endif

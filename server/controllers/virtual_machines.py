@@ -27,6 +27,19 @@ class VirtualMachinesController(Controller):
 
     @cherrypy.expose
     @cherrypy.tools.myauth()
+    def add_public_ip(self, id):
+        creds=cherrypy.session.get('credentials')
+        vm = self._get_vm(id)
+        ip = vm.add_public_ip(creds)
+        if ip:
+            msg = 'IP added: %s' % ip
+        else:
+            msg = 'An IP could not be added to the instance.'
+        cherrypy.session['flash'] = msg
+        raise cherrypy.HTTPRedirect('/running')
+
+    @cherrypy.expose
+    @cherrypy.tools.myauth()
     def index(self):
         #Images.add(Images.new(id="test", name="test"))
         env = dict(

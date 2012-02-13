@@ -26,12 +26,31 @@ class VirtualMachine(Model):
         self.id = id
         self.name = name
         self.instance_type_id = instance_type_id
-        self.instance_id = instance_id
+
+        if instance_id.isdigit():
+            self.instance_id = int(instance_id)
+        else:
+            self.instance_id = instance_id
+
         self.image_id = image_id
         self.ip = ip
         self.status = status
         self.config = config
         self.user = user
+
+    def add_public_ip(self, creds):
+        ''' Assign a public ip to the instance.'''
+
+        args = dict(
+            action="add_public_ip",
+            id = self.instance_id,
+            credentials=creds
+        )
+        ip = cherrypy.engine.publish('virtualization', **args).pop()
+        return ip
+
+    def release_public_ip(self):
+        pass
 
     def start_instance(self, image, instance_type, creds):
         ''' Starts an instance and updates itself with the relational details.'''

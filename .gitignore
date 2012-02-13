@@ -5,3 +5,4 @@
 *.pyo
 *.sqlite3
 puck.conf
+server/sessions

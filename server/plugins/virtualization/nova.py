@@ -34,7 +34,9 @@ class NovaCredentials(Credentials):
                 setattr(self, k, None)
 
 class Nova(Launcher):
-    supported_api = ['create','delete','status','restart', 'instance_types', 'images', 'exists']
+    supported_api = ['create','delete','status','restart', 'instance_types',
+        'images', 'exists', 'add_public_ip', 'public_ips'
+    ]
 
     def _client(self, credentials):
         if credentials is None:
@@ -116,3 +118,26 @@ class Nova(Launcher):
         nova = self._client(credentials)
         images = nova.images.list()
         return self._generate_images(images)
+
+    def public_ips(self, **kwargs):
+        credentials = kwargs['credentials']
+        nova = self._client(credentials)
+        try:
+            ips = nova.floating_ips.list()
+        except exceptions.BadRequest as e:
+            cherrypy.log(e)
+            return []
+        return ips
+
+    def add_public_ip(self, **kwargs):
+        credentials = kwargs['credentials']
+        instance_id = kwargs['id']
+        nova = self._client(credentials)
+        ip = False
+        try:
+            ip = nova.floating_ips.create()
+            server = nova.servers.get(instance_id)
+            server.add_floating_ip(ip.ip)
+        except exceptions.BadRequest as e:
+            cherrypy.log(str(e))
+        return ip
