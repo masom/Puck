@@ -1,6 +1,26 @@
+<%inherit file="/layouts/default.html" />
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/form.css">
+</%block>
+
+<%block name="header">
+    Jails Management
+</%block>
+
 <h1>Login</h1>
 <form action="/login" method="post">
-    <input type="text" name="user.username" />
-    <input type="password" name="user.password" />
-    <button type="submit">Authenticate</button>
+    <ul>
+        <li>
+            <label for='user.name'>Username</label>
+            <input id='user.name' type="text" name="user.username" />
+        </li>
+        <li>
+            <label for='user.password'>Password</label>
+            <input id='user.password' type="password" name="user.password" />
+        </li>
+        <li>
+            <button type="submit">Authenticate</button>
+        </li>
+    </ul>
 </form>

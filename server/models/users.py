@@ -17,20 +17,81 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
-
+import models
+import json, hashlib
 class User(Model):
-    def __init__(self, name=None, password=None, key=None):
+    def __init__(self, id=None,user_group="user",name=None,username=None,email=None,password=None, virt_auth_data=None):
+        self.id = id
+        self.user_group = user_group
         self.name = name
+        self.email = email
+        self.username= username
         self.password = password
-        self.key = key
+        self.virt_auth_data = virt_auth_data
+        self.auth = None
+
+    def validates(self):
+        self.validate_password()
+
+        for a in ['name', 'email', 'password', 'username']:
+            if len(getattr(self, a)) > 0:
+                continue
+            self._errors.append('`%s` cannot be empty' % a)
+
+        if self._errors:
+            return False
+        return True
+
+    def validate_password(self):
+        if self.password != self.password_repeat:
+            self._errors.append('Passwords do not match.')
+            return False
+        del self.password_repeat
+        self.password = self._collection.hash_password(self.password)
+
+        return True
+
+    def generate_auth(self):
+        if not self.id:
+            return False
+
+        if self.auth:
+            return self.auth
+
+        self.auth = models.Credential(id=self.id, name=self.name, email=self.email,
+            data=self.virt_auth_data
+        )
+        return self.auth
+
+    def set_meta_data(self, data):
+        try:
+            self.virt_auth_data = json.dumps(data)
+        except ValueError as e:
+            return False
+        return True
+
+    def get_meta_data(self):
+        try:
+            data = json.loads(self.virt_auth_data)
+        except (ValueError, KeyError) as e:
+            return {}
+        return data
 
 class Users(ModelCollection):
     _model = User
+
+
     def _generate_table_definition(self):
         columns = OrderedDict([
+            ('id', 'TEXT'),
+            ('user_group', 'TEXT'),
+            ('username', 'TEXT'),
             ('name', 'TEXT'),
+            ('email', 'TEXT'),
             ('password', 'TEXT'),
-            ('key', 'TEXT')
+            ('virt_auth_data', 'TEXT')
         ])
-        return TableDefinition('users', columns=columns, primary_key='name')
+        return TableDefinition('users', columns=columns)
 
+    def hash_password(self, password):
+        return hashlib.sha1(password).hexdigest()

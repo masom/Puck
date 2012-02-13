@@ -23,11 +23,13 @@ class JailsController(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/jails", "Jails")]
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def index(self):
         env = dict(jails=Jails.all())
         return self.render("jails/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def add(self, **post):
         if post:
             jail = Jails.new(post)
@@ -43,12 +45,14 @@ class JailsController(Controller):
         return self.render("jails/add.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def view(self, id):
         jail = Jails.first(id=id)
         env = dict(jail=jail)
         return self.render("jails/view.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def delete(self, id):
         Jails.delete(id)
         cherrypy.session['flash'] = "Jail successfully deleted"

@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 from collections import namedtuple
-
+import functools
 import cherrypy
 
 Crumb = namedtuple("Crumb", ["url", "name"])
@@ -39,4 +39,16 @@ class Controller(object):
         variables['flash'] = cherrypy.session.pop('flash', None)
         variables['breadcrumbs'] = crumbs
         return tmpl.render(**variables)
+
+def auth(groups=[]):
+    # http://stackoverflow.com/questions/3302844/writing-a-cherrypy-decorator-for-authorization
+    if not cherrypy.session.has_key('user.id'):
+        raise cherrypy.HTTPRedirect('/login')
+
+    if not groups:
+        return
+
+    if not cherrypy.session.get('user.group', None) in groups:
+        cherrypy.session['flash'] = 'You are not authorized to access this section.'
+        raise cherrypy.HTTPRedirect('/index')
 

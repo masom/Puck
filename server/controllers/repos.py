@@ -23,6 +23,7 @@ class ReposController(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/repos", "Repos")]
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def index(self):
         env = dict(
             repos=YumRepositories.all(),
@@ -31,6 +32,7 @@ class ReposController(Controller):
         return self.render("/repos/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def add(self, **post):
         if 'yum_repository' in post:
             repo = YumRepositories.new(**post)
@@ -47,6 +49,7 @@ class ReposController(Controller):
         return self.render("/repos/add.html", crumbs=self.crumbs, environments=environments, available=available)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def edit(self, id, **post):
 
         repo = YumRepositories.first(id=id)
@@ -67,6 +70,7 @@ class ReposController(Controller):
         return self.render("/repos/edit.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def view(self, id):
         repo = YumRepositories.first(id=id)
         if not repo:

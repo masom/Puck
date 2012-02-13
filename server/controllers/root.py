@@ -19,10 +19,8 @@ import os.path
 
 import cherrypy
 from libs.controller import *
-from libs.credentials import Credentials
 import models
-
-import pickle #TODO TO BE REMOVED ONCE WE GET REAL AUTH
+from models import Users
 
 class RootController(Controller):
     crumbs = [Crumb("/", "Home")]
@@ -33,31 +31,19 @@ class RootController(Controller):
         self._routes = {}
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def index(self):
         return self.render("index.html", self.crumbs[:-1])
 
     @cherrypy.expose
     def login(self, **post):
         if post:
-            # @TODO actually authenticate. This is a placeholder for now.
-            data={
-                    'nova_url':"http://10.0.254.100:8774/v1.1/",
-                    'nova_username':"msamson",
-                    'nova_api_key':"e39caef5-f357-40d9-9a43-21cbe969a07b",
-                    'nova_project_id':"mproj"
-                }
-            creds = models.Credential(
-                id="test",
-                name="martin samson",
-                data = pickle.dumps(data)
-            )
-            cherrypy.session['credentials'] = creds
-            raise cherrypy.HTTPRedirect('/index')
+            self._login(post)
         return self.render("login.html", self.crumbs[:-1])
 
     @cherrypy.expose
     def logout(self, **post):
-        cherrypy.session['credentials'] = None
+        cherrypy.session.delete()
         raise cherrypy.HTTPRedirect("/login")
 
     def add(self, route, cls):
@@ -65,3 +51,23 @@ class RootController(Controller):
 
     def load(self):
         [setattr(self, route, self._routes[route](self._lookup)) for route in self._routes]
+
+    def _login(self, post):
+            fields = ['user.username', 'user.password']
+            for f in fields:
+                if not f in post:
+                    cherrypy.session['flash'] = "Invalid form data."
+                    return False
+
+            hash_password = Users.hash_password(post['user.password'])
+            user = Users.first(username=post['user.username'], password=hash_password)
+
+            if not user:
+                cherrypy.session['flash'] = 'Invalid username or password.'
+                return False
+            creds = user.generate_auth()
+
+            cherrypy.session['user.id'] = user.id
+            cherrypy.session['user.group'] = user.user_group
+            cherrypy.session['credentials'] = creds
+            raise cherrypy.HTTPRedirect('/index')

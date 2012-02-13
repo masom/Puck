@@ -1,0 +1,32 @@
+<%inherit file="/layouts/default.html" />
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/index.css">
+</%block>
+<%block name="header">
+    Users Management
+</%block>
+
+<h2>Users <a href="/users/add">Add a new user</a></h2>
+% if not len(users):
+    <div>No data.</div>
+% else:
+    <div class="index">
+        <table cellspacing="0" colspan="0">
+            <tr><th>Username</th><th>Name</th><th>Email</th></tr>
+            % for user in users:
+                <tr>
+                    <td>${user.username}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>
+                        <a href="/users/edit/${user.id}">Edit</a>
+                        &nbsp;|&nbsp;
+                        <a href="/users/delete/${user.id}">Delete</a>
+                    </td>
+                </tr>
+            % endfor
+        </table>
+    </div>
+% endif
+

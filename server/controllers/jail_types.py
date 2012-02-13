@@ -23,11 +23,13 @@ class JailTypesController(Controller):
     crumbs = [Crumb("/", "Home"), Crumb('/jail_types', 'Jail Types')]
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def index(self):
         env = dict(jail_types=JailTypes.all())
         return self.render("/jail_types/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def add(self, **post):
         jail_type = JailTypes.new(id="", ip="", netmask="")
         if post:
@@ -47,6 +49,7 @@ class JailTypesController(Controller):
         return self.render("/jail_types/add.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def edit(self, id, **post):
         jail_type = JailTypes.first(id=id)
         if not jail_type:
@@ -64,6 +67,7 @@ class JailTypesController(Controller):
         return self.render("/jail_types/edit.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def delete(self, id):
         jail = JailTypes.first(id=id)
         msg = "The jail could not be deleted."

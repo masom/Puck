@@ -15,17 +15,16 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import pickle
+import json
 import cherrypy
 
 class Credentials(object):
     ''' User credentials abstraction object. '''
 
-    def __init__(self, id=None, name=None, email=None, password=None, data=None):
+    def __init__(self, id=None, name=None, email=None, data=None):
         self.id = id
         self.name = name
         self.email = email
-        self.password = password
         self._data = {}
 
         # Auth data is stored as a pickled object in a text field.
@@ -35,12 +34,10 @@ class Credentials(object):
 
     def _load_data(self, data):
         try:
-            self._data = pickle.loads(data)
-        except pickle.PickleError as e:
-            #TODO log
-            pass
-
-    def _post_init(self):
-        '''Intended to be overloaded.'''
-        pass
-
+            self._data = json.loads(data)
+        except (ValueError, KeyError) as e:
+            self._data = {}
+            msg = 'An error occured while loading credential data: `%s`'
+            cherrypy.log(msg % str(e))
+            return False
+        return True

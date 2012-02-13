@@ -1,0 +1,51 @@
+<%inherit file="/layouts/default.html" />
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/form.css">
+</%block>
+
+<%block name="header">
+    Users Management
+</%block>
+% if len(user.errors()):
+    <h3>Errors:</h3>
+    <ul>
+        % for e in user.errors():
+            <li>${e}</li>
+        % endfor
+    </ul>
+% endif
+<form class="basic" method="post" action="/users/edit/${user.id}">
+    <fieldset>
+        <legend>User</legend>
+        <ul>
+            <li>
+                <label for="username">Username</label>
+                <input id="user.username" name="user.username" type="text" value="${user.username}" required />
+            </li>
+            <li>
+                <label for="user.name">Name</label>
+                <input id="user.name" name="user.name" type="text" value="${user.name}" required />
+            </li>
+            <li>
+                <label for="user.email">Email</label>
+                <input id="user.email" name="user.email" type="text" value="${user.email}" required />
+            </li>
+        </ul>
+    </fieldset>
+    <fieldset>
+        <legend>Virtualization Authentication Data</legend>
+        <ul>
+            % for m in auth_meta:
+            <li>
+                <label for="auth_meta.${m}">${m}</label>
+                <input id="auth_meta.${m}" name="auth_meta.${m}" type="text" value="${auth_meta[m]}"/>
+            </li>
+            % endfor
+        </ul>
+    </fieldset>
+    <button type="submit">Add</button>
+</form>
+
+
+

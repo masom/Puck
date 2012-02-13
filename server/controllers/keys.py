@@ -23,11 +23,13 @@ class KeysController(Controller):
     crumbs = [Crumb("/", "Home"), Crumb("/keys", "Keys")]
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def index(self):
         env = dict(keys=Keys.all())
         return self.render("keys/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def add(self, **post):
         if 'key' in post:
             key = Keys.new(name=post['name'],key=post['key'])
@@ -44,6 +46,7 @@ class KeysController(Controller):
 
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def view(self, name):
         key = Keys.first(name=name)
         env = dict(key=key)
