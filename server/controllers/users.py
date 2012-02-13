@@ -24,11 +24,13 @@ class UsersController(Controller):
     crumbs = [Crumb("/", "Home"), Crumb('/users', 'Users')]
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def index(self):
         env = dict(users=Users.all())
         return self.render("/users/index.html", crumbs=self.crumbs[:-1], **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def add(self, **post):
         user = Users.new(name="", email="", username="", password="")
         meta = models.Credential.attributes
@@ -57,6 +59,7 @@ class UsersController(Controller):
         return self.render("/users/add.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def edit(self, id, **post):
         user = Users.first(id=id)
         meta = models.Credentials.attributes
@@ -77,6 +80,7 @@ class UsersController(Controller):
         return self.render("/users/edit.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def delete(self, id):
         jail = Users.first(id=id)
         msg = "The user could not be deleted."

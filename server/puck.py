@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os, sys
 import cherrypy, sqlite3
 from mako.lookup import TemplateLookup
-import models, controllers
 from plugins.virtualization import VirtualizationPlugin
 
 def argparser():
@@ -72,6 +71,10 @@ if __name__ == "__main__":
 
     connect(None)
 
+    import libs.controller
+    cherrypy.tools.myauth = cherrypy.Tool("before_handler", libs.controller.auth)
+
+    import models, controllers
     if args.init:
         print "Initializing persistent storage."
         from libs.model import Migration

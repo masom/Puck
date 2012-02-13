@@ -25,6 +25,7 @@ class ImagesController(Controller):
     ]
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def index(self):
         #Images.add(Images.new(id="test", name="test"))
         env = dict(
@@ -33,6 +34,7 @@ class ImagesController(Controller):
         return self.render("images/index.html", self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def add(self, **post):
         image = Images.new(name="", backend_id="", description="")
 
@@ -55,6 +57,7 @@ class ImagesController(Controller):
         return self.render("/images/add.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def edit(self, id, **post):
         image = Images.first(id=id)
 
@@ -75,6 +78,7 @@ class ImagesController(Controller):
         return self.render("/images/edit.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
     def delete(self, id):
         image = Images.first(id=id)
         msg = "The image could not be deleted."

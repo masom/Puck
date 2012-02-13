@@ -26,6 +26,7 @@ class VirtualMachinesController(Controller):
     ]
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def index(self):
         #Images.add(Images.new(id="test", name="test"))
         env = dict(
@@ -36,6 +37,7 @@ class VirtualMachinesController(Controller):
         return self.render("virtual_machines/index.html", self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def running(self):
         creds = cherrypy.session.get('credentials')
         vms = VirtualMachines.all()
@@ -49,6 +51,7 @@ class VirtualMachinesController(Controller):
         return self.render("virtual_machines/running.html", self.crumbs,**env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def start(self, **post):
         if post:
             self._validate_start_post_data(post)
@@ -76,6 +79,7 @@ class VirtualMachinesController(Controller):
         raise cherrypy.HTTPRedirect("/virtual_machines")
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def restart(self, id=None):
         creds=cherrypy.session.get('credentials')
         vm = self._get_vm(id)
@@ -87,6 +91,7 @@ class VirtualMachinesController(Controller):
         raise cherrypy.HTTPRedirect("/virtual_machines")
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def stop(self, id=None):
         creds = cherrypy.session.get('credentials')
         vm = self._get_vm(id)
@@ -98,6 +103,7 @@ class VirtualMachinesController(Controller):
         raise cherrypy.HTTPRedirect("/virtual_machines")
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def delete(self, id=None):
         creds = cherrypy.session.get('credentials')
 

@@ -21,14 +21,14 @@ from models import Environments
 
 class EnvironmentsController(Controller):
     crumbs = [Crumb("/", "Home"), Crumb('/environments', 'Environments')]
-    
+
     @cherrypy.expose
     def index(self):
         env = dict(environments=Environments.all())
         return self.render("/environments/index.html", crumbs=self.crumbs[:-1], **env)
 
-    
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def add(self, **post):
         environment = Environments.new(id="", code="", name="")
         if post:
@@ -48,6 +48,7 @@ class EnvironmentsController(Controller):
         return self.render("/environments/add.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def edit(self, id, **post):
         environment = Environments.first(id=id)
         if not environment:
@@ -65,6 +66,7 @@ class EnvironmentsController(Controller):
         return self.render("/environments/edit.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def delete(self, id):
         environment = Environments.first(id=id)
         msg = "The jail could not be deleted."
