@@ -33,9 +33,7 @@ class UsersController(Controller):
     @cherrypy.tools.myauth(groups=['admin'])
     def add(self, **post):
         user = Users.new(name="", email="", username="", password="")
-        meta = models.Credential.attributes
-        auth_meta = dict([(k, "") for k in meta])
-        auth_meta[cherrypy.config.get('virtualization.url_param')] = cherrypy.config.get('virtualization.default_url')
+        meta, auth_meta = self.get_meta()
 
         if post:
             fields = ['name', 'username', 'password', 'password_repeat', 'email']
@@ -43,7 +41,6 @@ class UsersController(Controller):
             self._set_data(user, data)
             auth_meta = self._get_data('auth_meta', meta, post)
             user.set_meta_data(auth_meta)
-            user.validate_password()
 
             if user.validates() and Users.add(user):
                 cherrypy.session['flash'] = "Jail Type successfully added."
@@ -51,32 +48,44 @@ class UsersController(Controller):
 
             cherrypy.session['flash'] = "Invalid data."
 
-        env = dict(
-            user = user,
-            meta = meta,
-            auth_meta=auth_meta
-        )
+        user.password = ""
+        user.password_repeat = ""
+        env=dict(user = user, meta=meta, auth_meta=auth_meta)
         return self.render("/users/add.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
     @cherrypy.tools.myauth(groups=['admin'])
     def edit(self, id, **post):
         user = Users.first(id=id)
-        meta = models.Credentials.attributes
 
         if not user:
             cherrypy.session['flash'] = "404 User Not Found"
             raise cherrypy.HTTPRedirect('/users')
 
+        meta, auth_meta = self.get_meta()
+        try:
+            data = user.get_meta_data()
+            for k in data:
+                if not k in auth_meta:
+                    continue
+                auth_meta[k] = data[k]
+        except:
+            pass
+
         if post:
-            fields = ['ip', 'netmask']
+            fields = ['name', 'username', 'email']
             data = self._get_data('user', fields, post)
-            user.set_meta_data(self._get_data('meta', meta, post))
-            if user.update(data, fields.append('virt_auth_data')):
+            self._set_data(user, data)
+            auth_meta = self._get_data('auth_meta', meta, post)
+            user.set_meta_data(auth_meta)
+            data['virt_auth_data'] = user.virt_auth_data
+            fields.append('virt_auth_data')
+
+            if user.update(data, fields):
                 cherrypy.session['flash'] = "User successfully updated."
                 raise cherrypy.HTTPRedirect('/users')
 
-        env=dict(user = user, meta=meta)
+        env=dict(user = user, meta=meta, auth_meta=auth_meta)
         return self.render("/users/edit.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
@@ -98,4 +107,9 @@ class UsersController(Controller):
                 return False
         return True
 
+    def get_meta(self):
+        meta = models.Credential.attributes
+        auth_meta = dict([(k, "") for k in meta])
+        auth_meta[cherrypy.config.get('virtualization.url_param')] = cherrypy.config.get('virtualization.default_url')
+        return (meta, auth_meta)
 

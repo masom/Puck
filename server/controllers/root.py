@@ -19,10 +19,8 @@ import os.path
 
 import cherrypy
 from libs.controller import *
-from libs.credentials import Credentials
 import models
-
-import pickle #TODO TO BE REMOVED ONCE WE GET REAL AUTH
+from models import Users
 
 class RootController(Controller):
     crumbs = [Crumb("/", "Home")]
@@ -33,6 +31,7 @@ class RootController(Controller):
         self._routes = {}
 
     @cherrypy.expose
+    @cherrypy.tools.myauth()
     def index(self):
         return self.render("index.html", self.crumbs[:-1])
 
@@ -44,7 +43,7 @@ class RootController(Controller):
 
     @cherrypy.expose
     def logout(self, **post):
-        cherrypy.session['credentials'] = None
+        cherrypy.session.delete()
         raise cherrypy.HTTPRedirect("/login")
 
     def add(self, route, cls):
@@ -60,11 +59,15 @@ class RootController(Controller):
                     cherrypy.session['flash'] = "Invalid form data."
                     return False
 
-            user = Users.first(username=post['user.username'], password=post['user.password'])
-            if not user:
-                return False
-            meta = AuthInformations.all(user_id=self.id)
-            cred = user.generate_auth(meta)
+            hash_password = Users.hash_password(post['user.password'])
+            user = Users.first(username=post['user.username'], password=hash_password)
 
+            if not user:
+                cherrypy.session['flash'] = 'Invalid username or password.'
+                return False
+            creds = user.generate_auth()
+
+            cherrypy.session['user.id'] = user.id
+            cherrypy.session['user.group'] = user.user_group
             cherrypy.session['credentials'] = creds
             raise cherrypy.HTTPRedirect('/index')

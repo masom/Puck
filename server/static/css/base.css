@@ -30,7 +30,7 @@ a{
 	font-weight: bold;
 }
 
-a:hover{
+a:hover {
 	color: #052C6E;
 }
 
@@ -44,9 +44,15 @@ div#wrapper{
 
 div#header{
 	text-align: left;
-	height: 60px;
+	height: 90px;
 }
-
+div#header ul{
+    height: 30px;
+}
+div#header ul li{
+    margin-right: 10px;
+    float: left;
+}
 div#header h1{
 	color: #68A5E4;
 	font-family:  'Lucida Grande', Verdana, sans-serif;

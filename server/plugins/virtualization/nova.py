@@ -27,7 +27,7 @@ class NovaCredentials(Credentials):
     attributes = ['nova_url', 'nova_username', 'nova_api_key', 'nova_project_id']
 
     def _post_init(self):
-        for k in attributes:
+        for k in self.attributes:
             if k in self._data:
                 setattr(self, k, self._data[k])
             else:
@@ -53,10 +53,10 @@ class Nova(Launcher):
             fl = nova.flavors.get(instance_type)
             instance = nova.servers.create(name=name, image=image_id, flavor=fl)
         except exceptions.NotFound as e:
-            print e
+            cherrypy.log(str(e))
             return False
         except exceptions.BadRequest as e:
-            print e
+            cherrypy.log(str(e))
             return False
         return Instance(instance)
 
@@ -106,7 +106,7 @@ class Nova(Launcher):
         try:
             instance_types = nova.flavors.list()
         except exceptions.BadRequest as e:
-            print e
+            cherrypy.log(str(e))
             return False
 
         return self._generate_instance_types(instance_types)

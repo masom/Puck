@@ -140,8 +140,10 @@ class ModelCollection(object):
 
     def _select_all(self):
         ''' Select all rows from the storage. '''
+        query = self._generate_select_query()
+        cherrypy.log(query)
         crs = cherrypy.thread_data.db.cursor()
-        crs.execute(self._generate_select_query())
+        crs.execute(query)
         entities =  self._build(crs.fetchall())
         crs.close()
         return entities
@@ -204,6 +206,8 @@ class ModelCollection(object):
 
     def _execute_query(self, query, data):
         '''Execute a query.'''
+        cherrypy.log(query)
+
         crs = cherrypy.thread_data.db.cursor()
         crs.execute(query, data)
         cherrypy.thread_data.db.commit()

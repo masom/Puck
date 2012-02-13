@@ -40,11 +40,15 @@ class Controller(object):
         variables['breadcrumbs'] = crumbs
         return tmpl.render(**variables)
 
-def auth(allowed_groups=[]):
+def auth(groups=[]):
     # http://stackoverflow.com/questions/3302844/writing-a-cherrypy-decorator-for-authorization
     if not cherrypy.session.has_key('user.id'):
         raise cherrypy.HTTPRedirect('/login')
-    if allowed_groups:
-        if not cherrypy.session.get('user.group', None) in allowed_groups:
-            raise cherrypy.HTTPRedirect('/login')
+
+    if not groups:
+        return
+
+    if not cherrypy.session.get('user.group', None) in groups:
+        cherrypy.session['flash'] = 'You are not authorized to access this section.'
+        raise cherrypy.HTTPRedirect('/index')
 

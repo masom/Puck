@@ -68,7 +68,6 @@ if __name__ == "__main__":
         }
     }
 
-
     connect(None)
 
     import libs.controller
@@ -76,22 +75,31 @@ if __name__ == "__main__":
 
     import models, controllers
     if args.init:
-        print "Initializing persistent storage."
+        cherrypy.log("Initializing persistent storage.")
         from libs.model import Migration
         m = Migration(cherrypy.thread_data.db, [])
         m.init()
-        print "Done."
-        os._exit(0)
 
-    print "Loading models from persistent storage."
+        user = models.Users.new(username='admin', user_group='admin', name='Administrator')
+        user.password = models.Users.hash_password('puck')
+        if models.Users.add(user):
+            cherrypy.log('Admin account added.')
+            cherrypy.log('\tUsername: admin')
+            cherrypy.log('\tPassword: puck')
+            os._exit(0)
+        else:
+            cherrypy.log('An error occured while creating the admin account.')
+            os._exit(1)
+
+    cherrypy.log("Loading models from persistent storage.")
     models.load()
 
-    print "Loading virtualization plugin."
+    cherrypy.log("Loading virtualization plugin.")
     cherrypy.engine.virtualization = VirtualizationPlugin(cherrypy.engine)
     cherrypy.engine.virtualization.subscribe()
     models.Credential = cherrypy.engine.virtualization.get_credential_class()
 
-    print "Loading controllers."
+    cherrypy.log("Loading controllers.")
     root = controllers.RootController(lookup)
     root.add('jails', controllers.JailsController)
     root.add('keys', controllers.KeysController)
@@ -104,6 +112,6 @@ if __name__ == "__main__":
     root.add('users', controllers.UsersController)
     root.load()
 
-    print "Starting application."
+    cherrypy.log("Starting application.")
     cherrypy.engine.subscribe('start_thread', connect)
     cherrypy.quickstart(root, '/', conf)

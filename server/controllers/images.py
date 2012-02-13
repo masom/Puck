@@ -41,7 +41,6 @@ class ImagesController(Controller):
         if post:
             fields = ['name', 'backend_id', 'description']
             data = self._get_data('image', fields, post)
-            data['backend_id'] = self._parse_backend_id(post)
             self._set_data(image, data)
 
             if image.validates() and Images.add(image):

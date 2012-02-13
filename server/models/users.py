@@ -18,10 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
 import models
-import json
+import json, hashlib
 class User(Model):
-    def __init__(self, id=None, name=None, username=None,email=None,password=None, virt_auth_data=None):
+    def __init__(self, id=None,user_group="user",name=None,username=None,email=None,password=None, virt_auth_data=None):
         self.id = id
+        self.user_group = user_group
         self.name = name
         self.email = email
         self.username= username
@@ -30,6 +31,8 @@ class User(Model):
         self.auth = None
 
     def validates(self):
+        self.validate_password()
+
         for a in ['name', 'email', 'password', 'username']:
             if len(getattr(self, a)) > 0:
                 continue
@@ -44,12 +47,16 @@ class User(Model):
             self._errors.append('Passwords do not match.')
             return False
         del self.password_repeat
+        self.password = self._collection.hash_password(self.password)
 
         return True
 
     def generate_auth(self):
         if not self.id:
             return False
+
+        if self.auth:
+            return self.auth
 
         self.auth = models.Credential(id=self.id, name=self.name, email=self.email,
             data=self.virt_auth_data
@@ -63,6 +70,13 @@ class User(Model):
             return False
         return True
 
+    def get_meta_data(self):
+        try:
+            data = json.loads(self.virt_auth_data)
+        except (ValueError, KeyError) as e:
+            return {}
+        return data
+
 class Users(ModelCollection):
     _model = User
 
@@ -70,9 +84,14 @@ class Users(ModelCollection):
     def _generate_table_definition(self):
         columns = OrderedDict([
             ('id', 'TEXT'),
+            ('user_group', 'TEXT'),
+            ('username', 'TEXT'),
             ('name', 'TEXT'),
+            ('email', 'TEXT'),
             ('password', 'TEXT'),
             ('virt_auth_data', 'TEXT')
         ])
         return TableDefinition('users', columns=columns)
 
+    def hash_password(self, password):
+        return hashlib.sha1(password).hexdigest()
