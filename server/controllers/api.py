@@ -147,4 +147,4 @@ class Api(Controller):
         self.config = ApiConfig()
         self.environments = ApiEnvironments()
         self.jails = ApiJails()
-        self.yum_repo = ApiYum()
+        self.yum_repos = ApiYum()

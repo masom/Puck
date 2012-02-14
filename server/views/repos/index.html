@@ -9,11 +9,20 @@
 % if not len(repos):
     <div>There are currently no registered repositories configuration.</div>
 % else:
-    <ul>
+    <table cellspacing="0" cellpadding="0">
+        <tr>
+            <th>Environment</th>
+            <th>Action</th>
+        </tr>
         % for repo in repos:
-            <li>
-                <a href="/repos/view/${repo.environment}">${repo.environment}</a>
-            </li>
+        <tr>
+            <td>${repo.environment}</td>
+            <td>
+                <a href="/repos/view/${repo.environment}">View</a>
+                &nbsp;|&nbsp;
+                <a href="/repos/delete/${repo.environment}">Delete</a>
+            </td>
+        </tr>
         % endfor
-    </ul>
+    </table>
 % endif

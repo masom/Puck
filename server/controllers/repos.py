@@ -76,8 +76,8 @@ class ReposController(Controller):
 
     @cherrypy.expose
     @cherrypy.tools.myauth(groups=['admin'])
-    def view(self, id):
-        repo = YumRepositories.first(id=id)
+    def view(self, environment):
+        repo = YumRepositories.first(environment=environment)
         if not repo:
             cherrypy.session['flash'] = '404 Repository Not Found'
             raise cherrypy.HTTPRedirect('/repos/index')
@@ -86,3 +86,16 @@ class ReposController(Controller):
             env=Environments.first(id=repo.environment)
         )
         return self.render("/repos/view.html", crumbs=self.crumbs, **env)
+
+    @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
+    def delete(self, environment):
+        repo = YumRepositories.first(environment=environment)
+        msg = "The user could not be deleted."
+        if repo:
+            if YumRepositories.delete(repo):
+                msg = "Repository deleted."
+
+        cherrypy.session['flash'] = msg
+
+        raise cherrypy.HTTPRedirect('/repos')

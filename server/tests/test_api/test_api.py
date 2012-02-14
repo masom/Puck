@@ -128,12 +128,26 @@ class ApiTest(unittest.TestCase):
         envs = requester.get('environments')
         self.assertIsInstance(envs, list)
 
-        #TODO Need further development on environments.
+        fields = ['code', 'id', 'name']
+        for e in envs:
+            [self.assertTrue(e.has_key(f)) for f in fields]
 
     def testJails(self):
-        #TODO Need further development on environments.
-        pass
+        requester = Requester()
+        jails = requester.get('jails', 'dev')
+        self.assertIsInstance(jails, dict)
+
+        for k in jails:
+            self.assertIsInstance(jails[k], list)
+            for i in jails[k]:
+                self.assertIsInstance(i, dict)
+                fields = ['name', 'ip', 'environment', 'netmask', 'id', 'jail_type']
+                [self.assertTrue(i.has_key(f)) for f in fields]
 
     def testYum(self):
-        #TODO Need fruther development on environments.
-        pass
+        requester = Requester()
+        repos = requester.get('yum_repos', 'dev')
+        self.assertIsInstance(repos, dict)
+
+        fields = ['environment', 'data']
+        [self.assertTrue(repos.has_key(f)) for f in fields]

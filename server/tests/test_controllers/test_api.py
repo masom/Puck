@@ -121,7 +121,7 @@ class ApiTest(PuckTestCase):
         api = Api(None)
         attrs = [
             'registration', 'keys', 'status', 'config',
-            'environments', 'jails', 'yum_repo'
+            'environments', 'jails', 'yum_repos'
         ]
         for a in attrs:
             self.assertTrue(hasattr(api, a))

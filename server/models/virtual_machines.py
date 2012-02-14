@@ -162,5 +162,9 @@ class VirtualMachines(ModelCollection):
 
     def new(self, **kwargs):
         if not 'name' in kwargs:
-            kwargs['name'] = self._wordlist.pop()
+            try:
+                kwargs['name'] = self._wordlist.pop()
+            except IndexError:
+                cherrypy.log('Virtual Machines name list is empty!')
+                kwargs['name'] = 'unnamed-%s' % len(self._items)
         return ModelCollection.new(self, **kwargs)

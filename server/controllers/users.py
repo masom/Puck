@@ -125,12 +125,6 @@ class UsersController(Controller):
         cherrypy.session['flash'] = msg
 
         raise cherrypy.HTTPRedirect('/users')
-        attrs = ['id', 'name', 'ip']
-        attrs = ['username', 'name', 'password']
-        for a in attrs:
-            if not a in post:
-                return False
-        return True
 
     def get_meta(self):
         meta = models.Credential.attributes
