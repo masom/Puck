@@ -37,7 +37,7 @@ class ReposController(Controller):
         repo = YumRepositories.new(data="", environment="")
         if post:
             fields = ['data', 'environment']
-            data = self._get_data('yum_repository', fields, post)
+            data = self._get_data('repo', fields, post)
             self._set_data(repo, data)
 
             if repo.validates() and YumRepositories.add(repo):
@@ -51,7 +51,6 @@ class ReposController(Controller):
         envs = [env.code for env in environments]
         repos = [repo.environment for repo in repos]
         available = set(envs) - set(repos)
-
         return self.render("/repos/add.html", crumbs=self.crumbs, environments=environments, available=available, repo=repo)
 
     @cherrypy.expose

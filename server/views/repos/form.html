@@ -1,3 +1,11 @@
+% if len(repo.errors()):
+    <h3>Errors:</h3>
+    <ul>
+        % for e in repo.errors():
+            <li>${e}</li>
+        % endfor
+    </ul>
+% endif
 <fieldset>
     <legend>Yum Repository</legend>
     <ul>

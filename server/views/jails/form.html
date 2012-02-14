@@ -12,18 +12,15 @@
         <li>
             <label for="environment">Environment:</label>
             <select id="environment" name="jail.environment" >
-            <%
-                selected = jail.jail_type
-            %>
             % for env in environments:
                 <%
-                    if typ.id == selected:
+                    if env.code == jail.environment:
                         is_selected = 'selected'
                     else:
                         is_selected = ''
                     endif
                 %>
-                <option value="${env.id}" ${is_selected}>${env.name}</option>
+                <option value="${env.code}" ${is_selected}>${env.name}</option>
             % endfor
             </select>
         </li>

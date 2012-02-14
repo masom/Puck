@@ -34,6 +34,7 @@ class YumRepository(Model):
 
 class YumRepositories(ModelCollection):
     _model = YumRepository
+    override_pk = False
     def _generate_table_definition(self):
         columns = OrderedDict([
             ("environment", "TEXT"),
