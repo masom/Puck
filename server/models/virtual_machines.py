@@ -27,7 +27,7 @@ class VirtualMachine(Model):
         self.name = name
         self.instance_type_id = instance_type_id
 
-        if instance_id.isdigit():
+        if instance_id and instance_id.isdigit():
             self.instance_id = int(instance_id)
         else:
             self.instance_id = instance_id

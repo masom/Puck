@@ -5,6 +5,7 @@ import os
 from libs.model import Migration
 import models
 
+
 class PuckTestCase(unittest.TestCase):
     def setUp(self):
         tables = []

@@ -5,11 +5,10 @@ from libs.model import ModelCollection, Model
 class UserTest(unittest.TestCase):
 
     def testInit(self):
-        e = User(name="test", key="asdf", password='derp')
-        for a in ['name', 'key', 'password']:
+        e = User(name="test", password='derp')
+        for a in ['name', 'password']:
             self.assertTrue(hasattr(e, a))
         self.assertEqual('test', e.name)
-        self.assertEqual('asdf', e.key)
         self.assertEqual('derp', e.password)
         self.assertFalse(hasattr(e, 'derp'))
         self.assertIsInstance(e, Model)
@@ -58,23 +57,27 @@ class UsersTest(unittest.TestCase):
         users = Users()
         entity = users.new()
 
-        expected = OrderedDict([('name', None), ('password', None),('key', None)])
+        expected = OrderedDict([
+            ('id', None), ('user_group', 'user'), ('username', None),
+            ('name', None), ('email', None), ('password', None),
+            ('virt_auth_data', None)
+        ])
         data = users._generate_query_data(entity)
         self.assertEqual(expected, data)
 
-        expected = 'INSERT INTO users(name,password,key) VALUES (?,?,?)'
+        expected = 'INSERT INTO users(id,user_group,username,name,email,password,virt_auth_data) VALUES (?,?,?,?,?,?,?)'
         self.assertEqual(users._generate_insert_query(data), expected)
 
     def testTableDefinition(self):
         users = Users()
-        expected = 'CREATE TABLE users (name TEXT PRIMARY KEY,password TEXT,key TEXT)'
+        expected = 'CREATE TABLE users (id TEXT PRIMARY KEY,user_group TEXT,username TEXT,name TEXT,email TEXT,password TEXT,virt_auth_data TEXT)'
         self.assertEqual(str(users.table_definition()), expected)
 
     def testDelete(self):
         users = Users()
         entity = users.new()
 
-        expected = 'DELETE FROM users WHERE name = ?'
+        expected = 'DELETE FROM users WHERE id = ?'
         self.assertEqual(users._generate_delete_query(entity.name), expected)
 
 

@@ -1,4 +1,10 @@
 import unittest
+import cherrypy
+
+def fake_auth(groups=[]):
+    pass
+
+cherrypy.tools.myauth = cherrypy.Tool("before_handler", fake_auth)
 
 from controllers.api import *
 from models import Keys, Jails, YumRepositories

@@ -15,6 +15,7 @@ class MockCollection(ModelCollection):
 
 class MockModel(Model):
     def __init__(self, **kwargs):
+        self._errors = []
         for i in kwargs:
             setattr(self, i, kwargs[i])
 

@@ -41,3 +41,6 @@ class Credentials(object):
             cherrypy.log(msg % str(e))
             return False
         return True
+
+    def _post_init(self):
+        pass
