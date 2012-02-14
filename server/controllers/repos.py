@@ -34,10 +34,13 @@ class ReposController(Controller):
     @cherrypy.expose
     @cherrypy.tools.myauth(groups=['admin'])
     def add(self, **post):
-        if 'yum_repository' in post:
-            repo = YumRepositories.new(**post)
-            if repo.validates():
-                YumRepositories.add(repo)
+        repo = YumRepositories.new(data="", environment="")
+        if post:
+            fields = ['data', 'environment']
+            data = self._get_data('yum_repository', fields, post)
+            self._set_data(repo, data)
+
+            if repo.validates() and YumRepositories.add(repo):
                 cherrypy.session['flash'] = "Repo successfully added"
                 raise cherrypy.HTTPRedirect("/repos/index")
             cherrypy.session['flash'] = "The repository data contains errors."
@@ -45,8 +48,11 @@ class ReposController(Controller):
         # Only list environments not having a repo.
         repos = YumRepositories.all()
         environments = Environments.all()
-        available = set(Environments.all().keys()) - set(repos.keys())
-        return self.render("/repos/add.html", crumbs=self.crumbs, environments=environments, available=available)
+        envs = [env.code for env in environments]
+        repos = [repo.environment for repo in repos]
+        available = set(envs) - set(repos)
+
+        return self.render("/repos/add.html", crumbs=self.crumbs, environments=environments, available=available, repo=repo)
 
     @cherrypy.expose
     @cherrypy.tools.myauth(groups=['admin'])

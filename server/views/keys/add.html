@@ -11,18 +11,17 @@
 
 <form class="vertical" name="keys" method="post" action="/keys/add">
     <div>
-        <label for="name">Title</label>
-        <input id="name" name="name" type="text" required ${atts}
-            value="${key.name if key.name else ''}" />
+        <label for="name">Name</label>
+        <input id="name" name="key.name" type="text" required ${atts} value="${key.name}" />
     </div>
     <div>
         <label for="key">Key</label>
-        <textarea id="key" name="key" required ${atts}>${key.key if key.key else ''}</textarea>
+        <textarea id="key" name="key.key" required ${atts}>${key.key}</textarea>
     </div>
 
     % if not disabled:
         <div>
-            <input type="submit" value="Add" />
+            <button type="submit">Submit</button>
         </div>
     % endif
 </form>

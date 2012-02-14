@@ -11,18 +11,3 @@
 <form class="basic" name="jails" method="post" action="/jails/add">
     <%include file="/jails/form.html" />
 </form>
-<script type="text/javascript">
-    var select = document.getElementById("type")
-
-    var setIp = function(e) {
-        var idx = this.selectedIndex;
-        var ip = this.options[idx].dataset.ip;
-        var netmask = this.options[idx].dataset.netmask
-        document.getElementById("ip").value = ip;
-        document.getElementById("netmask").value = netmask;
-    }
-    select.addEventListener('change', setIp, false);
-    var evt = document.createEvent("HTMLEvents");
-    evt.initEvent("change", true, true);
-    select.dispatchEvent(evt);
-</script>

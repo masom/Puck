@@ -31,15 +31,16 @@ class KeysController(Controller):
     @cherrypy.expose
     @cherrypy.tools.myauth(groups=['admin'])
     def add(self, **post):
-        if 'key' in post:
-            key = Keys.new(name=post['name'],key=post['key'])
-            if key.validates():
-                Keys.add(key)
+        key = Keys.new(name="", key="")
+        if post:
+            fields = ['name', 'key']
+            data = self._get_data(fields, post)
+            self._set_data(key, data)
+
+            if key.validates() and Keys.add(key):
                 cherrypy.session['flash'] = "Key successfully added"
                 raise cherrypy.HTTPRedirect("/keys")
             cherrypy.session['flash'] = "Key is not a valid SSH-RSA"
-        else:
-            key = Keys.new()
 
         env = dict(key=key)
         return self.render("keys/add.html", crumbs=self.crumbs, **env)
@@ -52,4 +53,3 @@ class KeysController(Controller):
         env = dict(key=key)
         return self.render("keys/add.html", crumbs=self.crumbs, **env)
 
-    #TODO delete

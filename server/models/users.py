@@ -31,9 +31,7 @@ class User(Model):
         self.auth = None
 
     def validates(self):
-        self.validate_password()
-
-        for a in ['name', 'email', 'password', 'username']:
+        for a in ['name', 'email', 'username']:
             if len(getattr(self, a)) > 0:
                 continue
             self._errors.append('`%s` cannot be empty' % a)

@@ -7,32 +7,7 @@
 <%block name="header">
     Jails Management
 </%block>
-% if len(jail_type.errors()):
-    <h3>Errors:</h3>
-    <ul>
-        % for e in jail_type.errors():
-            <li>${e}</li>
-        % endfor
-    </ul>
-% endif
 <form class="basic" method="post" action="/jail_types/add">
-    <fieldset>
-        <legend>Jail Type</legend>
-        <ol>
-            <li>
-                <label for="id">ID</label>
-                <input id="id" name="jail_type.id" type="text" value="${jail_type.id}" required />
-            </li>
-            <li>
-                <label for="ip">IP</label>
-                <input id="ip" name="jail_type.ip" type="text" value="${jail_type.ip}" required />
-            </li>
-            <li>
-                <label for="netmask">Netmask</label>
-                <input id="netmask" name="jail_type.netmask" type="text" value="${jail_type.netmask}" required />
-            </li>
-        </ol>
-    </fieldset>
-    <button type="submit">Add</button>
+    <%include file="/jail_types/form.html">
 </form>
 

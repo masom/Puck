@@ -36,7 +36,7 @@ class UsersController(Controller):
         meta, auth_meta = self.get_meta()
 
         if post:
-            fields = ['name', 'username', 'password', 'password_repeat', 'email']
+            fields = ['name', 'username', 'email']
             data = self._get_data('user', fields, post)
             self._set_data(user, data)
             auth_meta = self._get_data('auth_meta', meta, post)
@@ -52,6 +52,31 @@ class UsersController(Controller):
         user.password_repeat = ""
         env=dict(user = user, meta=meta, auth_meta=auth_meta)
         return self.render("/users/add.html", crumbs=self.crumbs, **env)
+
+    @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
+    def password(self, id, **post):
+        user = Users.first(id=id)
+        if not user:
+            cherrypy.session['flash'] = '404 User Not Found'
+            raise cherrypy.HTTPRedirect('/users')
+
+        if post:
+            fields = ['password', 'password_repeat']
+            data = self._get_data('user', fields, post)
+            tmp = Users.new()
+            self._set_data(tmp, data)
+
+            if tmp.validate_password():
+                data['password'] = Users.hash_password(data['password'])
+                user.update(data, ['password'])
+                cherrypy.session['flash'] = 'Password updated.'
+                raise cherrypy.HTTPRedirect('/users')
+
+            cherrypy.session['flash'] = 'Password does not match.'
+        user = Users.new(password="", id=id)
+        env = dict(user=user)
+        return self.render('/users/password.html', crumbs=self.crumbs, **env)
 
     @cherrypy.expose
     @cherrypy.tools.myauth(groups=['admin'])

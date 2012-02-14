@@ -9,20 +9,7 @@
 </%block>
 
 <form class="basic" method="post" action="/environments/edit/${environment.id}">
-    <fieldset>
-        <legend>Environment</legend>
-        <ol>
-            <li>
-                <label for="code">Code</label>
-                <input code="code" name="environment.code" type="text" value="${environment.code}" required />
-            </li>
-            <li>
-                <label for="name">Name</label>
-                <input id="name" name="environment.name" type="text" value="${environment.name}" required />
-            </li>
-        </ol>
-    </fieldset>
-    <button type="submit">Add</button>
+    <%include file="/environments/form.html" />
 </form>
 
 

@@ -7,38 +7,6 @@
 <%block name="header">
     Images Management
 </%block>
-% if len(image.errors()):
-    <h3>Errors:</h3>
-    <ul>
-        % for e in image.errors():
-            <li>${e}</li>
-        % endfor
-    </ul>
-% endif
 <form class="basic" method="post" action="/images/add">
-    <fieldset>
-        <legend>Image</legend>
-        <ol>
-            <li>
-                <label for="backend_id">Backend id</label>
-                <select name="image.backend_id" id="backend_id">
-                    % for i in backend_images:
-                        <%
-                        selected = (image.backend_id == i.id)
-                        %>
-                        <option value="${i.id}" ${selected}>${i.name} (${i.id})</option>
-                    % endfor
-                </select>
-            </li>
-            <li>
-                <label for="ip">Name</label>
-                <input id="ip" name="image.name" type="text" value="${image.name}" required />
-            </li>
-            <li>
-                <label for="description">Description</label>
-                <textarea id="description" name="image.description">${image.description}</textarea>
-            </li>
-        </ol>
-    </fieldset>
-    <button type="submit">Add</button>
+    <%include file="/images/form.html" />
 </form>

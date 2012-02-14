@@ -23,6 +23,15 @@ class YumRepository(Model):
         self.environment = environment
         self.data = data
 
+    def validates(self):
+        for f in ['environment', 'data']:
+            if len(getattr(self, f)) > 0:
+                continue
+            self._errors.append('`%s` cannot be empty.' % f)
+        if self._errors:
+            return False
+        return True
+
 class YumRepositories(ModelCollection):
     _model = YumRepository
     def _generate_table_definition(self):

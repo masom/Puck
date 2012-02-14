@@ -1,0 +1,21 @@
+<fieldset>
+    <legend>Yum Repository</legend>
+    <ul>
+        <li>
+            <label for="name">Environment: </label>
+            <select id="name" name="repo.environment">
+                % for env in available:
+                    <%
+                    if env == repo.environment:
+                        selected = 'selected'
+                    else:
+                        selected = ''
+                    %>
+                    <option value="${env}" ${selected}>${env}</option>
+                % endfor
+            </select>
+        </li>
+        <li><textarea id="data" name="repo.data" style="width: 600px; height: 500px;">${repo.data}</textarea></li>
+    </ul>
+</fieldset>
+<button type="submit">Submit</button>
