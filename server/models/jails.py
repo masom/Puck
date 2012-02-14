@@ -19,13 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from libs.model import ModelCollection, Model, TableDefinition
 from  collections import OrderedDict
 class Jail(Model):
-    def __init__(self, name=None, ip=None, netmask=None, environment=None, id=None, jail_type=None):
+    def __init__(self, name=None, ip=None, netmask=None, environment=None, id=None, jail_type=None, url=None):
         self.id = id
         self.jail_type = jail_type
         self.name = name
         self.ip = ip
         self.netmask = netmask
         self.environment = environment
+        self.url = url
 
 class Jails(ModelCollection):
     _model = Jail

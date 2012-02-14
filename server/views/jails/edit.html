@@ -8,7 +8,7 @@
     Jails Management
 </%block>
 
-<form class="basic" name="jails" method="post" action="/jails/add">
+<form class="basic" name="jails" method="post" action="/jails/edit/${jail.id}">
     <fieldset>
         <legend>Jail</legend>
         <ol>
@@ -22,9 +22,19 @@
             </li>
             <li>
                 <label for="type">Type:</label>
-                <select id="type" name="jail.jail_type_id" >
+                <select id="type" name="jail.jail_type" >
+                <%
+                    selected = jail.jail_type
+                %>
                 % for typ in jailTypes:
-                    <option value="${typ.id}" data-netmask="${typ.netmask}" data-ip="${typ.ip}">${typ.id}</option>
+                    <%
+                        if typ.id == selected:
+                            is_selected = 'selected'
+                        else:
+                            is_selected = ''
+                        endif
+                    %>
+                    <option value="${typ.id}" data-netmask="${typ.netmask}" data-ip="${typ.ip}" ${is_selected}>${typ.id}</option>
                 % endfor
                 </select>
             </li>

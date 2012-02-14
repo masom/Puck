@@ -31,19 +31,48 @@ class JailsController(Controller):
     @cherrypy.expose
     @cherrypy.tools.myauth(groups=['admin'])
     def add(self, **post):
+        jail = Jails.new(id="", url="", name="", ip="", jail_type="", netmask="", environment="")
         if post:
-            jail = Jails.new(post)
-            Jails.add(jail)
-            cherrypy.session['flash'] = "Jail successfully added"
-            raise cherrypy.HTTPRedirect("/jails")
+            fields = ['name', 'url', 'ip', 'jail_type', 'netmask', 'environment']
+            data = self._get_data('jail', fields, post)
+            self._set_data(jail, data)
+
+            if Jails.add(jail):
+                cherrypy.session['flash'] = "Jail successfully added"
+                raise cherrypy.HTTPRedirect("/jails")
+            cherrypy.session['flash'] = "The jail could not be created."
 
         env = dict(
                 environments=Environments.all(),
-                jailTypes=JailTypes.all()
+                jailTypes=JailTypes.all(),
+                jail=jail
         )
 
         return self.render("jails/add.html", crumbs=self.crumbs, **env)
 
+    @cherrypy.expose
+    @cherrypy.tools.myauth(groups=['admin'])
+    def edit(self, id, **post):
+        jail = Jails.first(id=id)
+        if not jail:
+            cherrpy.session['flash'] = '404 Jail Not Found'
+            raise cherrypy.HTTPRedirect('/jails/index')
+
+        if post:
+            fields = ['name', 'url', 'ip', 'jail_type', 'netmask', 'environment']
+            data = self._get_data('jail', fields, post)
+            if jail.update(data, fields):
+                cherrypy.session['flash'] = "Jail successfully updated."
+                raise cherrypy.HTTPRedirect("/jails")
+            cherrypy.session['flash'] = "The jail could not be updated."
+
+        env = dict(
+                environments=Environments.all(),
+                jailTypes=JailTypes.all(),
+                jail=jail
+        )
+
+        return self.render("jails/edit.html", crumbs=self.crumbs, **env)
     @cherrypy.expose
     @cherrypy.tools.myauth(groups=['admin'])
     def view(self, id):

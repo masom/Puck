@@ -20,8 +20,8 @@
             % for jail in jails:
             <tr>
                 <td>%{jail.environment}</td>
-                <td><a href="/jails/view/${jailId}">${jail.name}</a></td>
-                <td><a href="/jails/delete/${jailId}">Delete</a></td>
+                <td><a href="/jails/view/${jail.id}">${jail.name}</a></td>
+                <td><a href="/jails/delete/${jail.id}">Delete</a></td>
             </tr>
             % endfor
         </table>
