@@ -28,6 +28,17 @@ class Jail(Model):
         self.environment = environment
         self.url = url
 
+    def validates(self):
+        fields = ['jail_type', 'environment', 'name', 'ip', 'netmask', 'url']
+        for f in fields:
+            if len(getattr(self, f)):
+                continue
+            self._errors.append('`%s` cannot be empty.' % f)
+
+        if self._errors:
+            return False
+        return True
+
 class Jails(ModelCollection):
     _model = Jail
 

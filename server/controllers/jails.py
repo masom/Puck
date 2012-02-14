@@ -37,7 +37,7 @@ class JailsController(Controller):
             data = self._get_data('jail', fields, post)
             self._set_data(jail, data)
 
-            if Jails.add(jail):
+            if jail.validates() and Jails.add(jail):
                 cherrypy.session['flash'] = "Jail successfully added"
                 raise cherrypy.HTTPRedirect("/jails")
             cherrypy.session['flash'] = "The jail could not be created."
@@ -61,7 +61,7 @@ class JailsController(Controller):
         if post:
             fields = ['name', 'url', 'ip', 'jail_type', 'netmask', 'environment']
             data = self._get_data('jail', fields, post)
-            if jail.update(data, fields):
+            if jail.validates() and jail.update(data, fields):
                 cherrypy.session['flash'] = "Jail successfully updated."
                 raise cherrypy.HTTPRedirect("/jails")
             cherrypy.session['flash'] = "The jail could not be updated."
@@ -73,16 +73,14 @@ class JailsController(Controller):
         )
 
         return self.render("jails/edit.html", crumbs=self.crumbs, **env)
-    @cherrypy.expose
-    @cherrypy.tools.myauth(groups=['admin'])
-    def view(self, id):
-        jail = Jails.first(id=id)
-        env = dict(jail=jail)
-        return self.render("jails/view.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose
     @cherrypy.tools.myauth(groups=['admin'])
     def delete(self, id):
-        Jails.delete(id)
-        cherrypy.session['flash'] = "Jail successfully deleted"
+        jail = Jails.first(id=id)
+        if not jail:
+            cherrypy.session['flash'] = '404 Jail Not found'
+        else:
+            Jails.delete(jail)
+            cherrypy.session['flash'] = "Jail successfully deleted"
         raise cherrypy.HTTPRedirect("/jails")

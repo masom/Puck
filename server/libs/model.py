@@ -102,6 +102,7 @@ class ModelCollection(object):
         ''' Creates a new entity '''
         entity = self._model(**kwargs)
         entity._collection = self
+        entity._after_initialize()
         return entity
 
     def add(self, entity, persist=True):
@@ -266,7 +267,9 @@ class Model(object):
     '''Represent an entity of a ModelCollection'''
 
     _collection = None
-    _errors = []
+    def _after_initialize(self):
+        self._errors = []
+
     def addError(self, field, error):
         self._errors.append("%s: %s" % (field, error))
 

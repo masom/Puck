@@ -1,0 +1,81 @@
+% if len(jail.errors()):
+    <h3>Errors:</h3>
+    <ul>
+        % for e in jail.errors():
+            <li>${e}</li>
+        % endfor
+    </ul>
+% endif
+<fieldset>
+    <legend>Jail</legend>
+    <ol>
+        <li>
+            <label for="environment">Environment:</label>
+            <select id="environment" name="jail.environment" >
+            <%
+                selected = jail.jail_type
+            %>
+            % for env in environments:
+                <%
+                    if typ.id == selected:
+                        is_selected = 'selected'
+                    else:
+                        is_selected = ''
+                    endif
+                %>
+                <option value="${env.id}" ${is_selected}>${env.name}</option>
+            % endfor
+            </select>
+        </li>
+        <li>
+            <label for="type">Type:</label>
+            <select id="type" name="jail.jail_type" >
+            <%
+                selected = jail.jail_type
+            %>
+            % for typ in jailTypes:
+                <%
+                    if typ.id == selected:
+                        is_selected = 'selected'
+                    else:
+                        is_selected = ''
+                    endif
+                %>
+                <option value="${typ.id}" data-netmask="${typ.netmask}" data-ip="${typ.ip}" ${is_selected}>${typ.id}</option>
+            % endfor
+            </select>
+        </li>
+        <li>
+            <label for="name">Name:</label>
+            <input id="name" name="jail.name" type="text" value="${jail.name}" required />
+        </li>
+        <li>
+            <label for="url">Url:</label>
+            <input id="url" name="jail.url" type="url" value="${jail.url}" required />
+        </li>
+        <li>
+            <label for="ip">Ip:</label>
+            <input id="ip" name="jail.ip" type="text" value="${jail.ip}" required />
+        </li>
+        <li>
+            <label for="netmask">Netmask:</label>
+            <input id="netmask" name="jail.netmask" type="text" value="${jail.netmask}" required />
+        </li>
+    </ol>
+</fieldset>
+<button type="submit">Submit</button>
+<script type="text/javascript">
+    var select = document.getElementById("type")
+
+    var setIp = function(e) {
+        var idx = this.selectedIndex;
+        var ip = this.options[idx].dataset.ip;
+        var netmask = this.options[idx].dataset.netmask
+        document.getElementById("ip").value = ip;
+        document.getElementById("netmask").value = netmask;
+    }
+    select.addEventListener('change', setIp, false);
+    var evt = document.createEvent("HTMLEvents");
+    evt.initEvent("change", true, true);
+    select.dispatchEvent(evt);
+</script>
