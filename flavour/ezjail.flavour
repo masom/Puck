@@ -42,7 +42,7 @@ pw group add -q -n ssh_users
 # Remove package files afterwards
 
 PACKAGESITE=file:///pkg pkg_add /pkg/All/*.tbz
-
+/usr/local/bin/rpm --initdb
 ##########################
 #
 #    RPM REGISTRATION
@@ -62,7 +62,7 @@ export HOME
 export PATH
 pkg_info | /usr/local/bin/python /pkg/registerports.py
 
-/usr/local/bin/rpm --initdb && /usr/local/bin/rpm -ivh /pkg/rpm/*.rpm
+/usr/local/bin/rpm -ivh /pkg/rpm/*.rpm
 ##########################
 #
 # END OF RPM REGISTRATION

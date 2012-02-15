@@ -201,7 +201,7 @@ class EZJailSetupTask(SetupTask):
                 self.log("Error while retrieving jail `%s`: %s" % (jail.name, e))
                 return False
 
-            tmpfiles.append({'type': jail.type, 'tmp_file': filename})
+            tmpfiles.append({'type': jail.jail.jail_type, 'tmp_file': filename})
             self.log("Jail `%s` downloaded at `%s`" % (jail.name, filename))
         return tmpfiles
 
@@ -217,9 +217,9 @@ class JailConfigTask(SetupTask):
         flavour_dir = "%s/flavours" % jail_dir
 
         for jail in self.vm.jails:
-            self.log("Configuring jail `%s`." % jail.type)
+            self.log("Configuring jail `%s`." % jail.jail_type)
 
-            path = "%s/%s" % (flavour_dir, jail.type)
+            path = "%s/%s" % (flavour_dir, jail.jail_type)
             authorized_key_file = "%s/installdata/authorized_keys" % path
             resolv_file = "%s/etc/resolv.conf" % path
             yum_file = "%s/installdata/yum_repo" % path
@@ -228,7 +228,7 @@ class JailConfigTask(SetupTask):
             exists = os.path.exists(path)
             is_dir = os.path.isdir(path)
             if not exists or not is_dir:
-                self.log("Flavour `%s` directory is missing in `%s." % (jail.type, flavour_dir))
+                self.log("Flavour `%s` directory is missing in `%s." % (jail.jail_type, flavour_dir))
                 return False
 
             self.log("Retrieving yum repository for environment `%s`." % self.vm.environment)
@@ -260,7 +260,7 @@ class JailConfigTask(SetupTask):
                 for key in self.vm.keys.values():
                     f.write("%s\n" % key['key'])
         except IOError as e:
-            self.log("Error while writing authorized keys to jail `%s`: %s" % (jail.type, e))
+            self.log("Error while writing authorized keys to jail `%s`: %s" % (jail.jail_type, e))
             return False
         return True
 
@@ -290,7 +290,7 @@ class JailConfigTask(SetupTask):
         try:
             jail.create()
         except OSError as e:
-            self.log("Error while installing jail `%s`: %s" % (jail.type, e))
+            self.log("Error while installing jail `%s`: %s" % (jail.jail_type, e))
             return False
         return True
 
@@ -304,15 +304,15 @@ class JailStartupTask(SetupTask):
 
         # Start each jail
         for jail in self.vm.jails:
-            self.log("Starting jail `%s`" % jail.type)
+            self.log("Starting jail `%s`" % jail.jail_type)
             try:
                 jail.start()
             except OSError as e:
-                self.log("Could not start jail `%s`: %s" % (jail.type, e))
+                self.log("Could not start jail `%s`: %s" % (jail.jail_type, e))
                 return False
-            self.log("Jail `%s` started" % (jail.type))
+            self.log("Jail `%s` started" % (jail.jail_type))
             if not jail.status():
-                self.log("Jail `%s` is not running!" % jail.type)
+                self.log("Jail `%s` is not running!" % jail.jail_type)
                 return False
 
         self.log('Completed')

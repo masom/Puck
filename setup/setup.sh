@@ -27,12 +27,14 @@ while read file; do
 done < index
 rm index
 
-##########################
+rpm --initdb
+########################
 #
 #    RPM REGISTRATION
 #
 #    TODO: Find a better way to do this... this requires too much stuff.
-##########################
+#
+########################
 for d in BUILD BUILDROOT RPMS SOURCES SRPMS SPECS; do
     mkdir -p /root/rpmbuild/$d
 done
@@ -46,7 +48,11 @@ export HOME
 export PATH
 pkg_info | /usr/local/bin/python registerports.py
 
-rpm --initdb
+########################
+#
+#    RPM INSTALLATION
+#
+########################
 rpm -ivh *.rpm
 
 cd $START
@@ -62,8 +68,7 @@ fi
 #Start sshd
 /etc/rc.d/sshd start
 
-#Overwrite rc.local to launch pixie
-#TODO: Proper launch options.
+#Overwrites rc.local to launch pixie
 ( cat <<'EOF'
 #!/usr/local/bin/bash
 /usr/local/bin/pixie.py -d -c /usr/local/etc/pixie.conf
