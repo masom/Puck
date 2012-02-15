@@ -105,7 +105,7 @@ class Jail(object):
     def __init__(self, manager, config):
         self._data = {}
 
-        keys = ['id', 'url', 'type', 'name', 'ip', 'netmask']
+        keys = ['id', 'url', 'jail_type', 'name', 'ip', 'netmask']
         for k in keys:
             if not k in config:
                 raise KeyError("Configuration value `%s` is not set." % k)
@@ -131,25 +131,25 @@ class Jail(object):
 
     def start(self):
         '''Starts the jail'''
-        return self._manager.start(self._data['type'])
+        return self._manager.start(self._data['jail_type'])
 
     def stop(self):
         '''Stops the jail'''
-        return self._manager.stop(self._data['type'])
+        return self._manager.stop(self._data['jail_type'])
 
     def status(self):
         '''Get the jail status'''
-        return self._manager.status(self._data['type'])
+        return self._manager.status(self._data['jail_type'])
 
     def create(self):
         '''Create a jail
         Here we make the assumption the type is the same as the flavour...
         Will need to refactor for more global use than HCN's
         '''
-        return self._manager.create(self._data['type'], self._data['type'], self._data['ip'])
+        return self._manager.create(self._data['jail_type'], self._data['jail_type'], self._data['ip'])
 
     def delete(self):
-        return self._manager.delete(self._data['type'])
+        return self._manager.delete(self._data['jail_type'])
 
 class EzJail(object):
 

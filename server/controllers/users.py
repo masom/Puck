@@ -123,7 +123,6 @@ class UsersController(Controller):
                 msg = "User deleted."
 
         cherrypy.session['flash'] = msg
-
         raise cherrypy.HTTPRedirect('/users')
 
     def get_meta(self):
