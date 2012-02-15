@@ -43,14 +43,15 @@ class ConfigurationController(Controller):
         self.__assert_vm_is_modifiable()
 
         environments = self._puck.getEnvironments()
-
         if cherrypy.request.method == "POST":
             if kwargs.has_key("vm.environment"):
                 env_id = kwargs['vm.environment']
-                if environments.has_key(env_id):
+                env = [e['code'] for e in environments if e['code'] == env_id]
+                if env:
                     self._vm.update(environment=env_id)
                     cherrypy.session['flash'] = "Environment updated."
                     raise cherrypy.HTTPRedirect('/configure/')
+                cherrypy.session['flash'] == 'An error occured.'
 
         env = dict(
             VM=self._vm,

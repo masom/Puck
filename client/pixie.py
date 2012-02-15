@@ -123,9 +123,10 @@ if __name__ == "__main__":
 
     cherrypy.engine.start()
     cherrypy.engine.block()
-
-    ezjl_socket.sendall(json.dumps({'id': 'shutdown'}))
-    ezjl_socket.close()
-
+    try:
+        ezjl_socket.sendall(json.dumps({'id': 'shutdown'}))
+        ezjl_socket.close()
+    except:
+        pass
     # Wait for the child to terminate.
     os.waitpid(pid, 0)

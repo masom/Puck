@@ -48,7 +48,12 @@ class MockTransport(object):
         return method()
 
     def _getRegistration(self):
-        return {'id': 'ABC-DEF'}
+        registration =  {
+            'id': 'ABC-DEF', 'status': 'new', 'name': 'troll',
+            'ip': '10.0.0.1', 'instance_type_id': '1', 'instance_id': '1',
+            'image_id': '2', 'user': 'msamson', 'config': ''
+        }
+        return registration
 
     def _getJails(self):
         jails = {'content': {}, 'database': {}, 'support': {}}
@@ -77,13 +82,10 @@ class MockTransport(object):
         return keys
 
     def _getEnvironments(self):
-        environments = {
-            'dev': 'Development',
-            'testing': 'Testing',
-            'qa': 'Quality Assurance',
-            'staging': 'Staging',
-            'prod': 'Production'
-        }
+        environments = [
+            {'id': 'foo', 'code': 'dev', 'name': 'Development'},
+            {'id': 'bar', 'code': 'prod', 'name': 'Production'}
+        ]
         return environments
 
     def _getYumRepo(self):
@@ -130,8 +132,12 @@ class JSONTransport(object):
         return '/'.join((self._base,) + args)
 
     def _request(self, method, resource, data=None):
-        if data:
-            data = json.dumps(data)
+        try:
+            if data:
+                data = json.dumps(data)
+        except ValueError:
+            data = None
+
         request = urllib2.Request(self._resource(resource), data=data)
         request.add_header('Content-Type', 'application/json')
         request.get_method = lambda : method
@@ -157,7 +163,7 @@ class Puck(object):
         if not transport:
             transport = cherrypy.config.get('puck.transport')
 
-        self._puck = transport()
+        self._client = transport()
 
         if not self.register():
             raise LookupError()
@@ -175,21 +181,10 @@ class Puck(object):
         Register the VM to puck.
         Essentially it lets puck know the VM exists.
         '''
-        if not os.path.exists(self._registration_file):
-            self._getRegistration()
-            return self._saveRegistration()
-
-        if not self._loadRegistration():
-            self._getRegistration()
-
+        exists = os.path.exists(self._registration_file)
+        if not exists or not self._loadRegistration():
+            self._registration = self._client.post('registration')
         return self._saveRegistration()
-
-    def _getRegistration(self):
-        '''
-        Post the VM to puck and receive back the registration details.
-        '''
-        info = self._puck.post('registration')
-        self._registration = info['id']
 
     def _loadRegistration(self):
         '''
@@ -201,8 +196,9 @@ class Puck(object):
             return False
 
         with open(self._registration_file, 'r') as f:
-            self._registration = f.readline().strip()
-        return (len(self._registration))
+            id = f.readline().strip()
+            self._registration = self._client.get('registration', id)
+        return self._registration
 
     def _saveRegistration(self):
         '''
@@ -210,14 +206,14 @@ class Puck(object):
         @raise IOError when the file could not be written
         '''
         with open(self._registration_file, 'w') as f:
-            f.write(self._registration)
+            f.write(self._registration['id'])
         return True
 
     def getJails(self, env):
         '''
         Get the jail list assigned to the designated environment.
         '''
-        return self._puck.get('jails', environment=env)
+        return self._client.get('jails', environment=env)
 
     def updateStatus(self):
         '''
@@ -227,7 +223,7 @@ class Puck(object):
                 'id': self.vm.id,
                 'status': self.vm.status
         }
-        self._puck.put('status', self.vm.id, data)
+        self._client.put('status', self.vm.id, data)
 
     def updateConfig(self):
         '''
@@ -237,22 +233,22 @@ class Puck(object):
             'id': self.vm.id,
             'config': self._vm.getConfiguration()
         }
-        self._puck.put('config', self.vm.id, data)
+        self._client.put('config', self.vm.id, data)
 
     def getKeys(self):
         '''
         Get a list of public ssh keys from Puck.
         '''
-        return self._puck.get("keys")
+        return self._client.get("keys")
 
     def getEnvironments(self):
         '''
         Get the environment list.
         '''
-        return self._puck.get('environments')
+        return self._client.get('environments')
 
     def getYumRepo(self, env):
         '''
         Get the YUM repository configuration file.
         '''
-        return self._puck.get('yum_repo', environment=env)
+        return self._client.get('yum_repo', environment=env)

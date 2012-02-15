@@ -7,13 +7,13 @@
 <p>Currently Selected: ${VM.environment}</p>
 <form action="/configure/environment" method="post">
 	<select name="vm.environment">
-		% for id in environments:
-			% if VM.environment == id:
+		% for env in environments:
+			% if VM.environment == env['code']:
 				<% selected = 'selected="selected""' %>
 			% else:
 				<% selected = '' %>
 			% endif
-			<option value="${id}" ${selected}>${environments[id]}</option>
+            <option value="${env['code']}" ${selected}>${env['name']}</option>
 		% endfor
 	</select>
 	<button type="submit">Save</button>

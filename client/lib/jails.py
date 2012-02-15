@@ -267,7 +267,10 @@ class EzJailStarter(object):
 
         (conn, addr) = self._socket.accept()
         while True:
-            data = conn.recv(4096)
+            try:
+                data = conn.recv(4096)
+            except:
+                break
 
             print "Received data: `%s`" % data
 

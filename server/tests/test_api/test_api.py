@@ -47,6 +47,7 @@ class ApiTest(unittest.TestCase):
         keys = ['status', 'name', 'ip', 'instance_type_id', 'instance_id',
                 'image_id', 'user', 'config', 'id'
         ]
+        self.assertIsInstance(registration, dict)
         [self.assertTrue(registration.has_key(k)) for k in keys]
         self.assertEqual(registration['ip'], '127.0.0.1')
 

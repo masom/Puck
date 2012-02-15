@@ -34,7 +34,7 @@ class KeysController(Controller):
         key = Keys.new(name="", key="")
         if post:
             fields = ['name', 'key']
-            data = self._get_data(fields, post)
+            data = self._get_data('key', fields, post)
             self._set_data(key, data)
 
             if key.validates() and Keys.add(key):

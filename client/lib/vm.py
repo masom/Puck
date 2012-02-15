@@ -25,10 +25,11 @@ class VM(object):
     Virtual Machine
     '''
 
-    def __init__(self, id = None):
-        self.id = id
+    def __init__(self, registration):
+        self.id = registration['id']
         self.jails = Jails()
         self.keys = {}
+        self.name = registration['name']
         self.status = 'new'
         self.environment = None
         self.interface = None
@@ -42,7 +43,7 @@ class VM(object):
     def update(self, **kwargs):
         '''Update the VM object with provided values.'''
 
-        valid = ['keys', 'interface']
+        valid = ['keys', 'interface', 'name']
 
         for key in kwargs:
             if not key in valid:
