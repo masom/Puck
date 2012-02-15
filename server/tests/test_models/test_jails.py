@@ -8,7 +8,7 @@ class JailTest(unittest.TestCase):
 
     def testInit(self):
         e = Jail(id="test",jail_type='omg', name='jail', ip="127.0.0.1", netmask='255.255.255.0', environment='lol')
-        for a in ['id', 'jail_type', 'name', 'ip', 'netmask', 'environment']:
+        for a in ['id', 'jail_type', 'name', 'ip', 'netmask', 'environment', 'url']:
             self.assertTrue(hasattr(e, a))
         self.assertEqual('test', e.id)
         self.assertEqual('omg', e.jail_type)
@@ -65,17 +65,17 @@ class JailsTest(unittest.TestCase):
 
         expected = OrderedDict([
             ('id', None), ('jail_type', None), ('name', None),
-            ('ip', None), ('netmask', None), ('environment', None)
+            ('ip', None), ('netmask', None), ('environment', None), ('url', None)
         ])
         data = jails._generate_query_data(entity)
         self.assertEqual(expected, data)
 
-        expected = 'INSERT INTO jails(id,jail_type,name,ip,netmask,environment) VALUES (?,?,?,?,?,?)'
+        expected = 'INSERT INTO jails(id,jail_type,name,ip,netmask,environment,url) VALUES (?,?,?,?,?,?,?)'
         self.assertEqual(jails._generate_insert_query(data), expected)
 
     def testTableDefinition(self):
         jails = Jails()
-        expected = 'CREATE TABLE jails (id TEXT PRIMARY KEY,jail_type TEXT,name TEXT,ip TEXT,netmask TEXT,environment TEXT)'
+        expected = 'CREATE TABLE jails (id TEXT PRIMARY KEY,jail_type TEXT,name TEXT,ip TEXT,netmask TEXT,environment TEXT,url TEXT)'
         self.assertEqual(str(jails.table_definition()), expected)
 
     def testDelete(self):

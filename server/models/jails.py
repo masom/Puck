@@ -49,6 +49,7 @@ class Jails(ModelCollection):
             ('name', 'TEXT'),
             ('ip', 'TEXT'),
             ('netmask', 'TEXT'),
-            ('environment', 'TEXT')
+            ('environment', 'TEXT'),
+            ('url', 'TEXT')
         ])
         return TableDefinition('jails', columns=columns)

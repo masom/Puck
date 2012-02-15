@@ -22,17 +22,17 @@
 	% for type in jails:
 		<h3>${type}</h3>
 		<ul style="list-style: none;">
-			% for key in jails[type]:
+			% for jail in jails[type]:
 				<%
-					if key in selected_jails:
+					if jail['id'] in selected_jails:
 						checked = 'checked="checked"'
 					else:
 						checked = ''
 					endif
 				%>
 				<li>
-					<input id="jails.${type}.${key}" type="radio" name="jails.${type}" value="${key}" ${checked}/>
-					<label for="jails.${type}.${key}">${jails[type][key]['name']}</label>
+					<input id="jails.${type}.${jail['id']}" type="radio" name="jails.${type}" value="${jail['id']}" ${checked}/>
+					<label for="jails.${type}.${jail['id']}">${jail['name']}</label>
 				</li>
 			% endfor
 		</ul>

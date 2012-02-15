@@ -87,7 +87,7 @@ class ConfigurationController(Controller):
         jails = self._puck.getJails(self._vm.environment)
 
         if cherrypy.request.method == "POST":
-            #@todo: Move this somewhere else
+            #@TODO: Move this somewhere else
             keys = ['jails.content', 'jails.database', 'jails.support']
 
             new_jails = []
@@ -98,9 +98,7 @@ class ConfigurationController(Controller):
 
                 jail_id = kwargs[key]
                 domain, type = key.split('.', 1)
-                if jails[type].has_key(jail_id):
-                    new_jails.append(jails[type][jail_id])
-
+                [new_jails.append(jail) for jail in jails[type] if jail['id'] == jail_id]
             cherrypy.session['flash'] = "Jails configuration updated."
             self._vm.update(jails=new_jails)
             raise cherrypy.HTTPRedirect('/configure/')
@@ -119,6 +117,7 @@ class ConfigurationController(Controller):
 
         if cherrypy.request.method == "POST":
             if not "keys[]" in kwargs:
+                cherrypy.session['flash'] = 'You must select at least 1 key'
                 raise cherrypy.HTTPRedirect('/configure/keys')
 
             #@todo: This should be refactored...

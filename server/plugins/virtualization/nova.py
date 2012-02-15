@@ -41,7 +41,6 @@ class Nova(Launcher):
     def _client(self, credentials):
         if credentials is None:
             raise RuntimeError("Invalid credential object.")
-
         return NovaClient(credentials.nova_username, credentials.nova_api_key, credentials.nova_project_id, credentials.nova_url)
 
     def create(self, **kwargs):

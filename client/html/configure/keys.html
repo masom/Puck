@@ -23,8 +23,8 @@
 					key = keys[key]
 				%>
 				<li>
-					<input id="keys.${key['id']}" type="checkbox" name="keys[]" value="${key['id']}" ${checked}/>
-					<label for="keys.${key['id']}">${key['name']}</label>
+					<input id="keys.${key['name']}" type="checkbox" name="keys[]" value="${key['name']}" ${checked}/>
+					<label for="keys.${key['name']}">${key['name']}</label>
 				</li>
 			% endfor
 		</ul>

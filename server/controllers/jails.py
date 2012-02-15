@@ -61,7 +61,9 @@ class JailsController(Controller):
         if post:
             fields = ['name', 'url', 'ip', 'jail_type', 'netmask', 'environment']
             data = self._get_data('jail', fields, post)
-            if jail.validates() and jail.update(data, fields):
+            tmp = Jails.new()
+            self._set_data(tmp, data)
+            if tmp.validates() and jail.update(data, fields):
                 cherrypy.session['flash'] = "Jail successfully updated."
                 raise cherrypy.HTTPRedirect("/jails")
             cherrypy.session['flash'] = "The jail could not be updated."
