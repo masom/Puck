@@ -55,7 +55,7 @@ class EZJailTask(SetupTask, RcReader):
 
         try:
             self._enable_ezjail()
-            self.ezjail.install()
+            EzJail().install(cherrypy.config.get('setup_plugin.ftp_mirror'))
         except (IOError, OSError) as e:
             self.log("Error while installing ezjail: %s" % e)
             return False
@@ -122,8 +122,9 @@ class InterfacesSetupTask(SetupTask, RcReader):
         return alias_count
 
     def _add_ip(self, ip, netmask):
-        command = "ifconfig %s alias %s netmask %s" % (self.vm.interfaces, ip, netmask)
-        subprocess.Popen(shlex.split(command)).wait()
+        command = "ifconfig %s alias %s netmask %s" % (self.vm.interface, ip, netmask)
+        self.log('executing: `%s`' % command)
+        subprocess.Popen(shlex.split(str(command))).wait()
 
     def _add_rc_ip(self, rc_addresses, file, alias_count, ip, netmask):
 
@@ -201,7 +202,7 @@ class EZJailSetupTask(SetupTask):
                 self.log("Error while retrieving jail `%s`: %s" % (jail.name, e))
                 return False
 
-            tmpfiles.append({'type': jail.jail.jail_type, 'tmp_file': filename})
+            tmpfiles.append({'type': jail.jail_type, 'tmp_file': filename})
             self.log("Jail `%s` downloaded at `%s`" % (jail.name, filename))
         return tmpfiles
 

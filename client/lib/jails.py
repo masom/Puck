@@ -161,12 +161,12 @@ class EzJail(object):
         '''Set the socket used to communicate with the fork handling jail start.'''
         self._socket = ezjl_socket
 
-    def install(self):
+    def install(self, mirror='ftp.freebsd.org'):
         '''
         Installs ezjail
         @raise OSError when command not found.
         '''
-        command = '%s install -m -p' % self._prog
+        command = '%s install -m -h %s' % (self._prog, mirror)
         self.logs.append(command)
 
         subprocess.Popen(shlex.split(command)).wait()

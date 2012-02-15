@@ -13,9 +13,10 @@
 % else:
     <div class="index">
         <table cellspacing="0" colspan="0">
-            <tr><th>Username</th><th>Name</th><th>Email</th></tr>
+            <tr><th>Group</th><th>Username</th><th>Name</th><th>Email</th></tr>
             % for user in users:
                 <tr>
+                    <td>${user.user_group}</td>
                     <td>${user.username}</td>
                     <td>${user.name}</td>
                     <td>${user.email}</td>

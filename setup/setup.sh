@@ -55,6 +55,9 @@ pkg_info | /usr/local/bin/python registerports.py
 ########################
 rpm -ivh *.rpm
 
+tar -xzf pixie.tar.gz -C /usr/local/
+cp pixie.conf /usr/local/etc/pixie.conf
+
 cd $START
 rm -rf $DEST
 

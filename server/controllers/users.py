@@ -36,7 +36,7 @@ class UsersController(Controller):
         meta, auth_meta = self.get_meta()
 
         if post:
-            fields = ['name', 'username', 'email']
+            fields = ['name', 'username', 'email', 'user_group']
             data = self._get_data('user', fields, post)
             self._set_data(user, data)
             auth_meta = self._get_data('auth_meta', meta, post)
@@ -98,7 +98,7 @@ class UsersController(Controller):
             pass
 
         if post:
-            fields = ['name', 'username', 'email']
+            fields = ['name', 'username', 'email', 'user_group']
             data = self._get_data('user', fields, post)
             self._set_data(user, data)
             auth_meta = self._get_data('auth_meta', meta, post)

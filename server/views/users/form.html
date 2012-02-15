@@ -10,7 +10,21 @@
     <legend>User</legend>
     <ul>
         <li>
-            <label for="username">Username</label>
+            <label for="user.group">Group</label>
+            <select id="user.user_group" name="user.user_group">
+                % for g in ['user', 'admin']:
+                    <%
+                    if user.user_group == g:
+                        selected = 'selected'
+                    else:
+                        selected = ''
+                    %>
+                    <option value="${g}" ${selected}>${g}</option>
+                % endfor
+            </select>
+        </li>
+        <li>
+            <label for="user.username">Username</label>
             <input id="user.username" name="user.username" type="text" value="${user.username}" required />
         </li>
         <li>

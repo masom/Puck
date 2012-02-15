@@ -49,7 +49,7 @@ If an image is uploaded with euca2ools, the glance entry must be updated to refl
     image_type: qcow2
 
 # Installation
-Configure `setup/bootstrap.sh` to match your environment (mostly just change the url of the package site).
+Configure `setup/setup.sh` to match your environment (mostly just change the url of the package site).
 
 The boostrap file should be included in the virtual machine base image and be run during the first boot.
 
