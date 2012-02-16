@@ -266,6 +266,7 @@ class EzJailStarter(object):
         self._socket.listen(1)
 
         (conn, addr) = self._socket.accept()
+        self._conn = conn
         while True:
             try:
                 data = conn.recv(4096)
@@ -308,7 +309,7 @@ class EzJailStarter(object):
         Starts a jail
         '''
         cmd = "ezjail-admin start %s" % str(data['name'])
-        conn.send(json.dumps({"status": "starting", "command": cmd}))
+        self._conn.send(json.dumps({"status": "starting", "command": cmd}))
         subprocess.Popen(shlex.split(cmd)).wait()
 
     def _stop(self, data):

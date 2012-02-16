@@ -33,6 +33,7 @@ class SetupTask(object):
 
     def log(self, msg):
         now = datetime.datetime.now()
+        cherrypy.log("%s %s" % (self.__class__.__name__, msg))
         self.queue.put("%s\t%s\t%s" % (now.strftime("%Y-%m-%d %H:%M:%S"), self.__class__.__name__, msg))
 
 class RcReader(object):
@@ -225,6 +226,11 @@ class JailConfigTask(SetupTask):
             resolv_file = "%s/etc/resolv.conf" % path
             yum_file = "%s/installdata/yum_repo" % path
 
+            # Create /installdata and /etc folder in case flavour did not include it.
+            for p in ['%s/installdata', '%s/etc']:
+                if not os.path.exists(p % path):
+                    os.mkdir(p % path)
+
             # Verify the flavours exists.
             exists = os.path.exists(path)
             is_dir = os.path.isdir(path)
@@ -317,6 +323,7 @@ class JailStartupTask(SetupTask):
                 return False
 
         self.log('Completed')
+        return True
 
 class SetupWorkerThread(threading.Thread):
     """
@@ -470,7 +477,6 @@ class SetupPlugin(plugins.SimplePlugin):
         status = self._readQueue(self._workerQueue)
         while status:
             self.statuses.append(status)
-            self.bus.log("\t%s" % status)
             status = self._readQueue(self._workerQueue)
 
         if not self.worker or not self.worker.isAlive():

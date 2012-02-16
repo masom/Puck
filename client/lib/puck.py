@@ -41,7 +41,7 @@ class MockTransport(object):
             'jails': self._getJails,
             'keys': self._getKeys,
             'environments': self._getEnvironments,
-            'yum_repo': self._getYumRepo,
+            'yum_repos': self._getYumRepo,
         }.get(resource, None)
         if not method:
             raise NotImplementedError()
@@ -251,4 +251,4 @@ class Puck(object):
         '''
         Get the YUM repository configuration file.
         '''
-        return self._client.get('yum_repo', environment=env)
+        return self._client.get('yum_repos', environment=env)
