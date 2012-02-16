@@ -45,6 +45,7 @@ class Nova(Launcher):
 
     def create(self, **kwargs):
         image_id = kwargs['image_id']
+        vm_id = kwargs['vm_id']
         instance_type = kwargs['instance_type']
         credentials = kwargs['credentials']
 
@@ -52,7 +53,8 @@ class Nova(Launcher):
         name = "%s-%s" % (credentials.nova_username, len(nova.servers.list()))
         try:
             fl = nova.flavors.get(instance_type)
-            instance = nova.servers.create(name=name, image=image_id, flavor=fl)
+            instance = nova.servers.create(name=name, image=image_id,
+                    flavor=fl, meta={'puck_vm_id': vm_id})
         except exceptions.NotFound as e:
             cherrypy.log(str(e))
             return False

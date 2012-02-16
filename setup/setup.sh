@@ -61,15 +61,8 @@ cp pixie.conf /usr/local/etc/pixie.conf
 cd $START
 rm -rf $DEST
 
-#verify sshd is enabled
-grep -q sshd_enable /etc/rc.conf
-RETCODE=$?
-if [ $RETCODE != "0" ]; then
-    echo "sshd_enable=\"YES\"" >> /etc/rc.conf
-fi
-
-#Start sshd
-/etc/rc.d/sshd start
+# Download meta-data from openstack.
+fetch http://169.254.269.254/2009-04-04/meta-data/puck_vm_id -o /usr/local/etc/puck_registration
 
 #Overwrites rc.local to launch pixie
 ( cat <<'EOF'

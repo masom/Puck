@@ -60,6 +60,7 @@ class VirtualMachine(Model):
 
         args = dict(
             action="create",
+            vm_id = self.id,
             image_id=image.backend_id,
             instance_type=instance_type.id,
             credentials=creds

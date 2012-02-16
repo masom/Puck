@@ -77,15 +77,11 @@ class VirtualMachinesController(Controller):
 
             vm = VirtualMachines.new(status="new")
 
-            if not vm.start_instance(image, instance_type, creds):
-                cherrypy.session['flash'] = 'The virtual machine could not be started.'
-                raise cherrypy.HTTPRedirect("/virtual_machines")
 
             if VirtualMachines.add(vm):
-                cherrypy.session['flash'] = "VM started"
-            else:
-                cherrypy.session['flash'] = "VM Started but an error occured while saving virtual machine."
-
+                if not vm.start_instance(image, instance_type, creds):
+                    cherrypy.session['flash'] = 'The virtual machine could not be started.'
+                    raise cherrypy.HTTPRedirect("/virtual_machines")
         else:
             cherrypy.session['flash'] = 'Missing image id.'
 

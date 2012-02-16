@@ -108,7 +108,7 @@ class InterfacesSetupTask(SetupTask, RcReader):
 
         for jail in self.vm.jails:
             jails_ip.append(jail.ip)
-            if not jail.ip in interfaces:
+            if not interfaces.has_key(jail.ip)
                 missing.append(jail.ip)
         return (jails_ip, sorted(set(missing)) )
 
