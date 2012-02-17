@@ -40,7 +40,7 @@ class RcReader(object):
     def _get_rc_content(self):
         rc = None
         with open('/etc/rc.conf', 'r') as f:
-            rc = f.read().split()
+            rc = f.readlines()
         if not rc:
             raise RuntimeError("File `/etc/rc.conf` is empty!")
         return rc
@@ -79,38 +79,37 @@ class InterfacesSetupTask(SetupTask, RcReader):
     def run(self):
         self.log('Started')
 
-        # @TODO: Move netmask to jail config.
-        netmask = '255.255.0.0'
-        (jails_ip, missing) = self._get_missing_ip()
-        self._add_missing_ips(missing, netmask)
-        self._add_missing_rc(jails_ip, netmask)
+        (netaddrs, missing) = self._get_missing_netaddrs()
+        self._add_missing_netaddrs(missing)
+        self._add_missing_rc(netaddrs)
         return True
 
-    def _add_missing_rc(self, jails_ip, netmask):
+    def _add_missing_rc(self, netaddrs):
         rc_addresses = []
         rc = self._get_rc_content()
         alias_count = self._calculate_alias_count(rc_addresses, rc)
 
         with open('/etc/rc.conf', 'a') as f:
-            for ip in jails_ip:
-                if self._add_rc_ip(rc_addresses, f, alias_count, ip, netmask):
+            for netaddr in netaddrs:
+                if self._add_rc_ip(rc_addresses, f, alias_count, netaddr):
                     alias_count += 1
 
-    def _add_missing_ips(self, missing, netmask):
-        for ip in missing:
-            self.log("Registering new ip address `%s`" % ip)
-            self._add_ip(ip, netmask)
+    def _add_missing_netaddrs(self, netaddrs):
+        for netaddr in netaddrs:
+            self.log("Registering new ip address `%s`" % netaddr['ip'])
+            self._add_addr(netaddr['ip'], netaddr['netmask'])
 
-    def _get_missing_ip(self):
+    def _get_missing_netaddrs(self):
         interfaces = NetInterfaces.getInterfaces()
         missing = []
-        jails_ip = []
+        netaddrs = []
 
         for jail in self.vm.jails:
-            jails_ip.append(jail.ip)
+            netaddr = {'ip': jail.ip, 'netmask': jail.netmask}
+            jails_ip.append(netaddr)
             if not interfaces.has_key(jail.ip)
-                missing.append(jail.ip)
-        return (jails_ip, sorted(set(missing)) )
+                missing.append(netaddr)
+        return (netaddrs, sorted(set(missing)) )
 
     def _calculate_alias_count(self, addresses, rc):
         alias_count = 0
@@ -122,21 +121,21 @@ class InterfacesSetupTask(SetupTask, RcReader):
 
         return alias_count
 
-    def _add_ip(self, ip, netmask):
+    def _add_addr(self, ip, netmask):
         command = "ifconfig %s alias %s netmask %s" % (self.vm.interface, ip, netmask)
         self.log('executing: `%s`' % command)
         subprocess.Popen(shlex.split(str(command))).wait()
 
-    def _add_rc_ip(self, rc_addresses, file, alias_count, ip, netmask):
+    def _add_rc_ip(self, rc_addresses, file, alias_count, netaddr):
 
         for item in rc_addresses:
-            if item.find(ip) > 0:
-                self.log("rc already knows about ip `%s`" % ip)
+            if item.find(netaddr['ip']) > 0:
+                self.log("rc already knows about ip `%s`" % netaddr['ip'])
                 return False
-        self.log("Registering new rc value for ip `%s`" % ip)
+        self.log("Registering new rc value for ip `%s`" % netaddr['ip'])
         template = 'ifconfig_%s_alias%s="inet %s netmask %s"'
         line = "%s\n" % template
-        file.write(line % (self.vm.interface, alias_count, ip, netmask))
+        file.write(line % (self.vm.interface, alias_count, netaddr['ip'], netaddr['netmask']))
         file.flush()
         return True
 
