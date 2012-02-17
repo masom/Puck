@@ -1,0 +1,28 @@
+<%inherit file="/layouts/default.html" />
+<%block name="header">
+    Firewalls Management
+</%block>
+<div>
+    <a href="/firewalls/add">Add a new firewall</a>
+</div>
+<h2>Firewalls</h2>
+% if not len(firewalls):
+    <div>There are currently no registered firewallsitories configuration.</div>
+% else:
+    <table cellspacing="0" cellpadding="0">
+        <tr>
+            <th>Name</th>
+            <th>Action</th>
+        </tr>
+        % for firewall in firewalls:
+        <tr>
+            <td>${firewall.name}</td>
+            <td>
+                <a href="/firewalls/view/${firewall.id}">View</a>
+                &nbsp;|&nbsp;
+                <a href="/firewalls/delete/${firewall.id}">Delete</a>
+            </td>
+        </tr>
+        % endfor
+    </table>
+% endif

@@ -18,26 +18,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
 
-class Environment(Model):
-    def __init__(self, id=None,code=None, name=None):
-        self.code = code
+class Firewall(Model):
+    def __init__(self, id=None, name = None, data = None):
+        self.data = data
         self.name = name
         self.id = id
 
+class Firewalls(ModelCollection):
 
-    def validates(self):
-        return True
-
-class Environments(ModelCollection):
-
-    _model = Environment
+    _model = Firewall
 
 
     def _generate_table_definition(self):
         columns = OrderedDict([
             ('id', "TEXT"),
-            ('code', "TEXT"),
-            ('name', "TEXT")
+            ('name', "TEXT"),
+            ('data', "TEXT")
         ])
 
-        return TableDefinition('environments', columns=columns)
+        return TableDefinition('firewalls', columns=columns)
+

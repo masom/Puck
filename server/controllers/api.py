@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import cherrypy
 from libs.controller import *
-from models import VirtualMachines, Keys, Environments, Jails, YumRepositories
+from models import VirtualMachines, Keys, Environments, Jails, YumRepositories, Firewalls
 import json
 
 class ApiCall(object):
@@ -108,6 +108,12 @@ class ApiConfig(ApiCall):
             return None
         return config
 
+class ApiFirewalls(ApiCall):
+    @cherrypy.tools.json_out()
+    def GET(self):
+        firewalls = Firewalls.all()
+        return [f.to_dict() for f in firewalls]
+
 class ApiEnvironments(ApiCall):
 
     @cherrypy.tools.json_out()
@@ -141,10 +147,11 @@ class Api(Controller):
     def __init__(self, lookup):
         Controller.__init__(self, None)
 
-        self.registration = ApiRegistration()
-        self.keys = ApiKeys()
-        self.status = ApiStatus()
         self.config = ApiConfig()
         self.environments = ApiEnvironments()
+        self.firewalls = ApiFirewalls()
         self.jails = ApiJails()
+        self.keys = ApiKeys()
+        self.registration = ApiRegistration()
+        self.status = ApiStatus()
         self.yum_repos = ApiYum()

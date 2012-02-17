@@ -1,0 +1,22 @@
+% if len(firewall.errors()):
+    <h3>Errors:</h3>
+    <ul>
+        % for e in firewall.errors():
+            <li>${e}</li>
+        % endfor
+    </ul>
+% endif
+<fieldset>
+    <legend>Firewall</legend>
+    <ul>
+        <li>
+            <label for="firewall.name">Name</label>
+            <input type="text" id="firewall.name" name="firewall.name" value="${firewall.name}"/>
+        </li>
+        <li>
+            <label for="firewall.data">Configuration</label>
+            <textarea id="firewall.data" name="firewall.data" style="width: 600px; height: 500px;">${firewall.data}</textarea>
+        </li>
+    </ul>
+</fieldset>
+<button type="submit">Submit</button>

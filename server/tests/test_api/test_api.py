@@ -152,3 +152,11 @@ class ApiTest(unittest.TestCase):
 
         fields = ['environment', 'data']
         [self.assertTrue(repos.has_key(f)) for f in fields]
+
+    def testFirewalls(self):
+        requester = Requester()
+        firewalls = requester.get('firewalls')
+        self.assertIsInstance(firewalls, list)
+
+        fields = ['id', 'name', 'data']
+        [[self.assertTrue(f.has_key(i)) for i in fields] for f in firewalls]

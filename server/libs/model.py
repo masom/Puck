@@ -312,8 +312,8 @@ class Migration(object):
         tables = []
         ''' Initialize the database. '''
         collections = [
-            'Jails', 'Environments', 'Images', 'JailTypes', 'Keys',
-            'Users', 'VirtualMachines', 'YumRepositories'
+            'Environments', 'Firewalls', 'Images', 'Jails', 'JailTypes',
+            'Keys', 'Users', 'VirtualMachines', 'YumRepositories'
         ]
         for c in collections:
             self._tables.append(getattr(models, c).table_definition())

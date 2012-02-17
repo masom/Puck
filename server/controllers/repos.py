@@ -91,7 +91,7 @@ class ReposController(Controller):
     @cherrypy.tools.myauth(groups=['admin'])
     def delete(self, environment):
         repo = YumRepositories.first(environment=environment)
-        msg = "The user could not be deleted."
+        msg = "The repository could not be deleted."
         if repo:
             if YumRepositories.delete(repo):
                 msg = "Repository deleted."

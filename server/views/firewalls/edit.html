@@ -1,0 +1,13 @@
+<%inherit file="/layouts/default.html" />
+
+<%block name="css">
+    <link type="text/css" rel="stylesheet" href="/static/css/form.css">
+</%block>
+
+<%block name="header">
+    Firewalls Management
+</%block>
+
+<form method="post" action="/firewalls/edit/${firewall.id}">
+    <%include file="/firewalls/form.html" />
+</form>

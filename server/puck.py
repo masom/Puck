@@ -80,6 +80,11 @@ if __name__ == "__main__":
         m = Migration(cherrypy.thread_data.db, [])
         m.init()
 
+        models.Users.load()
+        if models.Users.first(username='admin'):
+            cherrypy.log('Admin account already created, skipping.')
+            os._exit(0)
+
         user = models.Users.new(username='admin', user_group='admin', name='Administrator')
         user.password = models.Users.hash_password('puck')
         if models.Users.add(user):
@@ -101,15 +106,16 @@ if __name__ == "__main__":
 
     cherrypy.log("Loading controllers.")
     root = controllers.RootController(lookup)
+    root.add('api', controllers.Api)
+    root.add('environments', controllers.EnvironmentsController)
+    root.add('firewalls', controllers.FirewallsController)
+    root.add('images', controllers.ImagesController)
+    root.add('jail_types', controllers.JailTypesController)
     root.add('jails', controllers.JailsController)
     root.add('keys', controllers.KeysController)
-    root.add('api', controllers.Api)
     root.add('repos', controllers.ReposController)
-    root.add('virtual_machines', controllers.VirtualMachinesController)
-    root.add('jail_types', controllers.JailTypesController)
-    root.add('images', controllers.ImagesController)
-    root.add('environments', controllers.EnvironmentsController)
     root.add('users', controllers.UsersController)
+    root.add('virtual_machines', controllers.VirtualMachinesController)
     root.load()
 
     cherrypy.log("Starting application.")
