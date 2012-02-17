@@ -19,6 +19,11 @@ import os, sys
 import cherrypy, sqlite3
 from mako.lookup import TemplateLookup
 from plugins.virtualization import VirtualizationPlugin
+from cherrypy import _cperror
+
+def handle_error():
+    cherrypy.response.status = 500
+    cherrypy.response.body = ["<html><body>Sorry, an error occured</body></html>"]
 
 def argparser():
     import argparse
@@ -47,6 +52,7 @@ if __name__ == "__main__":
         daemonizer.subscribe()
 
     cherrypy.config.update(args.config)
+    cherrypy.config.update({'request.error_response': handle_error});
 
     lookup = TemplateLookup(
         directories=[os.path.join(args.templatedir, reldir) for reldir in ["views"]]
