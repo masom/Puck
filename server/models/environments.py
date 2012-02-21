@@ -41,18 +41,3 @@ class Environments(ModelCollection):
         ])
 
         return TableDefinition('environments', columns=columns)
-
-    def _after_init(self):
-        return
-        ''' TODO: Move this to the config/seed file.'''
-        items = [
-            self.new(code='dev',name='Development'),
-            self.new(code='testing', name='Testing'),
-            self.new(code='qa', name='Quality Assurance'),
-            self.new(code='staging', name='Staging'),
-            self.new(code='prod', name='Production')
-        ]
-
-        for i in items:
-            self.add(i)
-

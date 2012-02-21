@@ -29,6 +29,7 @@ def argparser():
     parser.add_argument("-d", "--daemonize", action="store_true")
     parser.add_argument("-t", "--templatedir", default=os.getcwd())
     parser.add_argument("-i", "--init", action="store_true")
+    parser.add_argument("-s", "--seed", action="store_true")
     return parser
 
 def connect(thread_index):
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     )
 
     conf =  {
+        
         '/' : {
             'request.dispatch' : cherrypy.dispatch.Dispatcher(),
             'tools.sessions.on' : True
@@ -77,6 +79,13 @@ if __name__ == "__main__":
         from libs.model import Migration
         m = Migration(cherrypy.thread_data.db, [])
         m.init()
+        print "Done."
+        os._exit(0)
+
+    if args.seed:
+        print "Seeding values"
+        import seeds
+        seeds.seed_database()
         print "Done."
         os._exit(0)
 

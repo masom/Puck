@@ -42,11 +42,4 @@ class JailTypes(ModelCollection):
         ])
         return TableDefinition('jail_types', columns=columns)
 
-    def _after_init(self):
-        return
-        # TODO Move this to database instead of hard coded
-        netmask='255.255.255.0'
-        self.add(self.new(id='content', ip='10.0.0.10', netmask=netmask))
-        self.add(self.new(id='database', ip='10.0.0.11', netmask=netmask))
-        self.add(self.new(id='support', ip='10.0.0.12', netmask=netmask))
-
+ 
