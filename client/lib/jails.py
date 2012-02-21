@@ -166,7 +166,8 @@ class EzJail(object):
         Installs ezjail
         @raise OSError when command not found.
         '''
-        command = '%s install -m -h %s' % (self._prog, mirror)
+        options = " ".join(cherrypy.config.get('setup_plugin.ezjail_options'))
+        command = '%s install %s %s' % (self._prog, options, mirror)
         self.logs.append(command)
 
         subprocess.Popen(shlex.split(command)).wait()
