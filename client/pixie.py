@@ -21,15 +21,16 @@ import os, sys, time, json
 import cherrypy
 from mako.lookup import TemplateLookup
 
-from lib.vm import VM
-from lib.puck import Puck
-from lib.jails import EzJailStarter
-from lib.setup_plugin import SetupPlugin
+import pixie
+from pixie.lib.vm import VM
+from pixie.lib.puck import Puck
+from pixie.lib.jails import EzJailStarter
+from pixie.lib.setup_plugin import SetupPlugin
 
-from lib.controller import Controller
-from controllers.root import RootController
-from controllers.configuration import ConfigurationController
-from controllers.setup import SetupController
+from pixie.lib.controller import Controller
+from pixie.controllers.root import RootController
+from pixie.controllers.configuration import ConfigurationController
+from pixie.controllers.setup import SetupController
 
 import socket
 
@@ -40,7 +41,7 @@ CONF = {
     '/static': {
         'tools.staticdir.on': True,
         'tools.staticdir.dir': 'static',
-        'tools.staticdir.root': os.getcwd(),
+        'tools.staticdir.root': os.path.dirname(pixie.__file__),
         'tools.staticdir.index': 'index.html'
     }
 }
@@ -51,7 +52,7 @@ def argparser():
     parser = argparse.ArgumentParser(description="Puck client")
     parser.add_argument("-c", "--config", default="/etc/pixie.conf")
     parser.add_argument("-d", "--daemonize", action="store_true")
-    parser.add_argument("-t", "--templatedir", default=os.getcwd())
+    parser.add_argument("-t", "--templatedir", default=os.path.dirname(pixie.__file__))
     return parser
 
 def start_jail_launcher():

@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import os, urllib2, urllib, json
 import cherrypy
-from vm import VM
+from pixie.lib.vm import VM
 
 class MockTransport(object):
     '''

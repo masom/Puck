@@ -1,5 +1,5 @@
 import cherrypy
-from lib.controller import Controller
+from pixie.lib.controller import Controller
 
 class RootController(Controller):
 

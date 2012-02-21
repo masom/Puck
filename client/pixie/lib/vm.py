@@ -15,8 +15,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-from interfaces import NetInterfaces
-from jails import Jails
+from pixie.lib.interfaces import NetInterfaces
+from pixie.lib.jails import Jails
 
 import os, sys, json, cherrypy
 

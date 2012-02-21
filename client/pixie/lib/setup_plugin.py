@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import threading, Queue as queue, time, subprocess, shlex, datetime, urllib, tarfile, os, shutil
 import cherrypy
 from cherrypy.process import wspbus, plugins
-from jails import EzJail
-from lib.interfaces import NetInterfaces
+from pixie.lib.jails import EzJail
+from pixie.lib.interfaces import NetInterfaces
 
 class SetupTask(object):
 
