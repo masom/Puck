@@ -20,5 +20,5 @@ setup (
     data_files = [
         ('/etc', ['pixie.conf'])
     ],
-    scripts = ['pixie.py']
+    scripts = ['pixie-client.py']
 )
