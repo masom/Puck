@@ -39,8 +39,11 @@ class SetupTask(object):
 class RcReader(object):
     def _get_rc_content(self):
         rc = None
-        with open('/etc/rc.conf', 'r') as f:
-            rc = f.readlines()
+        try:
+            with open('/etc/rc.conf', 'r') as f:
+                rc = f.readlines()
+        except IOError:
+            pass
         if not rc:
             raise RuntimeError("File `/etc/rc.conf` is empty!")
         return rc
@@ -72,6 +75,45 @@ class EZJailTask(SetupTask, RcReader):
         '''if we get here, it means ezjail_enable is not in rc.conf'''
         with open('/etc/rc.conf', 'a') as f:
             f.write("ezjail_enable=\"YES\"\n")
+
+class FirewallSetupTask(SetupTask, RcReader):
+    def run(self):
+        self.log('Started')
+
+
+        # TODO Move this to a congfiguration value from puck. Not high priority
+        pf_conf = '/etc/pf.rules.conf'
+        rc_conf = '/etc/rc.conf'
+        self.setup_rc(rc_conf)
+        self.setup_pf_conf(pf_conf)
+
+        return True
+    def setup_pf_conf(self, pf_conf):
+        rules = self.vm.firewall
+        with open(pf_conf, 'w') as f:
+            f.write(rules)
+            f.flush()
+
+    def setup_rc(self, rc_conf, pf_conf):
+        #TODO Move this to a configuration value. Not high priority.
+        rc_items = {
+            'pf_enable'      : 'YES',
+            'pf_rules'       : pf_conf,
+            'pflog_enable'   : 'YES',
+            'gateway_enable' : 'YES'
+        }
+        rc_present = []
+        rc = self._get_rc_content()
+        for line in rc:
+            for k in rc_items:
+                if line.startswith(k):
+                    rc_present.append(k)
+                    break
+        missing = set(rc_items.keys()) - set(rc_present)
+        template = '%s="%s"\n'
+        with open(rc_conf, 'a') as f:
+            [f.write(template % (k,rc_items[k])) for k in missing]
+            f.flush()
 
 class InterfacesSetupTask(SetupTask, RcReader):
     '''Configures network interfaces for the jails.'''
@@ -106,10 +148,10 @@ class InterfacesSetupTask(SetupTask, RcReader):
 
         for jail in self.vm.jails:
             netaddr = {'ip': jail.ip, 'netmask': jail.netmask}
-            jails_ip.append(netaddr)
-            if not interfaces.has_key(jail.ip)
+            netaddrs.append(netaddr)
+            if not interfaces.has_key(jail.ip):
                 missing.append(netaddr)
-        return (netaddrs, sorted(set(missing)) )
+        return (netaddrs, missing)
 
     def _calculate_alias_count(self, addresses, rc):
         alias_count = 0
@@ -455,6 +497,7 @@ class SetupPlugin(plugins.SimplePlugin):
             self._start_worker()
 
         tasks = [
+            FirewallSetupTask,
             EZJailTask,
             EZJailSetupTask,
             InterfacesSetupTask,
@@ -463,6 +506,7 @@ class SetupPlugin(plugins.SimplePlugin):
         ]
 
         # @TODO: Persistence of the list when failure occurs.
+        # or a state machine instead of a queue.
         for task in tasks:
             self._queue.put(task)
 

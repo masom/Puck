@@ -33,6 +33,7 @@ class VM(object):
         self.status = 'new'
         self.environment = None
         self.interface = None
+        self.firewall = None
 
         self.interfaces = NetInterfaces.getInterfaces()
         self.configured = False
@@ -43,7 +44,7 @@ class VM(object):
     def update(self, **kwargs):
         '''Update the VM object with provided values.'''
 
-        valid = ['keys', 'interface', 'name']
+        valid = ['keys', 'interface', 'name', 'firewall']
 
         for key in kwargs:
             if not key in valid:
@@ -79,7 +80,10 @@ class VM(object):
         if not os.path.exists(self._persist_file):
             return
 
-        keys = ['id', 'keys', 'status', 'environment', 'configured', 'interface']
+        keys = [
+            'id', 'keys', 'status', 'environment', 'configured', 'interface',
+            'firewall'
+        ]
         data = {}
 
         try:
@@ -119,6 +123,7 @@ class VM(object):
         data['environment'] = self.environment
         data['configured'] = self.configured
         data['interface'] = self.interface
+        data['firewall'] = self.firewall
         return data
 
     def configurationValid(self):
