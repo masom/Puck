@@ -8,8 +8,8 @@ Release:        1%{?dist}
 Summary:        Pixie, jail virtualization configuration client
 Source0:        pixie-%{version}.tar.gz
 
-License:	LGPL
-BuildArch:      noarch
+License:        LGPL
+Requires:       Mako CherryPy
 
 %description
 Pixie is a FreeBSD jail virtualization configuration client. See http://github.com/masom/Puck
@@ -17,11 +17,9 @@ Pixie is a FreeBSD jail virtualization configuration client. See http://github.c
 %prep
 %setup -q
 
-
 %build
 # Remove CFLAGS=... for noarch packages (unneeded)
 %{__python} setup.py build
-
 
 %install
 rm -rf $RPM_BUILD_ROOT

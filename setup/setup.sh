@@ -62,7 +62,7 @@ cd $START
 rm -rf $DEST
 
 # Download meta-data from openstack.
-fetch http://169.254.269.254/2009-04-04/meta-data/puck_vm_id -o /usr/local/etc/puck_registration
+fetch http://169.254.169.254/2009-04-04/meta-data/puck_vm_id -o /usr/local/etc/puck_registration
 
 #Overwrites rc.local to launch pixie
 ( cat <<'EOF'
