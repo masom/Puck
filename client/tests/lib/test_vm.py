@@ -1,5 +1,5 @@
 import unittest, cherrypy, os
-from lib.vm import VM
+from pixie.lib.vm import VM
 
 def getConf():
     return {
@@ -12,7 +12,7 @@ cherrypy.config.update(getConf())
 class VMTest(unittest.TestCase):
 
     def testInit(self):
-        vm = VM()
+        vm = VM({'id': None, 'name': None})
         self.assertEqual(None, vm.id)
         self.assertEqual({}, vm.keys)
         self.assertEqual('new', vm.status)
@@ -23,7 +23,7 @@ class VMTest(unittest.TestCase):
         self.assertEqual(vm._persist_file, getConf()['vm.persistence'])
 
     def testUpdate(self):
-        vm = VM()
+        vm = VM({'id': None, 'name': None})
 
         expected = {'test': {}}
         vm.update(keys = expected)
@@ -35,7 +35,7 @@ class VMTest(unittest.TestCase):
             vm.invalid
 
     def testIsConfigured(self):
-        vm = VM()
+        vm = VM({'id': None, 'name': None})
 
         self.assertFalse(vm.isConfigured())
         self.assertTrue(vm.isConfigured(True))

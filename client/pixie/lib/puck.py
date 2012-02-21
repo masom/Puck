@@ -29,7 +29,7 @@ class MockTransport(object):
     def post(self, resource, data=''):
         return self._switch(resource)
 
-    def get(self, resource, **params):
+    def get(self, resource, id=None, **params):
         return self._switch(resource)
 
     def put(self, resource, data=''):

@@ -1,6 +1,6 @@
 import unittest, cherrypy, os
-from lib.puck import Puck, MockTransport
-from lib.vm import VM
+from pixie.lib.puck import Puck, MockTransport
+from pixie.lib.vm import VM
 
 def getConf():
     return {
@@ -57,10 +57,6 @@ class PuckTest(unittest.TestCase):
         p = Puck(transport=MockTransport)
         self.assertTrue(isinstance(p.getVM(), VM))
 
-    def test_GetRegistration(self):
-        p = Puck(transport=MockTransport)
-        self.assertNotEqual(p._getRegistration(), "", "Registration is empty!")
-
     def test_loadRegistration(self):
         p = Puck(transport=MockTransport)
         p._registration_file = '/tmp/non-existent-reg'
@@ -70,7 +66,14 @@ class PuckTest(unittest.TestCase):
             f.write('test')
 
         p._registration_file = '/tmp/reg-test'
-        self.assertEqual(4, p._loadRegistration(), "Registration data length does not match expected.")
+        reg = p._loadRegistration()
+        self.assertIsInstance(reg, dict)
+        attrs = [
+            'status', 'instance_id', 'name', 'image_id', 'ip', 'config',
+            'instance_type_id', 'id', 'user'
+        ]
+        for a in attrs:
+            self.assertTrue(reg.has_key(a))
 
     def test_GetJails(self):
         p = Puck(transport=MockTransport)
@@ -95,11 +98,12 @@ class PuckTest(unittest.TestCase):
     def test_GetEnvironments(self):
         p = Puck(transport=MockTransport)
         env = p.getEnvironments()
-        self.assertTrue(isinstance(env, dict))
-        self.assertGreater(len(env.keys()), 0)
+        self.assertIsInstance(env, list)
+        self.assertIsInstance(env[0], dict)
+        self.assertGreater(len(env[0].keys()), 0)
+        attrs = ['code', 'id', 'name']
 
-        for k in env:
-            self.assertTrue(isinstance(env[k], str))
+        [[self.assertTrue(e.has_key(a)) for a in attrs] for e in env]
 
     def test_GetYumRepo(self):
         p = Puck(transport=MockTransport)

@@ -1,5 +1,5 @@
 import unittest
-from lib.jails import Jails, Jail, EzJail
+from pixie.lib.jails import Jails, Jail, EzJail
 
 jailCount = 0
 def getJail():
@@ -10,11 +10,11 @@ def getJail():
     jailCount += 1
     return {
         'id': 'test_%s' % jailCount,
-        'type': 'default',
         'name': 'test_%s' % jailCount,
         'ip': '10.0.0.%s' % jailCount,
         'url': 'http://localhost',
-        'netmask': '255.255.255.0'
+        'netmask': '255.255.255.0',
+        'jail_type': 'test'
     }
 
 class JailTest(unittest.TestCase):
@@ -32,7 +32,7 @@ class JailTest(unittest.TestCase):
     def testExport(self):
         data = getJail()
         j = Jail(None, data)
-        self.assertEqual(j.export(), data, "Exported data is different than expected.")
+        self.assertEqual(j.export(), data)
 
 class JailsTest(unittest.TestCase):
     def testInit(self):

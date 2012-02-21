@@ -1,6 +1,6 @@
 import unittest, StringIO, Queue as queue
 
-from lib.setup_plugin import *
+from pixie.lib.setup_plugin import *
 
 class MockJail(object):
     def __init__(self, ip, netmask):
