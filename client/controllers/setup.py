@@ -23,6 +23,7 @@ class SetupController(Controller):
 
         if self._vm.status == 'configured':
             self._vm.status = 'setup'
+            self._puck.updateConfig()
             self._vm.persist()
 
     @cherrypy.expose

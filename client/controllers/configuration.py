@@ -146,7 +146,9 @@ class ConfigurationController(Controller):
         if not cherrypy.request.method == "POST":
             raise cherrypy.HTTPRedirect('/configure/')
         try:
+            self._puck.updateConfig()
             self._vm.persist()
+
             cherrypy.session['flash'] = "Virtual machine configuration commited."
         except IOError as e:
             cherrypy.session['flash'] = e
