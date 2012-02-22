@@ -1,0 +1,2 @@
+%dist .fbsd
+%www_root /usr/local/www/

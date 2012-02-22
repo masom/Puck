@@ -51,6 +51,21 @@ class VirtualMachine(Model):
         self.update({'ip': ip}, ['ip'])
         return ip
 
+    def remove_public_ip(self, creds):
+        ''' De-assign a public ip from the instance.'''
+
+        args = dict(
+            action = 'remove_public_ip',
+            id = self.instance_id,
+            ip = self.ip,
+            credentials = creds
+        )
+        removed = cherrypy.engine.publish('virtualization', **args).pop()
+        if removed:
+            self.update({'ip': None}, ['ip'])
+        return removed
+
+
     def release_public_ip(self):
         pass
 
@@ -104,6 +119,8 @@ class VirtualMachine(Model):
         ''' Determine if an instance exists. '''
         if not self.instance_id:
             return False
+
+        self.remove_public_ip(creds)
 
         args = dict(
             action="exists",

@@ -42,6 +42,9 @@ done
 mkdir /usr/local/share/hcn/
 cp spectemplate /usr/local/share/hcn
 
+mkdir -p /usr/local/etc/rpm
+cp macros.fbsd /usr/local/etc/rpm/
+
 HOME=/root
 PATH=$PATH:/usr/local/bin
 export HOME
@@ -61,14 +64,12 @@ cp pixie.conf /usr/local/etc/pixie.conf
 cd $START
 rm -rf $DEST
 
-# Download meta-data from openstack.
-fetch http://169.254.169.254/2009-04-04/meta-data/puck_vm_id -o /usr/local/etc/puck_registration
-
 #Overwrites rc.local to launch pixie
-( cat <<'EOF'
-#!/usr/local/bin/bash
-/usr/local/bin/pixie.py -d -c /usr/local/etc/pixie.conf
-EOF
-) > /etc/rc.local
-
-/usr/local/bin/pixie.py -d -c /usr/local/etc/pixie.conf
+echo "#!/usr/local/bin/bash" > /etc/rc.local
+echo "fetch -o /usr/local/etc/puck_registration http://169.254.169.254/latest/user-data" >> /etc/rc.local
+echo "fetch -o /tmp/pixie.rpm $PACKAGESITE/init/pixie.rpm" >> /etc/rc.local
+echo "/usr/local/bin/rpm -ivh /tmp/pixie.rpm" >> /etc/rc.local
+echo "rm /tmp/pixie.rpm" >> /etc/rc.local
+echo "fetch -o /usr/local/etc/pixie.conf $PACKAGESITE/init/pixie.conf" >> /etc/rc.local
+echo "/usr/local/bin/pixie-client.py -d -c /usr/local/etc/pixie.conf" >> /etc/rc.local
+/etc/rc.local &
