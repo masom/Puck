@@ -19,7 +19,7 @@ from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
 
 class Environment(Model):
-    def __init__(self, id=None,code=None, name=None):
+    def __init__(self, id=None,code="", name=""):
         self.code = code
         self.name = name
         self.id = id

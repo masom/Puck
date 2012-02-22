@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
-Name:           Pixie
+Name:           pixie
 Version:        1.0
 Release:        1%{?dist}
 Summary:        Pixie, jail virtualization configuration client
@@ -27,6 +27,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %{_bindir}/pixie
+%{_sysconfdir}/pixie.conf
 %doc
 # For noarch packages: sitelib
 %{python_sitelib}/*

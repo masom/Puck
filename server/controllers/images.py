@@ -73,7 +73,8 @@ class ImagesController(Controller):
 
             cherrypy.session['flash'] = 'Invalid data'
 
-        env=dict(image = image)
+        backend_images = Images.get_backend_images()
+        env=dict(image = image, backend_images=backend_images)
         return self.render("/images/edit.html", crumbs=self.crumbs, **env)
 
     @cherrypy.expose

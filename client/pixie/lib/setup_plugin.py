@@ -84,7 +84,7 @@ class FirewallSetupTask(SetupTask, RcReader):
         # TODO Move this to a congfiguration value from puck. Not high priority
         pf_conf = '/etc/pf.rules.conf'
         rc_conf = '/etc/rc.conf'
-        self.setup_rc(rc_conf)
+        self.setup_rc(rc_conf, pf_conf)
         self.setup_pf_conf(pf_conf)
 
         return True

@@ -20,7 +20,7 @@ from collections import OrderedDict
 import base64, struct
 
 class Key(Model):
-    def __init__(self, name=None, key=None):
+    def __init__(self, name="", key=""):
         self.name = name
         self.key = key
 

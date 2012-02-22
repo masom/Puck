@@ -74,7 +74,7 @@ class ApiConfig(ApiCall):
 
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
-    def POST(self, id, **post):
+    def PUT(self, id, **post):
 
         vm = VirtualMachines.first(id=id)
         if not vm:

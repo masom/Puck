@@ -220,8 +220,8 @@ class Puck(object):
         Tell Puck about VM status changes
         '''
         data = {
-                'id': self.vm.id,
-                'status': self.vm.status
+                'id': self._vm.id,
+                'status': self._vm.status
         }
         self._client.put('status', self.vm.id, data)
 
@@ -230,10 +230,10 @@ class Puck(object):
         Send to PUCK the VM configuration.
         '''
         data = {
-            'id': self.vm.id,
+            'id': self._vm.id,
             'config': self._vm.getConfiguration()
         }
-        self._client.put('config', self.vm.id, data)
+        self._client.put('config', self._vm.id, data)
 
     def getKeys(self):
         '''

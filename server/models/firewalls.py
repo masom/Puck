@@ -19,7 +19,7 @@ from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
 
 class Firewall(Model):
-    def __init__(self, id=None, name = None, data = None):
+    def __init__(self, id=None, name ="", data = ""):
         self.data = data
         self.name = name
         self.id = id

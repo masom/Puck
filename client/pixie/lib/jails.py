@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import sys, os, shlex, subprocess
-
+import cherrypy
 '''For the EzjailCreator workaround'''
 import socket, json
 
@@ -154,7 +154,6 @@ class Jail(object):
 class EzJail(object):
 
     def __init__(self):
-        self.logs = []
         self._prog = '/usr/local/bin/ezjail-admin'
 
     def setSocket(self, ezjl_socket):
@@ -167,8 +166,8 @@ class EzJail(object):
         @raise OSError when command not found.
         '''
         options = " ".join(cherrypy.config.get('setup_plugin.ezjail_options'))
-        command = '%s install %s %s' % (self._prog, options, mirror)
-        self.logs.append(command)
+        command = '%s install %s -h %s' % (self._prog, options, mirror)
+        cherrypy.log(command)
 
         subprocess.Popen(shlex.split(command)).wait()
 
@@ -192,7 +191,7 @@ class EzJail(object):
         command = "%s stop" % self._prog
         if jail:
             command += " %s" % str(jail)
-        self.logs.append(command)
+        cherrypy.log(command)
         subprocess.Popen(shlex.split(command)).wait()
 
     def status(self, jail = None):
@@ -230,7 +229,7 @@ class EzJail(object):
 
         # shlex does not support unicode with python < 2.7.3
         cmd = str("%s create -f %s %s %s" % (self._prog, flavour, name, ip))
-        self.logs.append(cmd)
+        cherrypy.log(cmd)
 
         subprocess.Popen(shlex.split(cmd)).wait()
 
@@ -244,8 +243,7 @@ class EzJail(object):
             "%s delete -w %s" % (self._prog, jail)
         ]
         for command in commands:
-            self.logs.append(command)
-
+            cherrypy.log(command)
             subprocess.Popen(shlex.split(str(command))).wait()
 
 class StopLoopException(Exception): pass

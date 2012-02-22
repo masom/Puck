@@ -36,7 +36,7 @@ class VirtualMachinesController(Controller):
         else:
             msg = 'An IP could not be added to the instance.'
         cherrypy.session['flash'] = msg
-        raise cherrypy.HTTPRedirect('/running')
+        raise cherrypy.HTTPRedirect('/virtual_machines/running')
 
     @cherrypy.expose
     @cherrypy.tools.myauth()
@@ -76,7 +76,6 @@ class VirtualMachinesController(Controller):
             self._validate_start_args(image, instance_type)
 
             vm = VirtualMachines.new(status="new")
-
 
             if VirtualMachines.add(vm):
                 if not vm.start_instance(image, instance_type, creds):

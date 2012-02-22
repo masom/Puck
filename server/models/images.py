@@ -21,7 +21,7 @@ from collections import OrderedDict
 import cherrypy
 
 class Image(Model):
-    def __init__(self, id=None, name=None, backend_id=None, description=None):
+    def __init__(self, id=None, name="", backend_id=None, description=""):
         self.id = id
         self.name = name
         self.backend_id = backend_id

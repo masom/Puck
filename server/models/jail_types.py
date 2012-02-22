@@ -19,7 +19,7 @@ from libs.model import ModelCollection, Model, TableDefinition
 from collections import OrderedDict
 import re
 class JailType(Model):
-    def __init__(self, id=None, ip=None, netmask=None):
+    def __init__(self, id=None, ip="", netmask=""):
         self.id = id
         self.ip = ip
         self.netmask = netmask
