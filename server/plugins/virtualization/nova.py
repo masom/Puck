@@ -141,6 +141,7 @@ class Nova(Launcher):
             ip = nova.floating_ips.create()
             server = nova.servers.get(instance_id)
             server.add_floating_ip(ip.ip)
-        except exceptions.BadRequest as e:
+        except (exceptions.BadRequest, exceptions.ClientException) as e:
             cherrypy.log(str(e))
-        return ip
+            return False
+        return ip.ip

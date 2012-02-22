@@ -47,6 +47,8 @@ class VirtualMachine(Model):
             credentials=creds
         )
         ip = cherrypy.engine.publish('virtualization', **args).pop()
+        print ip
+        self.update({'ip': ip}, ['ip'])
         return ip
 
     def release_public_ip(self):
@@ -70,9 +72,8 @@ class VirtualMachine(Model):
         instance = cherrypy.engine.publish("virtualization", **args).pop()
         if not instance:
             return False
-
-        self.instance_id = instance.id
-        self.user = creds.name
+        data = {'instance_id': instance.id, 'user': creds.name}
+        self.update(data, ['instance_id', 'user'])
         return True
 
     def stop_instance(self, creds):
@@ -112,7 +113,7 @@ class VirtualMachine(Model):
         return cherrypy.engine.publish("virtualization", **args).pop()
 
     def delete_instance(self, creds):
-        ''' Restart the attached instance. '''
+        ''' Delete the attached instance. '''
         if not self.instance_id:
             return False
 

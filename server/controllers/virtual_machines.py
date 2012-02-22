@@ -116,7 +116,7 @@ class VirtualMachinesController(Controller):
         creds = cherrypy.session.get('credentials')
 
         vm = self._get_vm(id)
-        if not vm.instance_id is None:
+        if vm.instance_id:
             try:
                 if not vm.delete_instance(creds):
                     msg = 'The virtual machine instance could not be deleted.'

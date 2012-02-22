@@ -32,6 +32,7 @@ class ApiRegistration(ApiCall):
         vm = VirtualMachines.new(ip=cherrypy.request.remote.ip)
         VirtualMachines.add(vm)
         return vm.to_dict()
+
     @cherrypy.tools.json_out()
     def GET(self, id):
         vm = VirtualMachines.first(id=id)
