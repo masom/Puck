@@ -27,7 +27,7 @@ while read file; do
 done < index
 rm index
 
-rpm --initdb
+/usr/local/bin/rpm --initdb
 ########################
 #
 #    RPM REGISTRATION
@@ -56,10 +56,7 @@ pkg_info | /usr/local/bin/python registerports.py
 #    RPM INSTALLATION
 #
 ########################
-rpm -ivh *.rpm
-
-tar -xzf pixie.tar.gz -C /usr/local/
-cp pixie.conf /usr/local/etc/pixie.conf
+/usr/local/bin/rpm -ivh *.rpm
 
 cd $START
 rm -rf $DEST

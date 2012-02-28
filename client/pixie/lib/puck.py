@@ -223,7 +223,7 @@ class Puck(object):
                 'id': self._vm.id,
                 'status': self._vm.status
         }
-        self._client.put('status', self.vm.id, data)
+        self._client.put('status', self._vm.id, data)
 
     def updateConfig(self):
         '''

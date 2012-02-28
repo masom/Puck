@@ -26,16 +26,18 @@
         <tr>
             <td>${i.name}</td>
             <td>
-                <ul>
-                    % for addr in i.addresses['private']:
-                        % if not addr['fixed']:
-                            <%
-                                public_ip = addr['addr']
-                            %>
-                            <li>${addr['addr']}</li>
-                        % endif
-                    % endfor
-                </ul>
+                % if i.addresses:
+                    <ul>
+                        % for addr in i.addresses['private']:
+                            % if not addr['fixed']:
+                                <%
+                                    public_ip = addr['addr']
+                                %>
+                                <li>${addr['addr']}</li>
+                            % endif
+                        % endfor
+                    </ul>
+                % endif
             </td>
             <td>${i.status}</td>
             <td>
