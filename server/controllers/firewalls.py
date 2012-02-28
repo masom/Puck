@@ -80,8 +80,8 @@ class FirewallsController(Controller):
 
     @cherrypy.expose
     @cherrypy.tools.myauth(groups=['admin'])
-    def delete(self, environment):
-        firewall = Firewalls.first(environment=environment)
+    def delete(self, id):
+        firewall = Firewalls.first(id=id)
         msg = "The firewall could not be deleted."
         if firewall:
             if Firewalls.delete(firewall):

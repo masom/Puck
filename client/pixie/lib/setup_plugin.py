@@ -90,6 +90,8 @@ class FirewallSetupTask(SetupTask, RcReader):
         return True
     def setup_pf_conf(self, pf_conf):
         rules = self.vm.firewall
+        if not rules:
+            return False
         with open(pf_conf, 'w') as f:
             f.write(rules)
             f.flush()
