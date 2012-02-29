@@ -110,6 +110,26 @@ class ConfigurationController(Controller):
         return self.render("/configure/jails.html", **env)
 
     @cherrypy.expose
+    def firewall(self, *args, **kwargs):
+        self.__assert_vm_is_modifiable()
+
+        firewalls = self._puck.getFirewalls()
+        if cherrypy.request.method == "POST":
+            if kwargs.has_key("vm.firewall"):
+                f_id = kwargs['vm.firewall']
+                firewall = [f['id'] for f in firewalls if f['id'] == f_id]
+                if firewall:
+                    self._vm.update(firewall=firewall[0]['data'])
+                    cherrypy.session['flash'] = "Firewall updated."
+                    raise cherrypy.HTTPRedirect('/configure/')
+                cherrypy.session['flash'] == 'An error occured.'
+
+        env = dict(
+            VM=self._vm,
+            firewalls=firewalls
+        )
+        return self.render("/configure/firewall.html", **env)
+    @cherrypy.expose
     def keys(self, *args, **kwargs):
         self.__assert_vm_is_modifiable()
 

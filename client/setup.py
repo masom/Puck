@@ -7,7 +7,7 @@ setup (
     description = "Virtualization configuration client",
     author = "Martin Samson",
     author_email = "msamson@hcn-inc.com",
-    version = '0.3',
+    version = '0.3333',
     package_dir = {'pixie': 'pixie'},
     packages = [
         'pixie', 'pixie.controllers', 'pixie.lib'

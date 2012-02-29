@@ -498,18 +498,9 @@ class SetupPlugin(plugins.SimplePlugin):
         if not self.worker.is_alive() and not self.worker.successful:
             self._start_worker()
 
-        tasks = [
-            FirewallSetupTask,
-            EZJailTask,
-            EZJailSetupTask,
-            InterfacesSetupTask,
-            JailConfigTask,
-            JailStartupTask
-        ]
-
         # @TODO: Persistence of the list when failure occurs.
         # or a state machine instead of a queue.
-        for task in tasks:
+        for task in cherrypy.config.get('setup_plugin.tasks'):
             self._queue.put(task)
 
     def _setup_status(self, **kwargs):
