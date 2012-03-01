@@ -272,16 +272,17 @@ class EzJailStarter(object):
             except:
                 break
 
-            print "Received data: `%s`" % data
+            cherrypy.log("EzJailStarter\tReceived data: `%s`" % data)
 
             (execute, command) = self._handle(data)
-
             if execute:
                 try:
                     execute(command)
                 except StopLoopException:
                     break
-            conn.send(json.dumps({"status": "started"}))
+                conn.send(json.dumps({"status": "started"}))
+            else:
+                conn.send(json.dumps({'status': 'failed'}))
         conn.close()
 
     def _handle(self, data):
@@ -290,10 +291,12 @@ class EzJailStarter(object):
         '''
         try:
             command  = json.loads(data)
-        except ValueError:
+        except ValueError as e:
+            cherrypy.log("EzJailStarter\tError: %s" % e)
             return (False, False)
 
         if not 'id' in command:
+            cherrypy.log("EzJAilStarter\tError: Command id missing.")
             return (False, False)
 
         execute = {
@@ -309,6 +312,7 @@ class EzJailStarter(object):
         '''
         cmd = "ezjail-admin start %s" % str(data['name'])
         self._conn.send(json.dumps({"status": "starting", "command": cmd}))
+        cherrypy.log("EzJailStarter\tExecuting: %s" % cmd)
         subprocess.Popen(shlex.split(cmd)).wait()
 
     def _stop(self, data):

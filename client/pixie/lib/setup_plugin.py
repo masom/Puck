@@ -15,7 +15,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import threading, Queue as queue, time, subprocess, shlex, datetime, urllib, tarfile, os, shutil
+import threading, Queue as queue, time, subprocess, shlex, datetime
+import urllib, tarfile, os, shutil
 import cherrypy
 from cherrypy.process import wspbus, plugins
 from pixie.lib.jails import EzJail
@@ -34,7 +35,10 @@ class SetupTask(object):
     def log(self, msg):
         now = datetime.datetime.now()
         cherrypy.log("%s %s" % (self.__class__.__name__, msg))
-        self.queue.put("%s\t%s\t%s" % (now.strftime("%Y-%m-%d %H:%M:%S"), self.__class__.__name__, msg))
+        tpl =  "%s\t%s\t%s"
+        date_format = "%Y-%m-%d %H:%M:%S"
+        cls = self.__class__.__name__
+        self.queue.put(tpl % (now.strftime(date_format), cls, msg))
 
 class RcReader(object):
     def _get_rc_content(self):
@@ -51,11 +55,8 @@ class RcReader(object):
 class EZJailTask(SetupTask, RcReader):
     '''
     Setups ezjail in the virtual machine.
-    TODO: As installing ezjail builds world each time, it would probably be better to store
-    the resulting basejail.
     '''
     def run(self):
-        self.log('Started')
 
         try:
             self._enable_ezjail()
@@ -63,7 +64,6 @@ class EZJailTask(SetupTask, RcReader):
         except (IOError, OSError) as e:
             self.log("Error while installing ezjail: %s" % e)
             return False
-        self.log('Completed')
         return True
 
     def _enable_ezjail(self):
@@ -72,22 +72,30 @@ class EZJailTask(SetupTask, RcReader):
             if line.startswith('ezjail_enable'):
                 return
 
+        self.log("Adding to rc: `%s`" % 'ezjail_enable="YES"')
         '''if we get here, it means ezjail_enable is not in rc.conf'''
         with open('/etc/rc.conf', 'a') as f:
             f.write("ezjail_enable=\"YES\"\n")
 
 class FirewallSetupTask(SetupTask, RcReader):
     def run(self):
-        self.log('Started')
-
 
         # TODO Move this to a congfiguration value from puck. Not high priority
         pf_conf = '/etc/pf.rules.conf'
         rc_conf = '/etc/rc.conf'
         self.setup_rc(rc_conf, pf_conf)
         self.setup_pf_conf(pf_conf)
+        self.launch_pf()
 
         return True
+
+    def launch_pf(self):
+        # Stop it in case it
+        commands = ['/etc/rc.d/pf stop', '/etc/rc.d/pf start']
+        for command in commands:
+            self.log("Executing: `%s`" % command)
+            subprocess.Popen(shlex.split(str(command))).wait()
+
     def setup_pf_conf(self, pf_conf):
         rules = self.vm.firewall
         if not rules:
@@ -106,12 +114,18 @@ class FirewallSetupTask(SetupTask, RcReader):
         }
         rc_present = []
         rc = self._get_rc_content()
+
         for line in rc:
             for k in rc_items:
                 if line.startswith(k):
                     rc_present.append(k)
                     break
+
         missing = set(rc_items.keys()) - set(rc_present)
+
+        tpl = 'Adding to rc: `%s="%s"`'
+        [self.log(tpl % (k, rc_items[k])) for k in missing]
+
         template = '%s="%s"\n'
         with open(rc_conf, 'a') as f:
             [f.write(template % (k,rc_items[k])) for k in missing]
@@ -121,7 +135,6 @@ class InterfacesSetupTask(SetupTask, RcReader):
     '''Configures network interfaces for the jails.'''
 
     def run(self):
-        self.log('Started')
 
         (netaddrs, missing) = self._get_missing_netaddrs()
         self._add_missing_netaddrs(missing)
@@ -166,7 +179,8 @@ class InterfacesSetupTask(SetupTask, RcReader):
         return alias_count
 
     def _add_addr(self, ip, netmask):
-        command = "ifconfig %s alias %s netmask %s" % (self.vm.interface, ip, netmask)
+        cmd = "ifconfig %s alias %s netmask %s"
+        command = cmd % (self.vm.interface, ip, netmask)
         self.log('executing: `%s`' % command)
         subprocess.Popen(shlex.split(str(command))).wait()
 
@@ -179,7 +193,11 @@ class InterfacesSetupTask(SetupTask, RcReader):
         self.log("Registering new rc value for ip `%s`" % netaddr['ip'])
         template = 'ifconfig_%s_alias%s="inet %s netmask %s"'
         line = "%s\n" % template
-        file.write(line % (self.vm.interface, alias_count, netaddr['ip'], netaddr['netmask']))
+        values = (
+            self.vm.interface, alias_count, netaddr['ip'], netaddr['netmask']
+        )
+
+        file.write(line % values)
         file.flush()
         return True
 
@@ -188,7 +206,6 @@ class EZJailSetupTask(SetupTask):
     Setups ezjail in the virtual machine
     '''
     def run(self):
-        self.log('Started')
 
         base_dir = cherrypy.config.get('setup_plugin.jail_dir')
         dst_dir = '%s/flavours' % base_dir
@@ -197,7 +214,7 @@ class EZJailSetupTask(SetupTask):
             try:
                 os.makedirs(dst_dir)
             except OSError as e:
-                self.log('Critical error! Could not create folder `%s`' % dst_dir)
+                self.log('Could not create folder `%s`' % dst_dir)
                 return False
 
         # Holds the temporary file list
@@ -211,7 +228,8 @@ class EZJailSetupTask(SetupTask):
         for file in tmpfiles:
             # Verify
             if not tarfile.is_tarfile(file['tmp_file']):
-                self.log("Critical error! File `%s` is not a tarfile." % file['tmp_file'])
+                msg = "File `%s` is not a tarfile."
+                self.log(msg % file['tmp_file'])
                 return False
 
             # Extraction
@@ -219,18 +237,19 @@ class EZJailSetupTask(SetupTask):
                 with tarfile.open(file['tmp_file'], mode='r:*') as t:
                     '''Will raise KeyError if file does not exists.'''
                     if not t.getmember(file['type']).isdir():
-                        raise tarfile.ExtractError("Tar member `%s` is not a folder." % file['type'])
+                        msg ="Tar member `%s` is not a folder."
+                        raise tarfile.ExtractError(msg % file['type'])
                     t.extractall("%s/" % dst_dir)
             except (IOError, KeyError, tarfile.ExtractError) as e:
-                self.log("Critical error! File `%s` could not be extracted. Reason: %s" % (file['tmp_file'], e))
+                msg = "File `%s` could not be extracted. Reason: %s"
+                self.log(msg % (file['tmp_file'], e))
 
             # Remove the temporary tarball
             try:
                 os.unlink(file['tmp_file'])
             except OSerror as e:
-                self.log("error while removing file `%s`: %s" %(file['tmp_file'], e))
-
-        self.log('Completed')
+                msg = "Error while removing file `%s`: %s"
+                self.log(msg % (file['tmp_file'], e))
         return True
 
     def _retrieveFlavours(self):
@@ -243,7 +262,8 @@ class EZJailSetupTask(SetupTask):
             try:
                 (filename, headers) = urllib.urlretrieve(jail.url)
             except (urllib.ContentTooShortError, IOError) as e:
-                self.log("Error while retrieving jail `%s`: %s" % (jail.name, e))
+                msg = "Error while retrieving jail `%s`: %s"
+                self.log(msg % (jail.name, e))
                 return False
 
             tmpfiles.append({'type': jail.jail_type, 'tmp_file': filename})
@@ -256,7 +276,6 @@ class JailConfigTask(SetupTask):
     '''
 
     def run(self):
-        self.log('Started')
 
         jail_dir = cherrypy.config.get('setup_plugin.jail_dir')
         flavour_dir = "%s/flavours" % jail_dir
@@ -269,7 +288,7 @@ class JailConfigTask(SetupTask):
             resolv_file = "%s/etc/resolv.conf" % path
             yum_file = "%s/installdata/yum_repo" % path
 
-            # Create /installdata and /etc folder in case flavour did not include it.
+            # Create /installdata and /etc folder.
             for p in ['%s/installdata', '%s/etc']:
                 if not os.path.exists(p % path):
                     os.mkdir(p % path)
@@ -278,10 +297,12 @@ class JailConfigTask(SetupTask):
             exists = os.path.exists(path)
             is_dir = os.path.isdir(path)
             if not exists or not is_dir:
-                self.log("Flavour `%s` directory is missing in `%s." % (jail.jail_type, flavour_dir))
+                msg = "Flavour `%s` directory is missing in `%s."
+                self.log(msg % (jail.jail_type, flavour_dir))
                 return False
 
-            self.log("Retrieving yum repository for environment `%s`." % self.vm.environment)
+            msg = "Retrieving yum repository for environment `%s`."
+            self.log(msg % self.vm.environment)
             yum_repo = self._puck.getYumRepo(self.vm.environment)
 
             self.log("Writing ssh keys.")
@@ -299,7 +320,6 @@ class JailConfigTask(SetupTask):
             self.log("Creating jail.")
             if not self._createJail(jail):
                 return False
-        self.log('Completed')
         return True
 
     def _writeKeys(self, jail, authorized_key_file):
@@ -310,7 +330,8 @@ class JailConfigTask(SetupTask):
                 for key in self.vm.keys.values():
                     f.write("%s\n" % key['key'])
         except IOError as e:
-            self.log("Error while writing authorized keys to jail `%s`: %s" % (jail.jail_type, e))
+            msg = "Error while writing authorized keys to jail `%s`: %s"
+            self.log(msg % (jail.jail_type, e))
             return False
         return True
 
@@ -340,7 +361,8 @@ class JailConfigTask(SetupTask):
         try:
             jail.create()
         except OSError as e:
-            self.log("Error while installing jail `%s`: %s" % (jail.jail_type, e))
+            msg = "Error while installing jail `%s`: %s"
+            self.log(msg % (jail.jail_type, e))
             return False
         return True
 
@@ -350,7 +372,6 @@ class JailStartupTask(SetupTask):
     '''
 
     def run(self):
-        self.log('Started')
 
         # Start each jail
         for jail in self.vm.jails:
@@ -365,7 +386,6 @@ class JailStartupTask(SetupTask):
                 self.log("Jail `%s` is not running!" % jail.jail_type)
                 return False
 
-        self.log('Completed')
         return True
 
 class SetupWorkerThread(threading.Thread):
@@ -399,9 +419,10 @@ class SetupWorkerThread(threading.Thread):
         task = self._queue.get(True, 10)(self._puck, self._outqueue)
 
         loginfo = (self.__class__.__name__, task.__class__.__name__)
-
+        task.log('Starting')
         if not task.run():
             raise RuntimeError("%s error while running task `%s`" % loginfo)
+        task.log('Completed')
         self._queue.task_done()
 
     def run(self):
@@ -486,7 +507,10 @@ class SetupPlugin(plugins.SimplePlugin):
             self.worker.stop()
 
     def _start_worker(self):
-        self.worker = SetupWorkerThread( bus=self.bus, queue = self._queue, outqueue = self._workerQueue, puck = self._puck)
+        self.worker = SetupWorkerThread(
+                bus=self.bus, queue = self._queue,
+                outqueue = self._workerQueue, puck = self._puck
+        )
         self.worker.start()
 
     def _setup_start(self, **kwargs):

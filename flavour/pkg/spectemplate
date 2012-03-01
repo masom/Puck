@@ -1,5 +1,5 @@
-Name:   %%name%%		
-Version: %%version%%	
+Name:   %%name%%
+Version: %%version%%
 Release:	%%release%%
 Summary:    "FreeBSD port"
 License: HCN
@@ -23,8 +23,8 @@ BuildRoot:	%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 %clean
 
-
 %files
+%exclude /usr/bin/env
 %defattr(-,root,root,-)
 %%files%%
 %doc
