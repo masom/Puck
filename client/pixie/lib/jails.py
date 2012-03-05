@@ -179,8 +179,9 @@ class EzJail(object):
         self._socket.send(json.dumps({'id': 'start', 'name': jail}))
         '''block while we wait for completion'''
         status = self._socket.recv(512)
-        print status
+        cherrypy.log("Status from ezjail starter: %s" % status)
         # @TODO handle status
+        return True
 
     def stop(self, jail = None):
         '''
@@ -313,7 +314,12 @@ class EzJailStarter(object):
         cmd = "ezjail-admin start %s" % str(data['name'])
         self._conn.send(json.dumps({"status": "starting", "command": cmd}))
         cherrypy.log("EzJailStarter\tExecuting: %s" % cmd)
-        subprocess.Popen(shlex.split(cmd)).wait()
+        try:
+            subprocess.Popen(shlex.split(cmd)).wait()
+        except Exception as e:
+            cherrypy.log("EZJailStarter\tError: %s" % e)
+            return False
+        return True
 
     def _stop(self, data):
         '''

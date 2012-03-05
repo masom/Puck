@@ -59,6 +59,7 @@ class EZJailTask(SetupTask, RcReader):
     def run(self):
 
         try:
+            self.log("Enabling EZJail.")
             self._enable_ezjail()
             EzJail().install(cherrypy.config.get('setup_plugin.ftp_mirror'))
         except (IOError, OSError) as e:
@@ -70,6 +71,7 @@ class EZJailTask(SetupTask, RcReader):
         rc = self._get_rc_content()
         for line in rc:
             if line.startswith('ezjail_enable'):
+                self.log("EZJail is already enabled.")
                 return
 
         self.log("Adding to rc: `%s`" % 'ezjail_enable="YES"')
@@ -99,7 +101,9 @@ class FirewallSetupTask(SetupTask, RcReader):
     def setup_pf_conf(self, pf_conf):
         rules = self.vm.firewall
         if not rules:
+            self.log("No firewall to write.")
             return False
+        self.log("Writing firewall rules at `%s`." % pf_conf)
         with open(pf_conf, 'w') as f:
             f.write(rules)
             f.flush()
@@ -212,6 +216,7 @@ class EZJailSetupTask(SetupTask):
 
         if not os.path.isdir(dst_dir):
             try:
+                self.log("Creating folder `%s`." % dst_dir)
                 os.makedirs(dst_dir)
             except OSError as e:
                 self.log('Could not create folder `%s`' % dst_dir)
@@ -231,7 +236,7 @@ class EZJailSetupTask(SetupTask):
                 msg = "File `%s` is not a tarfile."
                 self.log(msg % file['tmp_file'])
                 return False
-
+            self.log('Extracting `%s`' % file['tmp_file'])
             # Extraction
             try:
                 with tarfile.open(file['tmp_file'], mode='r:*') as t:
@@ -258,7 +263,7 @@ class EZJailSetupTask(SetupTask):
         tmpfiles = []
 
         for jail in self.vm.jails:
-
+            self.log("Fetching flavour `%s` at `%s`" % (jail.name, jail.url))
             try:
                 (filename, headers) = urllib.urlretrieve(jail.url)
             except (urllib.ContentTooShortError, IOError) as e:
@@ -377,11 +382,12 @@ class JailStartupTask(SetupTask):
         for jail in self.vm.jails:
             self.log("Starting jail `%s`" % jail.jail_type)
             try:
-                jail.start()
+                status = jail.start()
             except OSError as e:
                 self.log("Could not start jail `%s`: %s" % (jail.jail_type, e))
                 return False
-            self.log("Jail `%s` started" % (jail.jail_type))
+            self.log("Jail status: %s" % status)
+            self.log("Jail `%s` started" % jail.jail_type)
             if not jail.status():
                 self.log("Jail `%s` is not running!" % jail.jail_type)
                 return False

@@ -59,21 +59,23 @@ def start_jail_launcher():
     ''' Workaround for threads breaking ezjail-admin start '''
     launcher = EzJailStarter()
     socket_file = launcher.getSocketFile()
+    if os.path.exists(socket_file):
+        os.unlink(socket_file)
 
     pid = os.fork()
     if pid == 0:
         # Child here
         launcher.run()
-        print "Child process exiting."
+        cherrypy.log("Child process exiting.")
         os._exit(0)
 
-    print "Child process is %s. Awaiting available socket." % pid
+    cherrypy.log("Child process is %s. Awaiting available socket." % pid)
     attempts = 0
     while not os.path.exists(socket_file):
         time.sleep(0.1)
         attempts += 1
         if (attempts > 50):
-            print "Child process is not listening on socket!"
+            cherrypy.log("Child process is not listening on socket!")
             os._exit(1)
 
     ezjc_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -128,6 +130,6 @@ if __name__ == "__main__":
         ezjl_socket.sendall(json.dumps({'id': 'shutdown'}))
         ezjl_socket.close()
     except:
-        pass
+        cherrypy.log("Could not send shutdown command to child.")
     # Wait for the child to terminate.
     os.waitpid(pid, 0)
