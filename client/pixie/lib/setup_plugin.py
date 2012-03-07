@@ -41,6 +41,13 @@ class SetupTask(object):
         self.queue.put(tpl % (now.strftime(date_format), cls, msg))
 
 class RcReader(object):
+
+    def _has_line(self, lines, line_start):
+        for line in lines:
+            if line.startswith(line_start):
+                return True
+        return False
+
     def _get_rc_content(self):
         rc = None
         try:
@@ -69,10 +76,10 @@ class EZJailTask(SetupTask, RcReader):
 
     def _enable_ezjail(self):
         rc = self._get_rc_content()
-        for line in rc:
-            if line.startswith('ezjail_enable'):
-                self.log("EZJail is already enabled.")
-                return
+
+        if self._has_line(rc, 'ezjail_enable'):
+            self.log("EZJail is already enabled.")
+            return
 
         self.log("Adding to rc: `%s`" % 'ezjail_enable="YES"')
         '''if we get here, it means ezjail_enable is not in rc.conf'''
@@ -204,6 +211,65 @@ class InterfacesSetupTask(SetupTask, RcReader):
         file.write(line % values)
         file.flush()
         return True
+
+class HypervisorSetupTask(SetupTask, RcReader):
+    '''
+    Setups a few hypervisor settings such as Shared Memory/IPC
+    '''
+    def run(self):
+        self._add_rc_settings()
+        self._add_sysctl_settings()
+        return True
+
+    def _add_sysctl_settings(self):
+        sysvipc = cherrypy.config.get('hypervisor.jail_sysvipc_allow')
+        ipc_setting = 'security.jail.sysvipc_allowed'
+
+        self.log("Configuring sysctl")
+        with open('/etc/sysctl.conf', 'r') as f:
+            sysctl = f.readlines()
+
+        if sysvipc:
+
+            cmd = str("sysctl %s=1" % ipc_setting)
+            self.log('Executing: `%s`' % cmd)
+            subprocess.Popen(shlex.split(cmd)).wait()
+
+            if self._has_line(sysctl, ipc_setting):
+                self.log('SysV IPC already configured in sysctl.conf')
+                return
+
+            template = '%s=%s\n'
+            data = template % (ipc_setting, 1)
+            self.log('Adding to sysctl.conf: `%s`' % data)
+            with open('/etc/sysctl.conf', 'a') as f:
+                f.write(data)
+
+    def _add_rc_settings(self):
+        items = [
+            'jail_sysvipc_allow',
+            'syslogd_flags'
+        ]
+        rc = self._get_rc_content()
+
+        # settings will contain items to be added to rc
+        settings = {}
+        for i in items:
+            value = cherrypy.config.get('hypervisor.%s' % i)
+            if not value:
+                continue
+
+            if self._has_line(rc, i):
+                continue
+
+            self.log('Adding to rc: `%s="%s"`' % (i, value))
+            settings[i] = value
+
+        # settings now contains items to be added
+        template = '%s="%s"\n'
+        with open('/etc/rc.conf', 'a') as f:
+            [f.write(template % (k, settings[k])) for k in settings]
+            f.flush()
 
 class EZJailSetupTask(SetupTask):
     '''
@@ -403,11 +469,14 @@ class SetupWorkerThread(threading.Thread):
     def __init__(self, bus, queue, outqueue, puck):
         super(self.__class__, self).__init__()
         self._stop = threading.Event()
+        self.running = threading.Event()
+        self.successful = False
+        self.completed = False
+
         self._queue = queue
         self._bus = bus
         self._outqueue = outqueue
         self._puck = puck
-        self.successful = False
 
     def stop(self):
         self._stop.set()
@@ -432,6 +501,16 @@ class SetupWorkerThread(threading.Thread):
         self._queue.task_done()
 
     def run(self):
+        if self.completed:
+            self._bus.log("%s had already been run." % self.__class__.__name__)
+            return False
+
+        if self.running.isSet():
+            self._bus.log("%s is already running." % self.__class__.__name__)
+            return False
+
+        self.running.set()
+
         self._bus.log("%s started." % self.__class__.__name__)
         try:
             while not self.stopped():
@@ -439,13 +518,15 @@ class SetupWorkerThread(threading.Thread):
         except RuntimeError as err:
             self._bus.log(str(err))
             self._empty_queue()
-            self.successful = False
             self._puck.getVM().status = 'setup_failed'
+            self.succesful = False
+            self.completed = True
             return False
         except queue.Empty:
             pass
 
-        self.successful = True
+        self.completed = True
+        self.sucessful = True
         self._puck.getVM().status = 'setup_complete'
         self._outqueue.put("%s finished." % self.__class__.__name__)
 
@@ -537,7 +618,7 @@ class SetupPlugin(plugins.SimplePlugin):
         '''
         Returns the current log queue and if the setup is running or not.
         '''
-        if self.worker and self.worker.successful:
+        if self.worker and self.worker.completed:
             return (self.statuses, False)
 
         status = self._readQueue(self._workerQueue)

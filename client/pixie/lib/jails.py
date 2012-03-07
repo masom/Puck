@@ -176,12 +176,50 @@ class EzJail(object):
         Starts the jails or a specific jail
         @raise OSError when command not found.
         '''
-        self._socket.send(json.dumps({'id': 'start', 'name': jail}))
-        '''block while we wait for completion'''
-        status = self._socket.recv(512)
+        cherrypy.log("Sending start request to ezjail starter.")
+        if not self._send_socket({'id': 'start', 'name': jail}):
+            return False
+
+        status = self._read_socket()
+        if not status:
+            return False
         cherrypy.log("Status from ezjail starter: %s" % status)
-        # @TODO handle status
+
+        if status['status'] == 'starting':
+            cherrypy.log("Jail %s is starting. This may take a while." % jail)
+        else:
+            cherrypy.log("Jail `%s` status: `%s`" % (jail, status['status']))
+            return False
+
+        # This will probably block for a little while...
+        status = self._read_socket()
+        if status['status'] == 'started':
+            cherrypy.log("Jail %s is started." % jail)
+            return True
+        msg = "An error occured while starting jail %s: %s"
+        cherrypy.log(msg % (jail, status['status']))
+        return False
+
+    def _send_socket(self, data):
+        try:
+            self._socket.send(json.dumps(data))
+        except IOError as e:
+            msg = "I/O Error: %s"
+            cherrypy.log(msg % e)
+            return False
         return True
+
+    def _read_socket(self):
+        try:
+            data = self._socket.recv(512)
+            status = json.loads(data)
+        except ValueError as e:
+            cherrypy.log("Received garbage from ezjail starter.")
+            return False
+        except IOError as e:
+            cherrypy.log("I/O Error while communicating with ezjail starter.")
+            return False
+        return status
 
     def stop(self, jail = None):
         '''
@@ -311,7 +349,7 @@ class EzJailStarter(object):
         '''
         Starts a jail
         '''
-        cmd = "ezjail-admin start %s" % str(data['name'])
+        cmd = "/usr/local/bin/ezjail-admin start %s" % str(data['name'])
         self._conn.send(json.dumps({"status": "starting", "command": cmd}))
         cherrypy.log("EzJailStarter\tExecuting: %s" % cmd)
         try:
@@ -319,6 +357,7 @@ class EzJailStarter(object):
         except Exception as e:
             cherrypy.log("EZJailStarter\tError: %s" % e)
             return False
+        cherrypy.log("EZJailStarter\tJail `%s` Started." % data['name'])
         return True
 
     def _stop(self, data):
