@@ -138,9 +138,19 @@ class Nova(Launcher):
         nova = self._client(credentials)
         ip = False
         try:
-            ip = nova.floating_ips.create()
+            iplist = nova.floating_ips.list()
+            new_ip = None
+
+            for ip in iplist:
+                if ip.instance_id is None:
+                    new_ip = ip
+                    break
+
+            if new_ip is None:
+                new_ip = nova.floating_ips.create()
+
             server = nova.servers.get(instance_id)
-            server.add_floating_ip(ip.ip)
+            server.add_floating_ip(new_ip.ip)
         except (exceptions.BadRequest, exceptions.ClientException) as e:
             cherrypy.log(str(e))
             return False
