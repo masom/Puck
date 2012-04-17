@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import threading, Queue as queue, time, subprocess, shlex, datetime
-import urllib, tarfile, os, shutil
+import urllib, tarfile, os, shutil, tmpfile
 import cherrypy
 from cherrypy.process import wspbus, plugins
 from pixie.lib.jails import EzJail
@@ -328,10 +328,14 @@ class EZJailSetupTask(SetupTask):
 
         tmpfiles = []
 
+        jail_dir = cherrypy.config.get('setup_plugin.jail_dir')
+
         for jail in self.vm.jails:
+            (handle, tmpname) = tempfile.mkstemp(dir=jail_dir)
+
             self.log("Fetching flavour `%s` at `%s`" % (jail.name, jail.url))
             try:
-                (filename, headers) = urllib.urlretrieve(jail.url)
+                (filename, headers) = urllib.urlretrieve(jail.url, tmpname)
             except (urllib.ContentTooShortError, IOError) as e:
                 msg = "Error while retrieving jail `%s`: %s"
                 self.log(msg % (jail.name, e))
