@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import threading, Queue as queue, time, subprocess, shlex, datetime
-import urllib, tarfile, os, shutil, tmpfile
+import urllib, tarfile, os, shutil, tmpfile, pwd
 import cherrypy
 from cherrypy.process import wspbus, plugins
 from pixie.lib.jails import EzJail
@@ -85,6 +85,36 @@ class EZJailTask(SetupTask, RcReader):
         '''if we get here, it means ezjail_enable is not in rc.conf'''
         with open('/etc/rc.conf', 'a') as f:
             f.write("ezjail_enable=\"YES\"\n")
+
+class SSHTask(SetupTask):
+    '''Create the base user `puck` and add the authorized ssh keys'''
+
+    def run(self):
+        if not self.vm.keys:
+            self.log("No keys to install.");
+            return True
+
+        #@TODO Could be moved to config values instead of hardcoded.
+        user = 'puck'
+        try:
+            pwd.getpwnam(user)
+        except KeyError as e:
+            cmd = 'pw user add %s -m -G wheel' % user
+            subprocess.Popen(shlex.split(str(command))).wait()
+
+        path = '/home/%s/.ssh' % user
+        authorized_file = "%s/authorized_keys" % path
+        if not os.path.exists(path):
+            os.mkdir(path)
+            os.chown(path, user, user)
+
+        open(authorized_file, "a").close()
+
+        os.chmod(path, 0400)
+
+        with open(authorized_file, 'a') as f:
+            for key in self.vm.keys:
+                f.write('%s\n' % self.vm.keys[key])
 
 class FirewallSetupTask(SetupTask, RcReader):
     def run(self):
@@ -219,7 +249,30 @@ class HypervisorSetupTask(SetupTask, RcReader):
     def run(self):
         self._add_rc_settings()
         self._add_sysctl_settings()
+        self._set_hostname()
         return True
+
+    def _set_hostname(self):
+
+        self.log("Replacing hostname in /etc/rc.conf")
+        (fh, abspath) = tempfile.mkstemp()
+
+        tmp = open(abspath, 'w')
+        with open('/etc/rc.conf', 'r') as f:
+            for line in f:
+                if not line.startswith('hostname'):
+                    tmp.write(line)
+                    continue
+                tmp.write('hostname="%s"\n' % self.vm.name)
+        tmp.close()
+        os.close(fh)
+        os.remove('/etc/rc.conf')
+        shutil.move(abspath, '/etc/rc.conf')
+
+        cmd = 'hostname %s' % self.vm.name
+        self.log('Executing: `%s`' % cmd)
+        subprocess.Popen(shlex.split(cmd)).wait()
+
 
     def _add_sysctl_settings(self):
         sysvipc = cherrypy.config.get('hypervisor.jail_sysvipc_allow')
