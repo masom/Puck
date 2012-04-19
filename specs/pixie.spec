@@ -3,7 +3,7 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           pixie
-Version:        0.3
+Version:        0.4
 Release:        1%{?dist}
 Summary:        Pixie, jail virtualization configuration client
 Source0:        pixie-%{version}.tar.gz

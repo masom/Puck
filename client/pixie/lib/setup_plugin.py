@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import threading, Queue as queue, time, subprocess, shlex, datetime
-import urllib, tarfile, os, shutil, tmpfile, pwd
+import urllib, tarfile, os, shutil, tempfile, pwd
 import cherrypy
 from cherrypy.process import wspbus, plugins
 from pixie.lib.jails import EzJail
@@ -90,6 +90,10 @@ class SSHTask(SetupTask):
     '''Create the base user `puck` and add the authorized ssh keys'''
 
     def run(self):
+        self._setup_ssh()
+        return True
+
+    def _setup_ssh(self):
         if not self.vm.keys:
             self.log("No keys to install.");
             return True
@@ -100,21 +104,24 @@ class SSHTask(SetupTask):
             pwd.getpwnam(user)
         except KeyError as e:
             cmd = 'pw user add %s -m -G wheel' % user
-            subprocess.Popen(shlex.split(str(command))).wait()
+            self.log("Adding user. Executing `%s`" % cmd)
+            subprocess.Popen(shlex.split(str(cmd))).wait()
+
+        user_pwd = pwd.getpwnam(user)
 
         path = '/home/%s/.ssh' % user
         authorized_file = "%s/authorized_keys" % path
         if not os.path.exists(path):
             os.mkdir(path)
-            os.chown(path, user, user)
-
-        open(authorized_file, "a").close()
-
-        os.chmod(path, 0400)
+            os.chown(path, user_pwd.pw_uid, user_pwd.pw_gid)
 
         with open(authorized_file, 'a') as f:
             for key in self.vm.keys:
-                f.write('%s\n' % self.vm.keys[key])
+                self.log("Writing key `%s`" % key)
+                f.write('%s\n' % self.vm.keys[key]['key'])
+
+        os.chmod(authorized_file, 0400)
+        os.chown(authorized_file, user_pwd.pw_uid, user_pwd.pw_gid)
 
 class FirewallSetupTask(SetupTask, RcReader):
     def run(self):
@@ -269,7 +276,7 @@ class HypervisorSetupTask(SetupTask, RcReader):
         os.remove('/etc/rc.conf')
         shutil.move(abspath, '/etc/rc.conf')
 
-        cmd = 'hostname %s' % self.vm.name
+        cmd = str('hostname %s' % self.vm.name)
         self.log('Executing: `%s`' % cmd)
         subprocess.Popen(shlex.split(cmd)).wait()
 

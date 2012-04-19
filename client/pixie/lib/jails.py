@@ -316,12 +316,12 @@ class EzJailStarter(object):
             (execute, command) = self._handle(data)
             if execute:
                 try:
-                    execute(command)
+                    if execute(command):
+                        conn.send(json.dumps({"status": "started"}))
+                    else:
+                        conn.send(json.dumps({"status": "failed"}))
                 except StopLoopException:
                     break
-                conn.send(json.dumps({"status": "started"}))
-            else:
-                conn.send(json.dumps({'status': 'failed'}))
         conn.close()
 
     def _handle(self, data):
