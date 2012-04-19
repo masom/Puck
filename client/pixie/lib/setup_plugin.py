@@ -682,8 +682,6 @@ class SetupPlugin(plugins.SimplePlugin):
         '''
         Returns the current log queue and if the setup is running or not.
         '''
-        if self.worker and self.worker.completed:
-            return (self.statuses, False)
 
         status = self._readQueue(self._workerQueue)
         while status:
