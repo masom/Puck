@@ -61,6 +61,7 @@ class VirtualMachinesController(Controller):
                 instances=instances,
                 images=images,
         )
+
         return self.render("virtual_machines/running.html", self.crumbs,**env)
 
     @cherrypy.expose
@@ -141,7 +142,8 @@ class VirtualMachinesController(Controller):
             id = int(post['instance_type.id'])
         else:
             id = post['instance_type.id']
-        return InstanceTypes.first(id=id)
+
+        return InstanceTypes.first(id=str(id))
 
     def _validate_start_post_data(self, post):
         for r in ['image.id', 'instance_type.id']:

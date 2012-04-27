@@ -1,52 +1,45 @@
 <%inherit file="/layouts/default.html" />
-<%block name="css">
-    <link type="text/css" rel="stylesheet" href="/static/css/index.css">
-</%block>
-<%block name="header">
-    My Virtual Machines
-</%block>
-
 <h2>My Virtual Machines</h2>
-<div style="margin: 5px;background-color: #eeeeee;">
-    <form action="/virtual_machines/start" method="POST">
-        <h4>Start a new instance</h4>
-        <select name="image.id">
-            % for image in images:
-                <option value="${image.id}">${image.name}</option>
-            % endfor
-        </select>
-        <select name="instance_type.id">
-            % for instance_type in instance_types:
-                <option value="${instance_type.id}">${instance_type.name}</option>
-            % endfor
-        </select>
-        <button type="submit">Start a new virtual machine</button>
-    </form>
-</div>
-<div style="font-size: 12px;">
-    <a href="/virtual_machines/running">View running instances</a>
-</div>
-<table cellspacing="0" cellpadding="0">
-    <tr>
-        <th>Name</th>
-        <th>IP</th>
-        <th>Status</th>
-        <th>Actions</th>
-    </tr>
-    % for vm in virtual_machines:
+<form class="well form-inline" action="/virtual_machines/start" method="POST">
+    <h4>Start a new instance</h4>
+    <select name="image.id">
+        % for image in images:
+            <option value="${image.id}">${image.name}</option>
+        % endfor
+    </select>
+    <select name="instance_type.id">
+        % for instance_type in instance_types:
+            <option value="${instance_type.id}">${instance_type.name}</option>
+        % endfor
+    </select>
+    <button class="btn btn-success" type="submit">Start a new virtual machine</button>
+</form>
+<a class="btn btn-primary" href="/virtual_machines/running">View running instances</a>
+<br />
+<br />
+<table class="table table-bordered" cellspacing="0" cellpadding="0">
+    <thead>
         <tr>
-            <td>${vm.name}</td>
-            <td>${vm.ip}</td>
-            <td>${vm.status}</td>
-            <td>
-                <ul>
-                    % if vm.instance_id:
-                        <li><a href="http://${vm.ip}:8080">Manage</a></li>
-                        <li><a href="/virtual_machines/restart/${vm.id}">Reboot</a></li>
-                    % endif
-                    <li><a href="/virtual_machines/delete/${vm.id}">Delete</a></li>
-                </ul>
-            </td>
+            <th>Name</th>
+            <th>IP</th>
+            <th>Status</th>
+            <th>Actions</th>
         </tr>
-    % endfor
+    </thead>
+    <tbody>
+        % for vm in virtual_machines:
+            <tr>
+                <td>${vm.name}</td>
+                <td>${vm.ip}</td>
+                <td>${vm.status}</td>
+                <td>
+                        % if vm.instance_id:
+                            <a class="btn btn-primary btn-mini" href="http://${vm.ip}:8080"><i class="icon-wrench icon-white"></i> Manage</a>
+                            <a class="btn btn-warning btn-mini" href="/virtual_machines/restart/${vm.id}"><i class="icon-refresh icon-white"></i> Reboot</a>
+                        % endif
+                        <a class="btn btn-danger btn-mini" href="/virtual_machines/delete/${vm.id}"><i class="icon-trash icon-white"></i> Delete</a>
+                </td>
+            </tr>
+        % endfor
+    </tbody>
 </table>

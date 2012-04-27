@@ -46,8 +46,12 @@ class VirtualMachine(Model):
             id = self.instance_id,
             credentials=creds
         )
+
         ip = cherrypy.engine.publish('virtualization', **args).pop()
-        print ip
+
+        if not ip:
+            return False
+
         self.update({'ip': ip}, ['ip'])
         return ip
 

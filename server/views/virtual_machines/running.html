@@ -1,13 +1,7 @@
 <%inherit file="/layouts/default.html" />
-<%block name="css">
-    <link type="text/css" rel="stylesheet" href="/static/css/index.css">
-</%block>
-<%block name="header">
-    My Current Virtual Machines
-</%block>
 
-<h2>My Current Virtual Machines</h2>
-<table cellspacing="0" cellpadding="0">
+<h2>Running Virtual Machines</h2>
+<table class="table table-bordered" cellspacing="0" cellpadding="0">
     <tr>
         <th>Name</th>
         <th>IP</th>
@@ -26,32 +20,25 @@
         <tr>
             <td>${i.name}</td>
             <td>
-                % if i.addresses:
-                    <ul>
-                        % for addr in i.addresses['private']:
-                            % if not addr['fixed']:
-                                <%
-                                    public_ip = addr['addr']
-                                %>
-                                <li>${addr['addr']}</li>
-                            % endif
+                <ul>
+                    % for type in i.addresses:
+                        % for addr in i.addresses[type]:
+                            <li>${addr['addr']}</li>
                         % endfor
-                    </ul>
-                % endif
+                    % endfor
+                </ul>
             </td>
             <td>${i.status}</td>
             <td>
-                <ul>
                     % if public_ip:
-                        <li><a href="http://${public_ip}:8080">Manage</a></li>
+                    <a class="btn btn-info btn-mini"  href="http://${public_ip}:8080"><i class="icon-wrench icon-white"></i> Manage</a>
                     % elif vm_id:
-                        <li><a href="/virtual_machines/add_public_ip/${vm_id}">Add Public IP</a></li>
+                    <a class="btn btn-info btn-mini"  href="/virtual_machines/add_public_ip/${vm_id}"><i class="icon-globe icon-white"></i> Add Public IP</a>
                     % endif
                     % if vm_id:
-                        <li><a href="/virtual_machines/restart/${vm_id}">Reboot</a></li>
-                        <li><a href="/virtual_machines/delete/${vm_id}">Delete</a></li>
+                        <a class="btn btn-warning btn-mini"  href="/virtual_machines/restart/${vm_id}"><i class="icon-refresh icon-white"></i> Reboot</a>
+                        <a class="btn btn-danger btn-mini"  href="/virtual_machines/delete/${vm_id}"><i class="icon-trash icon-white"></i> Delete</a>
                     % endif
-                </ul>
             </td>
         </tr>
     % endfor

@@ -8,19 +8,17 @@
     Jails Management
 </%block>
 
-<h1>Login</h1>
-<form action="/login" method="post">
-    <ul>
-        <li>
-            <label for='user.name'>Username</label>
+<div class="span4">
+    <h1>Login</h1>
+    <form action="/login" method="post" class="well form-horizontal">
+        <fieldset>
+            <label>Username</label>
             <input id='user.name' type="text" name="user.username" />
-        </li>
-        <li>
-            <label for='user.password'>Password</label>
+            <label>Password</label>
             <input id='user.password' type="password" name="user.password" />
-        </li>
-        <li>
-            <button type="submit">Authenticate</button>
-        </li>
-    </ul>
-</form>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Authenticate</button>
+            </div>
+        </fieldset>
+    </form>
+</div>

@@ -3,34 +3,68 @@
 <head>
     <meta charset='utf-8'>
     <title>Puck Virtual Machine Server</title>
-    <link rel="stylesheet" type="text/css" href="/static/css/base.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css" media="screen" />
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .sidebar-nav {
+        padding: 9px 0;
+      }
+    </style>
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap-responsive.css" media="screen" />
     <%block name="css" />
 </head>
 <body>
-<div id="wrapper">
-    <div id="header">
-        <h1><%block name="header"/></h1>
-        <ul><li><a href="/logout">Logout</a></li></ul>
-    </div>
-    % if flash is not None:
-        <div class="flash">
-            <p>${flash}</p>
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container">
+                <a class="brand" href="/">Puck - FreeBSD Server Virtualization Control</a>
+                <div class="nav-collapse">
+                    <ul class="nav">
+                        <li><a href="/logout">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    % endif
-    % if breadcrumbs:
-        <div class="trail" style="margin-bottom: 10px; margin-left: 10px;">
-            % for crumb in breadcrumbs[:-1]:
-                <a href="${crumb.url}">${crumb.name}</a> &gt;
-            % endfor
-            <a href="${breadcrumbs[-1].url}">${breadcrumbs[-1].name}</a>
+    </div>
+    <div class="container-fluid">
+        <div class="row-fluid">
+            % if breadcrumbs:
+                <ul class="breadcrumb" style="margin-bottom: 10px; margin-left: 10px;">
+                    % for crumb in breadcrumbs[:-1]:
+                    <li><a href="${crumb.url}">${crumb.name}</a><span class="divider">&gt;</span></li>
+                    % endfor
+                    <li><a href="${breadcrumbs[-1].url}">${breadcrumbs[-1].name}</a></li>
+                </ul>
+            % endif
         </div>
-    % endif
-    <div id="content">
-        ${self.body()}
+        <div class="row-fluid">
+            <div class="span2 well">
+                <ul class="nav nav-list">
+                    <li class="nav-header">Actions</li>
+                    <li><a href="/virtual_machines">Virtual Machines</a></li>
+                    <li class="nav-header">Admin Stuff</li>
+                    <li><a href="/keys">Keys</a></li>
+                    <li><a href="/firewalls">Firewalls</a></li>
+                    <li><a href="/environments">Environments</a></li>
+                    <li><a href="/images">Images</a></li>
+                    <li><a href="/jail_types">Jail Types</a></li>
+                    <li><a href="/jails">Jails</a></li>
+                    <li><a href="/repos">Repositories</a></li>
+                    <li><a href="/users">Users</a></li>
+                </ul>
+                <br />
+                <a class="btn btn-inverse" href="https://github.com/masom/Puck">Github</a>
+            </div>
+            <div class="span10">
+                % if flash is not None:
+                    <div class="alert alert-info">${flash}</div>
+                % endif
+                ${self.body()}
+            </div>
+        </div>
     </div>
-    <div id="footer">
-        <a href="https://github.com/masom/Puck">Github</a>
-    </div>
-</div>
 </body>
 </html>

@@ -24,7 +24,7 @@ from novaclient import exceptions
 import cherrypy
 
 class NovaCredentials(Credentials):
-    attributes = ['nova_url', 'nova_username', 'nova_api_key', 'nova_project_id']
+    attributes = ['nova_url', 'nova_username', 'nova_password', 'nova_tenent']
 
     def _post_init(self):
         for k in self.attributes:
@@ -34,14 +34,15 @@ class NovaCredentials(Credentials):
                 setattr(self, k, None)
 
 class Nova(Launcher):
-    supported_api = ['create','delete','status','restart', 'instance_types',
+    supported_api = [
+        'create','delete','status','restart', 'instance_types',
         'images', 'exists', 'add_public_ip', 'public_ips', 'remove_public_ip'
     ]
 
     def _client(self, credentials):
         if credentials is None:
             raise RuntimeError("Invalid credential object.")
-        return NovaClient(credentials.nova_username, credentials.nova_api_key, credentials.nova_project_id, credentials.nova_url)
+        return NovaClient(credentials.nova_username, credentials.nova_password, credentials.nova_tenent, credentials.nova_url)
 
     def create(self, **kwargs):
         image_id = kwargs['image_id']
@@ -90,7 +91,10 @@ class Nova(Launcher):
     def status(self, **kwargs):
         credentials = kwargs['credentials']
         nova = self._client(credentials)
-        servers = nova.servers.list(detailed=True)
+        try:
+            servers = nova.servers.list(detailed=True)
+        except exceptions.BadRequest:
+            servers = []
         return self._generate_instances(servers)
 
     def restart(self, **kwargs):
@@ -112,7 +116,7 @@ class Nova(Launcher):
             instance_types = nova.flavors.list()
         except exceptions.BadRequest as e:
             cherrypy.log(str(e))
-            return False
+            instance_types = []
 
         return self._generate_instance_types(instance_types)
 
@@ -154,7 +158,7 @@ class Nova(Launcher):
         except (exceptions.BadRequest, exceptions.ClientException) as e:
             cherrypy.log(str(e))
             return False
-        return ip.ip
+        return new_ip.ip
 
     def remove_public_ip(self, **kwargs):
         credentials = kwargs['credentials']
