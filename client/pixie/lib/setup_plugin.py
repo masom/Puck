@@ -122,6 +122,8 @@ class SSHTask(SetupTask):
 
         os.chmod(authorized_file, 0400)
         os.chown(authorized_file, user_pwd.pw_uid, user_pwd.pw_gid)
+        os.chmod(path, 0700)
+        os.chmod('/home/%s' % user, 0700)
 
 class FirewallSetupTask(SetupTask, RcReader):
     def run(self):
