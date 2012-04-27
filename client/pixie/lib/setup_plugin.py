@@ -68,6 +68,7 @@ class EZJailTask(SetupTask, RcReader):
         try:
             self.log("Enabling EZJail.")
             self._enable_ezjail()
+            self.log("Installing EZJail")
             EzJail().install(cherrypy.config.get('setup_plugin.ftp_mirror'))
         except (IOError, OSError) as e:
             self.log("Error while installing ezjail: %s" % e)
@@ -452,7 +453,7 @@ class JailConfigTask(SetupTask):
                 return False
 
             self.log("Updating jail hostname to `%s-%s`" % (self.vm.name, jail.jail_type))
-            if not self._update_hostname(self, jail, rc_file):
+            if not self._update_hostname(jail, rc_file):
                 return False
 
             self.log("Writing yum repository.")
