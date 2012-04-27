@@ -483,6 +483,7 @@ class JailConfigTask(SetupTask):
         self.log("Replacing hostname in %s" % rc_file)
         (fh, abspath) = tempfile.mkstemp()
 
+        has_hostname = False
         tmp = open(abspath, 'w')
         with open(rc_file, 'r') as f:
             for line in f:
@@ -490,6 +491,11 @@ class JailConfigTask(SetupTask):
                     tmp.write(line)
                     continue
                 tmp.write('hostname="%s-%s"\n' % (self.vm.name, jail.jail_type))
+                has_hostname = True
+
+        if not has_hostname:
+            tmp.write('hostname="%s-%s"\n' % (self.vm.name, jail.jail_type))
+
         tmp.close()
         os.close(fh)
         os.remove(rc_file)
