@@ -424,6 +424,7 @@ class JailConfigTask(SetupTask):
             authorized_key_file = "%s/installdata/authorized_keys" % path
             resolv_file = "%s/etc/resolv.conf" % path
             yum_file = "%s/installdata/yum_repo" % path
+            rc_file = "%s/etc/rc.conf" % path
 
             # Create /installdata and /etc folder.
             for p in ['%s/installdata', '%s/etc']:
@@ -450,6 +451,10 @@ class JailConfigTask(SetupTask):
             if not self._writeResolvConf(jail, resolv_file):
                 return False
 
+            self.log("Updating jail hostname to `%s-%s`" % (self.vm.name, jail.jail_type))
+            if not self._update_hostname(self, jail, rc_file):
+                return False
+
             self.log("Writing yum repository.")
             if not self._writeYumRepoConf(yum_repo, yum_file):
                 return False
@@ -470,6 +475,24 @@ class JailConfigTask(SetupTask):
             msg = "Error while writing authorized keys to jail `%s`: %s"
             self.log(msg % (jail.jail_type, e))
             return False
+        return True
+
+    def _update_hostname(self, jail, rc_file):
+
+        self.log("Replacing hostname in %s" % rc_file)
+        (fh, abspath) = tempfile.mkstemp()
+
+        tmp = open(abspath, 'w')
+        with open(rc_file, 'r') as f:
+            for line in f:
+                if not line.startswith('hostname'):
+                    tmp.write(line)
+                    continue
+                tmp.write('hostname="%s-%s"\n' % (self.vm.name, jail.jail_type))
+        tmp.close()
+        os.close(fh)
+        os.remove(rc_file)
+        shutil.move(abspath, rc_file)
         return True
 
     def _writeResolvConf(self, jail, resolv_file):
