@@ -235,6 +235,12 @@ class Puck(object):
         }
         self._client.put('config', self._vm.id, data)
 
+    def getFirewalls(self):
+        '''
+        Get a list of firewalls
+        '''
+        return self._client.get("firewalls")
+
     def getKeys(self):
         '''
         Get a list of public ssh keys from Puck.

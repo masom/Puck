@@ -152,7 +152,7 @@ class FirewallSetupTask(SetupTask, RcReader):
             return False
         self.log("Writing firewall rules at `%s`." % pf_conf)
         with open(pf_conf, 'w') as f:
-            f.write(rules)
+            f.write(rules.replace('\r\n', '\n').replace('\r', '\n'))
             f.flush()
 
     def setup_rc(self, rc_conf, pf_conf):

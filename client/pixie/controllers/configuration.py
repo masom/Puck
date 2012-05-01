@@ -117,9 +117,9 @@ class ConfigurationController(Controller):
         if cherrypy.request.method == "POST":
             if kwargs.has_key("vm.firewall"):
                 f_id = kwargs['vm.firewall']
-                firewall = [f['id'] for f in firewalls if f['id'] == f_id]
+                firewall = [f['data'] for f in firewalls if f['id'] == f_id]
                 if firewall:
-                    self._vm.update(firewall=firewall[0]['data'])
+                    self._vm.update(firewall=firewall[0])
                     cherrypy.session['flash'] = "Firewall updated."
                     raise cherrypy.HTTPRedirect('/configure/')
                 cherrypy.session['flash'] == 'An error occured.'
