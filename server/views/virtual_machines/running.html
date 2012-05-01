@@ -10,12 +10,12 @@
     </tr>
     % for i in instances:
         <%
-            vm_id = None
-            public_ip = False
-            for k in virtual_machines:
-                if not k.instance_id == i.id:
-                    continue
-                vm_id = k.id
+        vm = None
+        public_ip = False
+        for k in virtual_machines:
+            if not k.instance_id == i.id:
+                continue
+            vm = k
         %>
         <tr>
             <td>${i.name}</td>
@@ -23,6 +23,10 @@
                 <ul>
                     % for type in i.addresses:
                         % for addr in i.addresses[type]:
+                            <%
+                            if addr['addr'].startswith('10.0'):
+                              public_ip=addr
+                            %>
                             <li>${addr['addr']}</li>
                         % endfor
                     % endfor
@@ -32,12 +36,14 @@
             <td>
                     % if public_ip:
                     <a class="btn btn-info btn-mini"  href="http://${public_ip}:8080"><i class="icon-wrench icon-white"></i> Manage</a>
-                    % elif vm_id:
-                    <a class="btn btn-info btn-mini"  href="/virtual_machines/add_public_ip/${vm_id}"><i class="icon-globe icon-white"></i> Add Public IP</a>
+                    % elif vm:
+                        % if not vm.ip:
+                            <a class="btn btn-info btn-mini"  href="/virtual_machines/add_public_ip/${vm.id}"><i class="icon-globe icon-white"></i> Add Public IP</a>
+                        % endif
                     % endif
-                    % if vm_id:
-                        <a class="btn btn-warning btn-mini"  href="/virtual_machines/restart/${vm_id}"><i class="icon-refresh icon-white"></i> Reboot</a>
-                        <a class="btn btn-danger btn-mini"  href="/virtual_machines/delete/${vm_id}"><i class="icon-trash icon-white"></i> Delete</a>
+                    % if vm:
+                        <a class="btn btn-warning btn-mini"  href="/virtual_machines/restart/${vm.id}"><i class="icon-refresh icon-white"></i> Reboot</a>
+                        <a class="btn btn-danger btn-mini"  href="/virtual_machines/delete/${vm.id}"><i class="icon-trash icon-white"></i> Delete</a>
                     % endif
             </td>
         </tr>
