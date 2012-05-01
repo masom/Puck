@@ -278,6 +278,7 @@ class HypervisorSetupTask(SetupTask, RcReader):
         os.close(fh)
         os.remove('/etc/rc.conf')
         shutil.move(abspath, '/etc/rc.conf')
+        os.chmod('/etc/rc.conf', 0644)
 
         cmd = str('hostname %s' % self.vm.name)
         self.log('Executing: `%s`' % cmd)
@@ -426,6 +427,7 @@ class JailConfigTask(SetupTask):
             resolv_file = "%s/etc/resolv.conf" % path
             yum_file = "%s/installdata/yum_repo" % path
             rc_file = "%s/etc/rc.conf" % path
+            host_file = "%s/etc/hosts" % path
 
             # Create /installdata and /etc folder.
             for p in ['%s/installdata', '%s/etc']:
@@ -453,7 +455,7 @@ class JailConfigTask(SetupTask):
                 return False
 
             self.log("Updating jail hostname to `%s-%s`" % (self.vm.name, jail.jail_type))
-            if not self._update_hostname(jail, rc_file):
+            if not self._update_hostname(jail, rc_file, host_file):
                 return False
 
             self.log("Writing yum repository.")
@@ -478,7 +480,8 @@ class JailConfigTask(SetupTask):
             return False
         return True
 
-    def _update_hostname(self, jail, rc_file):
+    def _update_hostname(self, jail, rc_file, host_file):
+        hostname = "%s-%s" % (self.vm.name, jail.jail_type)
 
         self.log("Replacing hostname in %s" % rc_file)
         (fh, abspath) = tempfile.mkstemp()
@@ -490,16 +493,35 @@ class JailConfigTask(SetupTask):
                 if not line.startswith('hostname'):
                     tmp.write(line)
                     continue
-                tmp.write('hostname="%s-%s"\n' % (self.vm.name, jail.jail_type))
+                tmp.write('hostname="%s"\n' % hostname)
                 has_hostname = True
 
         if not has_hostname:
-            tmp.write('hostname="%s-%s"\n' % (self.vm.name, jail.jail_type))
+            tmp.write('hostname="%s"\n' % hostname)
 
         tmp.close()
         os.close(fh)
         os.remove(rc_file)
         shutil.move(abspath, rc_file)
+        os.chmod(rc_file, 0644)
+
+        self.log("Adding new hostname in %s" % host_file)
+        (fh, abspath) = tempfile.mkstemp()
+
+        has_hostname = False
+        tmp = open(abspath, 'w')
+        with open(host_file, 'r') as f:
+            for line in f:
+                if not line.startswith('127.0.0.1'):
+                    tmp.write(line)
+                    continue
+                tmp.write('%s %s\n' % (line.replace('\n', ''), hostname))
+
+        tmp.close()
+        os.close(fh)
+        os.remove(host_file)
+        shutil.move(abspath, host_file)
+        os.chmod(host_file, 0644)
         return True
 
     def _writeResolvConf(self, jail, resolv_file):
@@ -615,6 +637,7 @@ class SetupWorkerThread(threading.Thread):
             self._bus.log(str(err))
             self._empty_queue()
             self._puck.getVM().status = 'setup_failed'
+            self._puck.updateStatus()
             self.succesful = False
             self.completed = True
             return False
@@ -624,6 +647,7 @@ class SetupWorkerThread(threading.Thread):
         self.completed = True
         self.sucessful = True
         self._puck.getVM().status = 'setup_complete'
+        self._puck.updateStatus()
         self._outqueue.put("%s finished." % self.__class__.__name__)
 
     def _empty_queue(self):

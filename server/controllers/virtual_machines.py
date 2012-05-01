@@ -41,9 +41,10 @@ class VirtualMachinesController(Controller):
     @cherrypy.expose
     @cherrypy.tools.myauth()
     def index(self):
-        #Images.add(Images.new(id="test", name="test"))
+        user_id = cherrypy.session.get('user.id')
+        vms = VirtualMachines.find(user_id=user_id)
         env = dict(
-            virtual_machines=VirtualMachines.all(),
+            virtual_machines=vms,
             images=Images.all(),
             instance_types=InstanceTypes.all()
         )
@@ -57,9 +58,9 @@ class VirtualMachinesController(Controller):
         images = Images.all()
         instances = VirtualMachines.get_instances(creds)
         env = dict(
-                virtual_machines=vms,
-                instances=instances,
-                images=images,
+            virtual_machines=vms,
+            instances=instances,
+            images=images,
         )
 
         return self.render("virtual_machines/running.html", self.crumbs,**env)

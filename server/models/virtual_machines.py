@@ -22,7 +22,7 @@ import cherrypy
 class VirtualMachine(Model):
     def __init__(self, id=None,name=None, ip=None, status=None, config=None,
             instance_type_id=None, image_id=None, instance_id = None,
-            user=None):
+            user_id=None):
         self.id = id
         self.name = name
         self.instance_type_id = instance_type_id
@@ -36,7 +36,7 @@ class VirtualMachine(Model):
         self.ip = ip
         self.status = status
         self.config = config
-        self.user = user
+        self.user_id = user_id
 
     def add_public_ip(self, creds):
         ''' Assign a public ip to the instance.'''
@@ -91,8 +91,8 @@ class VirtualMachine(Model):
         instance = cherrypy.engine.publish("virtualization", **args).pop()
         if not instance:
             return False
-        data = {'instance_id': instance.id, 'user': creds.name}
-        self.update(data, ['instance_id', 'user'])
+        data = {'instance_id': instance.id, 'user_id': creds.id}
+        self.update(data, ['instance_id', 'user_id'])
         return True
 
     def stop_instance(self, creds):
@@ -170,7 +170,7 @@ class VirtualMachines(ModelCollection):
             ('image_id', 'TEXT'),
             ('instance_type_id', 'TEXT'),
             ('instance_id', 'TEXT'),
-            ('user', 'TEXT'),
+            ('user_id', 'TEXT'),
             ('config', 'TEXT')
         ])
         return TableDefinition('virtual_machines', columns=columns)

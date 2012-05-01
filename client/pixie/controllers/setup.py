@@ -28,6 +28,7 @@ class SetupController(Controller):
         if self._vm.status == 'configured':
             self._vm.status = 'setup'
             self._puck.updateConfig()
+            self._puck.updateStatus()
             self._vm.persist()
 
     @cherrypy.expose
@@ -40,6 +41,7 @@ class SetupController(Controller):
         self.__canSetup()
 
         self._vm.status = 'setup_started'
+        self._puck.updateStatus()
 
         cherrypy.engine.publish("setup", action="start")
         raise cherrypy.HTTPRedirect('/setup/status')
