@@ -129,6 +129,7 @@ class ConfigurationController(Controller):
             firewalls=firewalls
         )
         return self.render("/configure/firewall.html", **env)
+
     @cherrypy.expose
     def keys(self, *args, **kwargs):
         self.__assert_vm_is_modifiable()

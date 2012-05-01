@@ -1,0 +1,12 @@
+<%inherit file="/template.html"/>
+
+<%block name="header">Firewall</%block>
+<h2>Environment</h2>
+<form action="/configure/firewall" method="post">
+	<select name="vm.firewall">
+		% for f in firewalls:
+            <option value="${f['id']}">${f['name']}</option>
+		% endfor
+	</select>
+	<button type="submit">Save</button>
+</form>
