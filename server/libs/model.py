@@ -97,6 +97,7 @@ class ModelCollection(object):
             if not self._find(item, kwargs):
                 continue
             return item
+        return None
 
     def new(self, **kwargs):
         ''' Creates a new entity '''

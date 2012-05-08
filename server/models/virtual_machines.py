@@ -153,13 +153,23 @@ class VirtualMachines(ModelCollection):
 
     def _after_init(self):
         # TODO: Move this to the config file.
-        self._wordlist = deque([
+        self._word_p = 0
+        self._wordlist = list(set([
             "apple", "banana", "carrot", "pepper", "salt", "orange",
-            "eggplant", "squash", "melon", "peach", "kale", "swiss chard",
+            "eggplant", "squash", "melon", "peach", "kale",
             "tomato", "potato", "onion", "grapefruit", "radish", "broccoli",
             "cilantro", "parsley", "plum", "scallion", "haberno", "strawberry",
-            "grape", "cranberry", "lemongrass", "sugarcane"
-        ])
+            "grape", "cranberry", "lemongrass", "sugarcane", "dragonfly", "derp",
+            "iseewhatyoudid", "awwwyeah", "trolololol", "mudkipz", "ped_bear",
+            "cliff", "energy", "hybrid", "dell", "perl", "python", "php", "ruby",
+            "reddit", "4chan", "9gag", "facebook", "onion", "swiss", "steveo",
+            "bart", "homer", "lisa", "crashoverride", "acidburn", "cerealkiller",
+            "knifeparty", "zedsdead", "flux", "pavilion", "filth", "dimmu",
+            "borgir", "agonist", "dethklok", "disturbed", "graveworm", "korn",
+            "lagwagon", "mudvayne", "murderdolls", "offspring", "rammstein",
+            "spliknot", "svartsot", "tool", "twisted"
+            ]))
+        self._wordlist.sort()
 
     def _generate_table_definition(self):
         columns = OrderedDict([
@@ -186,9 +196,20 @@ class VirtualMachines(ModelCollection):
 
     def new(self, **kwargs):
         if not 'name' in kwargs:
-            try:
-                kwargs['name'] = self._wordlist.pop()
-            except IndexError:
-                cherrypy.log('Virtual Machines name list is empty!')
-                kwargs['name'] = 'unnamed-%s' % len(self._items)
+            loops = 0
+            name = None
+            while name is None:
+                name = self._wordlist[self._word_p]
+
+                if ModelCollection.first(self, name=name):
+                    name = None
+                self._word_p += 1
+                if self._word_p >= len(self._wordlist):
+                    self._word_p = 0
+                    loops += 1
+                    if loops > 2:
+                        name = 'unnamed-%s' % len(self._items)
+                        break
+
+            kwargs['name'] = name
         return ModelCollection.new(self, **kwargs)
